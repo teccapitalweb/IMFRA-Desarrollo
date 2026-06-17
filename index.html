@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMFRA Desarrollo — Consultoría en Ingeniería Civil</title>
+<meta name="description" content="Consultoría en construcción con enfoque en ingeniería civil. Capacitaciones y soluciones integrales: planeación, desarrollo, supervisión y visión técnica.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== TOKENS DE MARCA IMFRA ===== */
+:root{
+  --naranja:#F59D1A;
+  --naranja-700:#d97f06;
+  --naranja-300:#ffcf7a;
+  --negro:#0d0d0d;
+  --negro-puro:#000000;
+  --gris-900:#161616;
+  --gris-850:#1c1c1c;
+  --gris-800:#242424;
+  --gris-700:#333333;
+  --gris-300:#D9D9D9;
+  --gris-150:#ededed;
+  --gris-100:#f5f5f4;
+  --blanco:#ffffff;
+  --muted:#6f6f6f;
+  --muted-dark:#9a9a9a;
+  --font:'Montserrat',system-ui,sans-serif;
+  --maxw:1200px;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--font);
+  color:var(--negro);
+  background:var(--blanco);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+ul{list-style:none}
+section{position:relative}
+
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+/* ===== TIPOGRAFÍA ===== */
+.eyebrow{
+  font-weight:700;
+  font-size:.78rem;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+  color:var(--naranja);
+  display:inline-flex;
+  align-items:center;
+  gap:.6rem;
+}
+.eyebrow::before{content:"";width:28px;height:2px;background:var(--naranja)}
+h2.title{
+  font-weight:800;
+  font-size:clamp(2rem,4.6vw,3.4rem);
+  line-height:1.02;
+  letter-spacing:-.02em;
+  margin:.7rem 0 1rem;
+}
+.lead{font-size:clamp(1rem,1.6vw,1.18rem);color:var(--muted);max-width:62ch}
+.dark .lead{color:var(--muted-dark)}
+
+/* ===== BOTONES ===== */
+.btn{
+  display:inline-flex;align-items:center;gap:.55rem;
+  font-weight:700;font-size:.95rem;letter-spacing:.01em;
+  padding:.95rem 1.6rem;border:0;cursor:pointer;
+  transition:transform .15s var(--ease),box-shadow .15s var(--ease),background .15s var(--ease);
+  font-family:inherit;
+}
+.btn svg{width:18px;height:18px}
+.btn-primary{background:var(--naranja);color:var(--negro-puro)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(245,157,26,.4)}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{background:transparent;color:var(--blanco);border:1.5px solid rgba(255,255,255,.28)}
+.btn-ghost:hover{border-color:var(--naranja);color:var(--naranja);transform:translateY(-2px)}
+.btn-dark{background:var(--negro);color:var(--blanco)}
+.btn-dark:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.28)}
+
+/* ===== TEXTURAS DE MARCA ===== */
+.halftone{
+  background-image:radial-gradient(var(--naranja) 1.4px,transparent 1.5px);
+  background-size:14px 14px;
+}
+.blueprint{
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+
+/* ===== NAVBAR ===== */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid transparent;
+  transition:box-shadow .25s var(--ease),border-color .25s var(--ease);
+}
+.nav.scrolled{box-shadow:0 4px 24px rgba(0,0,0,.07);border-color:var(--gris-150)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:74px}
+.nav-logo img{height:34px;width:auto}
+.nav-links{display:flex;align-items:center;gap:2rem}
+.nav-links a{
+  font-weight:600;font-size:.92rem;color:var(--gris-700);
+  position:relative;padding:.3rem 0;transition:color .15s;
+}
+.nav-links a::after{
+  content:"";position:absolute;left:0;bottom:-2px;height:2px;width:0;
+  background:var(--naranja);transition:width .22s var(--ease);
+}
+.nav-links a:hover{color:var(--negro)}
+.nav-links a:hover::after{width:100%}
+.nav-cta{display:flex;align-items:center;gap:1.2rem}
+.burger{display:none;flex-direction:column;gap:5px;background:none;border:0;cursor:pointer;padding:8px}
+.burger span{width:26px;height:2.5px;background:var(--negro);transition:.25s var(--ease)}
+.mobile-menu{
+  display:none;position:fixed;inset:74px 0 auto 0;z-index:999;
+  background:var(--blanco);border-bottom:1px solid var(--gris-150);
+  padding:1rem 24px 1.5rem;box-shadow:0 12px 30px rgba(0,0,0,.08);
+}
+.mobile-menu a{display:block;padding:.85rem 0;font-weight:600;border-bottom:1px solid var(--gris-100)}
+.mobile-menu .btn{width:100%;justify-content:center;margin-top:1rem}
+
+/* ===== HERO ===== */
+.hero{
+  background:var(--negro);
+  color:var(--blanco);
+  min-height:100vh;
+  display:flex;align-items:center;
+  padding:118px 0 80px;
+  overflow:hidden;
+}
+.hero-bp{position:absolute;inset:0;opacity:.7}
+.hero-halftone{
+  position:absolute;top:0;right:0;width:46%;height:100%;
+  opacity:.10;
+  -webkit-mask-image:linear-gradient(250deg,#000 25%,transparent 75%);
+  mask-image:linear-gradient(250deg,#000 25%,transparent 75%);
+}
+/* bandas diagonales naranjas */
+.hero-band{position:absolute;top:0;bottom:0;pointer-events:none}
+.hero-band.b1{left:-6%;width:160px;background:var(--naranja);opacity:.92;transform:skewX(-14deg)}
+.hero-band.b2{left:6%;width:48px;background:var(--naranja);opacity:.32;transform:skewX(-14deg)}
+.hero-band.b3{left:11.5%;width:18px;background:var(--naranja);opacity:.18;transform:skewX(-14deg)}
+.hero-glow{
+  position:absolute;bottom:-30%;right:-10%;width:680px;height:680px;
+  background:radial-gradient(circle,rgba(245,157,26,.16),transparent 62%);
+  pointer-events:none;
+}
+.hero .wrap{position:relative;z-index:2}
+.hero-inner{max-width:880px}
+.hero h1{
+  font-weight:800;
+  font-size:clamp(2.7rem,6.6vw,5.6rem);
+  line-height:.98;
+  letter-spacing:-.025em;
+  margin:1.1rem 0 1.3rem;
+}
+.hero h1 b{color:var(--naranja);font-weight:800}
+.hero-sub{font-size:clamp(1.05rem,1.8vw,1.32rem);color:var(--muted-dark);max-width:60ch;margin-bottom:2.2rem}
+.hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
+.hero-stats{
+  display:flex;gap:2.6rem;margin-top:3.6rem;padding-top:2.4rem;
+  border-top:1px solid rgba(255,255,255,.1);flex-wrap:wrap;
+}
+.hero-stats .st b{display:block;font-size:clamp(1.7rem,3vw,2.4rem);font-weight:800;color:var(--blanco);line-height:1}
+.hero-stats .st span{font-size:.82rem;letter-spacing:.05em;color:var(--muted-dark);text-transform:uppercase}
+
+/* ===== SECCIÓN GENÉRICA ===== */
+.sec{padding:clamp(72px,9vw,120px) 0}
+.sec-head{max-width:760px;margin-bottom:3.4rem}
+.dark.sec{background:var(--negro);color:var(--blanco)}
+.dark .title,.dark h3{color:var(--blanco)}
+
+/* ===== NOSOTROS ===== */
+.about{display:grid;grid-template-columns:1.35fr 1fr;gap:clamp(2rem,5vw,4.5rem);align-items:center}
+.about-copy p{color:var(--muted);margin-bottom:1.1rem;font-size:1.05rem}
+.about-copy p:last-child{margin-bottom:0}
+.about-figure{
+  position:relative;aspect-ratio:4/5;border-radius:2px;overflow:hidden;
+  background:var(--negro);
+}
+.about-figure .bp{position:absolute;inset:0;opacity:.8}
+.about-figure .ht{position:absolute;inset:0;opacity:.12}
+.about-figure .frame{
+  position:absolute;inset:0;display:grid;place-items:center;
+}
+.about-figure .ring{
+  width:46%;aspect-ratio:1;border:3px solid var(--naranja);border-radius:50%;
+  display:grid;place-items:center;
+}
+.about-figure .ring svg{width:42%;height:42%;color:var(--naranja)}
+.about-figure .corner{position:absolute;width:54px;height:54px;border-color:var(--naranja);border-style:solid}
+.about-figure .c1{top:18px;left:18px;border-width:3px 0 0 3px}
+.about-figure .c2{bottom:18px;right:18px;border-width:0 3px 3px 0}
+.about-figure .diag{position:absolute;left:-10%;top:0;bottom:0;width:70px;background:var(--naranja);opacity:.85;transform:skewX(-14deg)}
+
+/* ===== ESENCIA (valores) ===== */
+.values{display:grid;grid-template-columns:repeat(4,1fr);gap:1.4rem}
+.value{
+  padding:2.2rem 1.6rem;background:var(--gris-850);border:1px solid var(--gris-800);
+  border-radius:2px;transition:border-color .2s,transform .2s var(--ease);
+  position:relative;overflow:hidden;
+}
+.value::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--naranja);
+  transform:scaleY(0);transform-origin:top;transition:transform .25s var(--ease);
+}
+.value:hover{border-color:var(--gris-700);transform:translateY(-4px)}
+.value:hover::before{transform:scaleY(1)}
+.value .ico{
+  width:60px;height:60px;border:2px solid var(--naranja);border-radius:50%;
+  display:grid;place-items:center;margin-bottom:1.3rem;
+}
+.value .ico svg{width:26px;height:26px;color:var(--naranja)}
+.value h3{font-size:1.15rem;font-weight:700;margin-bottom:.5rem}
+.value p{color:var(--muted-dark);font-size:.93rem}
+
+/* ===== SERVICIOS / ÁREAS CLAVE ===== */
+.services{display:grid;grid-template-columns:1.05fr 1fr;gap:1.4rem}
+.svc-main{
+  grid-row:span 2;background:var(--naranja);color:var(--negro-puro);
+  border-radius:2px;padding:clamp(2rem,4vw,3rem);
+  display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;overflow:hidden;min-height:340px;
+}
+.svc-main .ht{position:absolute;inset:0;opacity:.16;
+  background-image:radial-gradient(#0d0d0d 1.4px,transparent 1.5px);background-size:14px 14px}
+.svc-main-top{position:relative;z-index:1}
+.svc-main .tag{font-weight:700;letter-spacing:.22em;text-transform:uppercase;font-size:.74rem;opacity:.7}
+.svc-main h3{font-size:clamp(1.8rem,3.4vw,2.7rem);font-weight:900;line-height:1;margin:.7rem 0 1rem;letter-spacing:-.02em}
+.svc-main p{font-size:1rem;max-width:34ch;font-weight:500}
+.svc-main .bigicon{position:relative;z-index:1;align-self:flex-end}
+.svc-main .bigicon svg{width:88px;height:88px;color:var(--negro-puro);opacity:.9}
+.svc{
+  background:var(--gris-100);border:1px solid var(--gris-150);border-radius:2px;
+  padding:1.7rem;transition:transform .2s var(--ease),box-shadow .2s var(--ease);
+  display:flex;gap:1.1rem;align-items:flex-start;
+}
+.svc:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.06)}
+.svc .ico{flex:0 0 auto;width:48px;height:48px;background:var(--negro);border-radius:2px;display:grid;place-items:center}
+.svc .ico svg{width:24px;height:24px;color:var(--naranja)}
+.svc h4{font-size:1.08rem;font-weight:700;margin-bottom:.3rem}
+.svc p{color:var(--muted);font-size:.9rem}
+
+/* ===== CAPACITACIONES ===== */
+.cap{background:var(--gris-900);color:var(--blanco);position:relative;overflow:hidden}
+.cap .bp{position:absolute;inset:0;opacity:.6}
+.cap .diag-strip{
+  position:absolute;right:-4%;top:0;bottom:0;width:200px;
+  background:var(--naranja);opacity:.07;transform:skewX(-14deg);
+}
+.cap-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:clamp(2rem,5vw,4rem);align-items:center;position:relative;z-index:1}
+.cap-list{display:grid;gap:1rem}
+.cap-item{display:flex;gap:1rem;align-items:flex-start;padding:1.1rem 1.3rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:2px}
+.cap-item .chk{flex:0 0 auto;width:30px;height:30px;background:var(--naranja);border-radius:50%;display:grid;place-items:center}
+.cap-item .chk svg{width:16px;height:16px;color:var(--negro-puro)}
+.cap-item div h4{font-size:1rem;font-weight:700;margin-bottom:.15rem}
+.cap-item div p{color:var(--muted-dark);font-size:.88rem}
+.cap-cta{margin-top:2.2rem}
+
+/* ===== CAPACIDADES / PROYECTOS (grid 6) ===== */
+.caps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.3rem}
+.cap-card{
+  position:relative;border-radius:2px;overflow:hidden;background:var(--negro);
+  aspect-ratio:1/.82;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:1.6rem;color:var(--blanco);isolation:isolate;
+  transition:transform .25s var(--ease);
+}
+.cap-card .bp{position:absolute;inset:0;opacity:.55;z-index:-2}
+.cap-card .ov{
+  position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(150deg,rgba(245,157,26,0) 35%,rgba(245,157,26,.18) 100%),
+             linear-gradient(180deg,rgba(13,13,13,.2),rgba(13,13,13,.85));
+  transition:opacity .25s;
+}
+.cap-card .diag{
+  position:absolute;left:-30%;top:0;bottom:0;width:55%;z-index:-1;
+  background:var(--naranja);opacity:0;transform:skewX(-16deg) translateX(-30%);
+  transition:opacity .3s var(--ease),transform .4s var(--ease);
+}
+.cap-card:hover{transform:translateY(-5px)}
+.cap-card:hover .diag{opacity:.14;transform:skewX(-16deg) translateX(10%)}
+.cap-card .num{position:absolute;top:1.3rem;left:1.6rem;font-weight:800;font-size:.85rem;color:var(--naranja);letter-spacing:.1em}
+.cap-card .cardico{margin-bottom:auto;margin-top:1.6rem}
+.cap-card .cardico svg{width:40px;height:40px;color:var(--naranja)}
+.cap-card h4{font-size:1.16rem;font-weight:700;line-height:1.15}
+
+/* ===== CTA BANNER ===== */
+.ctaband{background:var(--naranja);color:var(--negro-puro);position:relative;overflow:hidden}
+.ctaband .ht{position:absolute;inset:0;opacity:.14;background-image:radial-gradient(#0d0d0d 1.4px,transparent 1.5px);background-size:16px 16px}
+.ctaband-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+.ctaband h3{font-size:clamp(1.6rem,3.4vw,2.6rem);font-weight:900;line-height:1.05;letter-spacing:-.02em;max-width:20ch}
+
+/* ===== CONTACTO ===== */
+.contact{background:var(--negro);color:var(--blanco);position:relative;overflow:hidden}
+.contact .bp{position:absolute;inset:0;opacity:.55}
+.contact .band{position:absolute;left:-5%;top:0;bottom:0;width:120px;background:var(--naranja);opacity:.85;transform:skewX(-14deg)}
+.contact-grid{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(2.5rem,6vw,5rem);position:relative;z-index:1}
+.contact-info .item{display:flex;gap:1.1rem;align-items:flex-start;margin-bottom:1.8rem}
+.contact-info .item .ico{flex:0 0 auto;width:46px;height:46px;border:2px solid var(--naranja);border-radius:50%;display:grid;place-items:center}
+.contact-info .item .ico svg{width:20px;height:20px;color:var(--naranja)}
+.contact-info .item h4{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-dark);margin-bottom:.2rem}
+.contact-info .item p{font-size:1.05rem;font-weight:600;color:var(--blanco)}
+.contact-info .item a{transition:color .15s}
+.contact-info .item a:hover{color:var(--naranja)}
+.form{background:var(--gris-850);border:1px solid var(--gris-800);border-radius:2px;padding:clamp(1.6rem,3vw,2.4rem)}
+.form .row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.field{margin-bottom:1.1rem;display:flex;flex-direction:column;gap:.45rem}
+.field label{font-size:.82rem;font-weight:600;color:var(--muted-dark)}
+.field input,.field textarea{
+  font-family:inherit;font-size:.95rem;color:var(--blanco);
+  background:var(--negro);border:1px solid var(--gris-700);border-radius:2px;
+  padding:.85rem 1rem;transition:border-color .15s;
+}
+.field input:focus,.field textarea:focus{outline:none;border-color:var(--naranja)}
+.field textarea{resize:vertical;min-height:110px}
+.form .btn{width:100%;justify-content:center;margin-top:.4rem}
+.form-note{font-size:.78rem;color:var(--muted-dark);text-align:center;margin-top:.9rem}
+
+/* ===== FOOTER ===== */
+.footer{background:var(--negro-puro);color:var(--blanco);padding:64px 0 32px}
+.footer-top{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:2.5rem;padding-bottom:2.8rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.footer-brand{display:flex;align-items:center;gap:.7rem;margin-bottom:1.1rem}
+.footer-brand img{height:38px;width:auto}
+.footer-brand .txt b{font-size:1.35rem;font-weight:900;letter-spacing:.02em;line-height:1}
+.footer-brand .txt span{font-size:.62rem;letter-spacing:.42em;color:var(--muted-dark);display:block}
+.footer-col p{color:var(--muted-dark);font-size:.92rem;max-width:34ch}
+.footer-col h5{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--naranja);margin-bottom:1.1rem}
+.footer-col ul li{margin-bottom:.7rem}
+.footer-col ul a{color:var(--muted-dark);font-size:.92rem;transition:color .15s}
+.footer-col ul a:hover{color:var(--blanco)}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:2rem;gap:1rem;flex-wrap:wrap}
+.footer-bottom p{color:var(--muted);font-size:.82rem}
+.footer-social{display:flex;gap:.8rem}
+.footer-social a{width:38px;height:38px;border:1px solid rgba(255,255,255,.16);border-radius:50%;display:grid;place-items:center;transition:.18s var(--ease)}
+.footer-social a:hover{background:var(--naranja);border-color:var(--naranja)}
+.footer-social a:hover svg{color:var(--negro-puro)}
+.footer-social svg{width:17px;height:17px;color:var(--muted-dark);transition:color .18s}
+
+/* ===== WHATSAPP FLOTANTE ===== */
+.wa-float{
+  position:fixed;bottom:22px;right:22px;z-index:9998;
+  width:58px;height:58px;border-radius:50%;background:#25D366;
+  display:grid;place-items:center;box-shadow:0 6px 20px rgba(0,0,0,.28);
+  transition:transform .2s var(--ease);
+}
+.wa-float:hover{transform:scale(1.08)}
+.wa-float svg{width:30px;height:30px;fill:#fff}
+
+/* ===== ANIMACIONES SCROLL ===== */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .65s var(--ease),transform .65s var(--ease)}
+.reveal.in{opacity:1;transform:none}
+.reveal.d1{transition-delay:.08s}
+.reveal.d2{transition-delay:.16s}
+.reveal.d3{transition-delay:.24s}
+.reveal.d4{transition-delay:.32s}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:980px){
+  .about{grid-template-columns:1fr}
+  .about-figure{aspect-ratio:16/10;max-height:380px}
+  .values{grid-template-columns:repeat(2,1fr)}
+  .services{grid-template-columns:1fr}
+  .svc-main{grid-row:auto;min-height:auto}
+  .cap-grid{grid-template-columns:1fr}
+  .caps{grid-template-columns:repeat(2,1fr)}
+  .contact-grid{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr 1fr}
+}
+@media(max-width:680px){
+  .nav-links,.nav-cta .btn{display:none}
+  .burger{display:flex}
+  .nav-cta{gap:0}
+  .values{grid-template-columns:1fr}
+  .caps{grid-template-columns:1fr}
+  .form .row{grid-template-columns:1fr}
+  .footer-top{grid-template-columns:1fr}
+  .hero-stats{gap:1.8rem}
+  .ctaband-inner{flex-direction:column;align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a href="#inicio" class="nav-logo" aria-label="IMFRA Desarrollo">
+      <img src="assets/imfra-logo.png" alt="IMFRA Desarrollo">
+    </a>
+    <ul class="nav-links">
+      <li><a href="#nosotros">Nosotros</a></li>
+      <li><a href="#esencia">Esencia</a></li>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#capacitaciones">Capacitaciones</a></li>
+      <li><a href="#capacidades">Capacidades</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="#contacto" class="btn btn-dark">Contáctanos</a>
+      <button class="burger" id="burger" aria-label="Menú"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#nosotros">Nosotros</a>
+  <a href="#esencia">Esencia</a>
+  <a href="#servicios">Servicios</a>
+  <a href="#capacitaciones">Capacitaciones</a>
+  <a href="#capacidades">Capacidades</a>
+  <a href="#contacto" class="btn btn-primary">Contáctanos</a>
+</div>
+
+<!-- ===== HERO ===== -->
+<header class="hero" id="inicio">
+  <div class="hero-bp blueprint"></div>
+  <div class="hero-halftone halftone"></div>
+  <div class="hero-band b1"></div>
+  <div class="hero-band b2"></div>
+  <div class="hero-band b3"></div>
+  <div class="hero-glow"></div>
+  <div class="wrap">
+    <div class="hero-inner">
+      <span class="eyebrow">IMFRA Desarrollo</span>
+      <h1>Ingeniería, desarrollo y arquitectura <b>trabajan juntas.</b></h1>
+      <p class="hero-sub">Consultora especializada en capacitaciones y soluciones integrales en el ramo de la ingeniería civil. Planeación, desarrollo, supervisión y visión técnica para proyectos sólidos, funcionales y rentables.</p>
+      <div class="hero-actions">
+        <a href="#servicios" class="btn btn-primary">Nuestros servicios
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a href="#contacto" class="btn btn-ghost">Solicitar consultoría</a>
+      </div>
+      <div class="hero-stats">
+        <div class="st"><b>+15</b><span>Años de experiencia</span></div>
+        <div class="st"><b>100%</b><span>Visión técnica</span></div>
+        <div class="st"><b>360°</b><span>Soluciones integrales</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== NOSOTROS ===== -->
+<section class="sec" id="nosotros">
+  <div class="wrap about">
+    <div class="about-copy reveal">
+      <span class="eyebrow">Concepto de marca</span>
+      <h2 class="title">Construimos sobre precisión técnica</h2>
+      <p>En IMFRA Desarrollo somos una consultoría en construcción con enfoque principal en la ingeniería civil. Integramos planeación, desarrollo, supervisión y visión técnica para entregar proyectos sólidos, funcionales y rentables.</p>
+      <p>Acompañamos cada etapa del proceso constructivo con criterio profesional y rigor en obra, asegurando resultados que cumplen tiempos, costos y los más altos estándares de calidad.</p>
+    </div>
+    <div class="about-figure reveal d2">
+      <div class="bp blueprint"></div>
+      <div class="ht halftone"></div>
+      <div class="diag"></div>
+      <span class="corner c1"></span>
+      <span class="corner c2"></span>
+      <div class="frame">
+        <div class="ring">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V9l7-5 7 5v12"/><path d="M9 21v-6h6v6"/><path d="M9 12h.01M15 12h.01"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ESENCIA ===== -->
+<section class="sec dark" id="esencia">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Esencia de marca</span>
+      <h2 class="title">Lo que sostiene cada proyecto</h2>
+      <p class="lead">Cuatro principios guían nuestra forma de trabajar y definen la relación que construimos con cada cliente.</p>
+    </div>
+    <div class="values">
+      <div class="value reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><line x1="12" y1="1.5" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22.5" y2="12"/></svg></div>
+        <h3>Precisión técnica</h3>
+        <p>Cálculo exacto y criterio de ingeniería en cada decisión de obra.</p>
+      </div>
+      <div class="value reveal d1">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5 5 5v6c0 4.5 3 8 7 9.5 4-1.5 7-5 7-9.5V5z"/><path d="m9 12 2 2 4-4.5"/></svg></div>
+        <h3>Solidez</h3>
+        <p>Estructuras y procesos confiables que perduran en el tiempo.</p>
+      </div>
+      <div class="value reveal d2">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 21h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg></div>
+        <h3>Innovación</h3>
+        <p>Soluciones técnicas actuales aplicadas con sentido práctico.</p>
+      </div>
+      <div class="value reveal d3">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2 5-5"/><path d="M3 7l4-4 5 4 5-4 4 4-5 5"/><path d="M3 7v8l5 4"/></svg></div>
+        <h3>Confianza</h3>
+        <p>Acompañamiento transparente del primer trazo a la entrega final.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SERVICIOS / ÁREAS CLAVE ===== -->
+<section class="sec" id="servicios">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Áreas clave</span>
+      <h2 class="title">Soluciones integrales para tu obra</h2>
+      <p class="lead">Cubrimos el ciclo completo del proyecto, con la ingeniería civil como nuestro enfoque principal.</p>
+    </div>
+    <div class="services">
+      <div class="svc-main reveal">
+        <div class="ht"></div>
+        <div class="svc-main-top">
+          <span class="tag">Nuestro enfoque principal</span>
+          <h3>Ingeniería civil</h3>
+          <p>Diseño, cálculo y dirección técnica de proyectos de construcción e infraestructura con respaldo profesional integral.</p>
+        </div>
+        <div class="bigicon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20"/><path d="M4 20V8l8-4 8 4v12"/><path d="M2 12h20"/><path d="M9 20v-4h6v4"/><path d="M8 8h.01M12 8h.01M16 8h.01"/></svg>
+        </div>
+      </div>
+      <div class="svc reveal d1">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V8l5-3v16M19 21V11l-8-4"/><path d="m9 21 .01-3"/></svg></div>
+        <div><h4>Supervisión de obra</h4><p>Control de calidad, seguimiento técnico y verificación en sitio durante toda la ejecución.</p></div>
+      </div>
+      <div class="svc reveal d2">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8 8h8M8 12h8M8 16h5"/><circle cx="17" cy="17" r="3.5" fill="none"/></svg></div>
+        <div><h4>Planeación y costos</h4><p>Presupuestos, programación y análisis de costos para una inversión clara y rentable.</p></div>
+      </div>
+      <div class="svc reveal d1">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l7-4 7 4v14"/><path d="M9 9h.01M9 13h.01M15 9h.01M15 13h.01M9 21v-4h6v4"/></svg></div>
+        <div><h4>Desarrollo de proyectos</h4><p>Gestión integral desde el anteproyecto hasta la materialización de la obra.</p></div>
+      </div>
+      <div class="svc reveal d2">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="9"/><path d="m12 2 3 4-3 2-3-2z"/></svg></div>
+        <div><h4>Arquitectura de apoyo</h4><p>Diseño arquitectónico y compatibilización técnica alineados a la ingeniería del proyecto.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CAPACITACIONES ===== -->
+<section class="sec cap" id="capacitaciones">
+  <div class="bp blueprint"></div>
+  <div class="diag-strip"></div>
+  <div class="wrap cap-grid">
+    <div class="reveal">
+      <span class="eyebrow">Capacitaciones</span>
+      <h2 class="title">Formación técnica que se aplica en obra</h2>
+      <p class="lead">Programas de capacitación diseñados para profesionales y equipos del sector construcción. Contenido práctico, impartido por especialistas con experiencia real en campo.</p>
+      <div class="cap-cta">
+        <a href="#contacto" class="btn btn-primary">Quiero capacitarme
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="cap-list">
+      <div class="cap-item reveal d1">
+        <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><h4>Ingeniería civil aplicada</h4><p>Fundamentos y prácticas actuales para el diseño y ejecución de obra.</p></div>
+      </div>
+      <div class="cap-item reveal d2">
+        <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><h4>Supervisión y control de calidad</h4><p>Metodologías para verificar y garantizar estándares en campo.</p></div>
+      </div>
+      <div class="cap-item reveal d3">
+        <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><h4>Planeación, costos y presupuestos</h4><p>Herramientas para programar y controlar la inversión del proyecto.</p></div>
+      </div>
+      <div class="cap-item reveal d4">
+        <div class="chk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div><h4>Gestión integral de obra</h4><p>Coordinación de recursos, tiempos y equipos para una ejecución eficiente.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CAPACIDADES / PROYECTOS ===== -->
+<section class="sec dark" id="capacidades">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Estilo visual / Capacidades</span>
+      <h2 class="title">Donde aplicamos nuestra experiencia</h2>
+      <p class="lead">Áreas de especialidad que integramos en cada proyecto de principio a fin.</p>
+    </div>
+    <div class="caps">
+      <article class="cap-card reveal">
+        <div class="bp blueprint"></div><div class="ov"></div><div class="diag"></div>
+        <span class="num">01</span>
+        <div class="cardico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 2 4-5"/><path d="M4 7h3M4 11h2"/></svg></div>
+        <h4>Planificación y diseño</h4>
+      </article>
+      <article class="cap-card reveal d1">
+        <div class="bp blueprint"></div><div class="ov"></div><div class="diag"></div>
+        <span class="num">02</span>
+        <div class="cardico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17h20"/><path d="M4 17V9M20 17V9"/><path d="M2 9c4-4 16-4 20 0"/><path d="M8 17v-4M16 17v-4M12 17v-5"/></svg></div>
+        <h4>Infraestructura y obras civiles</h4>
+      </article>
+      <article class="cap-card reveal d2">
+        <div class="bp blueprint"></div><div class="ov"></div><div class="diag"></div>
+        <span class="num">03</span>
+        <div class="cardico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18v2H3z"/><path d="M5 18v-4a7 7 0 0 1 14 0v4"/><path d="M12 7V4"/></svg></div>
+        <h4>Supervisión y control</h4>
+      </article>
+      <article class="cap-card reveal">
+        <div class="bp blueprint"></div><div class="ov"></div><div class="diag"></div>
+        <span class="num">04</span>
+        <div class="cardico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5l6-2 6 2v16"/><path d="M9 8h.01M9 12h.01M15 8h.01M15 12h.01M9 21v-4h6v4"/></svg></div>
+        <h4>Arquitectura y apoyo técnico</h4>
+      </article>
+      <article class="cap-card reveal d1">
+        <div class="bp blueprint"></div><div class="ov"></div><div class="diag"></div>
+        <span class="num">05</span>
+        <div class="cardico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6 4 4v14l5 2 6-2 5 2V6l-5-2-6 2z"/><path d="M9 6v14M15 4v14"/></svg></div>
+        <h4>Planeación y gestión</h4>
+      </article>
+      <article class="cap-card reveal d2">
+        <div class="bp blueprint"></div><div class="ov"></div><div class="diag"></div>
+        <span class="num">06</span>
+        <div class="cardico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/></svg></div>
+        <h4>Análisis y costos</h4>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA BANNER ===== -->
+<section class="ctaband">
+  <div class="ht"></div>
+  <div class="wrap ctaband-inner">
+    <h3 class="reveal">¿Listo para construir tu próximo proyecto con respaldo técnico?</h3>
+    <a href="#contacto" class="btn btn-dark reveal d1">Hablemos de tu obra
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ===== CONTACTO ===== -->
+<section class="sec contact" id="contacto">
+  <div class="bp blueprint"></div>
+  <div class="band"></div>
+  <div class="wrap contact-grid">
+    <div class="contact-info reveal">
+      <span class="eyebrow">Contacto</span>
+      <h2 class="title">Construyamos juntos</h2>
+      <p class="lead" style="margin-bottom:2.4rem">Cuéntanos sobre tu proyecto o capacitación. Te respondemos con una propuesta técnica a tu medida.</p>
+      <!-- REEMPLAZAR DATOS REALES AQUÍ -->
+      <div class="item">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg></div>
+        <div><h4>Teléfono</h4><p><a href="tel:+522381234567">+52 238 123 4567</a></p></div>
+      </div>
+      <div class="item">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg></div>
+        <div><h4>Correo</h4><p><a href="mailto:contacto@imfradesarrollo.com">contacto@imfradesarrollo.com</a></p></div>
+      </div>
+      <div class="item">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div><h4>Ubicación</h4><p>Tehuacán, Puebla, México</p></div>
+      </div>
+    </div>
+    <div class="form reveal d2">
+      <div class="row">
+        <div class="field"><label for="nombre">Nombre</label><input id="nombre" type="text" placeholder="Tu nombre"></div>
+        <div class="field"><label for="tel">Teléfono</label><input id="tel" type="tel" placeholder="Tu teléfono"></div>
+      </div>
+      <div class="field"><label for="email">Correo</label><input id="email" type="email" placeholder="correo@ejemplo.com"></div>
+      <div class="field"><label for="msg">¿En qué te ayudamos?</label><textarea id="msg" placeholder="Cuéntanos sobre tu proyecto o el tipo de capacitación que buscas..."></textarea></div>
+      <button class="btn btn-primary" id="sendBtn">Enviar por WhatsApp
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.821 11.821 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.477-.607z"/></svg>
+      </button>
+      <p class="form-note">Se abrirá WhatsApp con tu mensaje listo para enviar.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-col">
+        <div class="footer-brand">
+          <img src="assets/imfra-icon.png" alt="IMFRA">
+          <div class="txt"><b>IMFRA</b><span>DESARROLLO</span></div>
+        </div>
+        <p>Consultoría en construcción con enfoque en ingeniería civil. Planeación, desarrollo, supervisión y visión técnica para proyectos sólidos, funcionales y rentables.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Navegación</h5>
+        <ul>
+          <li><a href="#nosotros">Nosotros</a></li>
+          <li><a href="#esencia">Esencia</a></li>
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#capacitaciones">Capacitaciones</a></li>
+          <li><a href="#capacidades">Capacidades</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Contacto</h5>
+        <ul>
+          <li><a href="tel:+522381234567">+52 238 123 4567</a></li>
+          <li><a href="mailto:contacto@imfradesarrollo.com">contacto@imfradesarrollo.com</a></li>
+          <li><a href="#contacto">Tehuacán, Puebla, México</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span id="year"></span> IMFRA Desarrollo. Todos los derechos reservados.</p>
+      <div class="footer-social">
+        <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg></a>
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.3 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.2.4.4 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.2-1 .4-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.3-2.2-.4-.6-.2-1-.5-1.4-.9-.4-.4-.7-.8-.9-1.4-.2-.4-.4-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.2 1-.4 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 3.3a6.5 6.5 0 1 0 0 13 6.5 6.5 0 0 0 0-13zm0 10.7a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4zm6.8-11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM9 9h3.8v1.6h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.3c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8V21H9z"/></svg></a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== WHATSAPP FLOTANTE (REEMPLAZAR NÚMERO) ===== -->
+<a class="wa-float" id="waFloat" href="https://wa.me/522381234567?text=Hola%2C%20me%20interesa%20m%C3%A1s%20informaci%C3%B3n%20sobre%20IMFRA%20Desarrollo" target="_blank" rel="noopener" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.821 11.821 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.477-.607zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+</a>
+
+<script>
+// Navbar sombra al scroll
+const nav=document.getElementById('nav');
+const onScroll=()=>nav.classList.toggle('scrolled',window.scrollY>20);
+window.addEventListener('scroll',onScroll,{passive:true});onScroll();
+
+// Menú móvil
+const burger=document.getElementById('burger');
+const menu=document.getElementById('mobileMenu');
+let open=false;
+burger.addEventListener('click',()=>{open=!open;menu.style.display=open?'block':'none'});
+menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{open=false;menu.style.display='none'}));
+
+// Año footer
+document.getElementById('year').textContent=new Date().getFullYear();
+
+// Reveal al scroll
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});
+},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// Formulario -> WhatsApp (REEMPLAZAR NÚMERO en la constante WA)
+const WA='522381234567';
+document.getElementById('sendBtn').addEventListener('click',()=>{
+  const n=document.getElementById('nombre').value.trim();
+  const t=document.getElementById('tel').value.trim();
+  const e=document.getElementById('email').value.trim();
+  const m=document.getElementById('msg').value.trim();
+  if(!n||!m){alert('Por favor escribe tu nombre y un mensaje.');return;}
+  let txt=`Hola IMFRA Desarrollo, soy ${n}.`;
+  if(m) txt+=`\n\n${m}`;
+  if(e) txt+=`\n\nCorreo: ${e}`;
+  if(t) txt+=`\nTel: ${t}`;
+  window.open(`https://wa.me/${WA}?text=${encodeURIComponent(txt)}`,'_blank');
+});
+</script>
+</body>
+</html>
