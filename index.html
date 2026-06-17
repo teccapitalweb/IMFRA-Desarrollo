@@ -469,6 +469,16 @@ h2.title{
   .modal-body{padding:1.4rem 1.3rem 1.6rem}
   .modal-body h3{overflow-wrap:break-word}
 }
+/* ===== modal móvil definitivo: botón WhatsApp siempre visible ===== */
+@media(max-width:680px){
+  .modal-ov{padding:10px}
+  .modal-card{max-width:none;width:100%;max-height:96vh;max-height:calc(100dvh - 20px);grid-template-columns:1fr;grid-template-rows:auto 1fr;overflow:hidden;border-radius:10px}
+  .modal-figure{aspect-ratio:1;min-height:0}
+  .modal-body{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1.3rem 1.2rem 1rem;display:flex;flex-direction:column}
+  .modal-body h3{overflow-wrap:break-word;font-size:1.3rem}
+  .modal-resumen{margin-bottom:1.1rem}
+  .modal-body .btn-wa{position:sticky;bottom:0;margin-top:.5rem;box-shadow:0 -14px 18px rgba(255,255,255,.95)}
+}
 </style>
 </head>
 <body>
