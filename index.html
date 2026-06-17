@@ -34,7 +34,7 @@
 
 /* ===== RESET ===== */
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:hidden}
 body{
   font-family:var(--font);
   color:var(--negro);
@@ -449,6 +449,26 @@ h2.title{
   .modal-figure{min-height:0;aspect-ratio:1}
 }
 
+/* ===== modal: ajuste móvil + efectos de apertura ===== */
+.modal-figure,.modal-body{min-width:0}            /* evita desbordes del grid */
+.modal-card{overflow:hidden;transition:none}
+.modal-ov.open .modal-card{animation:modalPop .44s cubic-bezier(.34,1.45,.5,1) both}
+@keyframes modalPop{from{opacity:0;transform:translateY(22px) scale(.9)}to{opacity:1;transform:none}}
+.modal-ov.open .modal-body>*{animation:cmFade .5s var(--ease) both}
+.modal-ov.open .modal-body>*:nth-child(1){animation-delay:.12s}
+.modal-ov.open .modal-body>*:nth-child(2){animation-delay:.17s}
+.modal-ov.open .modal-body>*:nth-child(3){animation-delay:.22s}
+.modal-ov.open .modal-body>*:nth-child(4){animation-delay:.27s}
+.modal-ov.open .modal-body>*:nth-child(5){animation-delay:.32s}
+.modal-ov.open .modal-body>*:nth-child(6){animation-delay:.37s}
+.modal-ov.open .modal-body>*:nth-child(7){animation-delay:.42s}
+@keyframes cmFade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.curso-card:active{transform:scale(.97);transition:transform .12s var(--ease)}
+@media(max-width:680px){
+  .modal-ov{padding:12px}
+  .modal-body{padding:1.4rem 1.3rem 1.6rem}
+  .modal-body h3{overflow-wrap:break-word}
+}
 </style>
 </head>
 <body>
