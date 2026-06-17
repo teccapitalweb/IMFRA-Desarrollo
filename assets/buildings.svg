@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-158.3 -234.0 306.2 474.0" width="306" height="474">
+<polygon points="-103.9,60.0 -52.0,90.0 -52.0,-60.0 -103.9,-90.0" fill="#F59D1A" fill-opacity="0.028" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="0.0,60.0 -52.0,90.0 -52.0,-60.0 0.0,-90.0" fill="#F59D1A" fill-opacity="0.06" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="-52.0,-120.0 0.0,-90.0 -52.0,-60.0 -103.9,-90.0" fill="#F59D1A" fill-opacity="0.09" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="-52.0" y1="-0.0" x2="0.0" y2="30.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="30.0" x2="-52.0" y2="60.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="-52.0" y1="-30.0" x2="0.0" y2="-0.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-0.0" x2="-52.0" y2="30.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="-52.0" y1="-60.0" x2="0.0" y2="-30.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-30.0" x2="-52.0" y2="-0.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="-52.0" y1="-90.0" x2="0.0" y2="-60.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-60.0" x2="-52.0" y2="-30.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="60.0" x2="0.0" y2="-90.0" stroke="#F59D1A" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>
+<polygon points="26.0,75.0 77.9,105.0 77.9,-90.0 26.0,-120.0" fill="#F59D1A" fill-opacity="0.028" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="129.9,75.0 77.9,105.0 77.9,-90.0 129.9,-120.0" fill="#F59D1A" fill-opacity="0.06" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="77.9,-150.0 129.9,-120.0 77.9,-90.0 26.0,-120.0" fill="#F59D1A" fill-opacity="0.09" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="77.9" y1="12.5" x2="129.9" y2="42.5" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="129.9" y1="42.5" x2="77.9" y2="72.5" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="77.9" y1="-20.0" x2="129.9" y2="10.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="129.9" y1="10.0" x2="77.9" y2="40.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="77.9" y1="-52.5" x2="129.9" y2="-22.5" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="129.9" y1="-22.5" x2="77.9" y2="7.5" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="77.9" y1="-85.0" x2="129.9" y2="-55.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="129.9" y1="-55.0" x2="77.9" y2="-25.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="77.9" y1="-117.5" x2="129.9" y2="-87.5" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="129.9" y1="-87.5" x2="77.9" y2="-57.5" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="129.9" y1="75.0" x2="129.9" y2="-120.0" stroke="#F59D1A" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>
+<polygon points="-57.2,117.0 0.0,150.0 0.0,-150.0 -57.2,-183.0" fill="#F59D1A" fill-opacity="0.028" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="57.2,117.0 0.0,150.0 0.0,-150.0 57.2,-183.0" fill="#F59D1A" fill-opacity="0.06" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="0.0,-216.0 57.2,-183.0 0.0,-150.0 -57.2,-183.0" fill="#F59D1A" fill-opacity="0.09" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="0.0" y1="50.7" x2="57.2" y2="83.7" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="83.7" x2="0.0" y2="116.7" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="17.3" x2="57.2" y2="50.3" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="50.3" x2="0.0" y2="83.3" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-16.0" x2="57.2" y2="17.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="17.0" x2="0.0" y2="50.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-49.3" x2="57.2" y2="-16.3" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="-16.3" x2="0.0" y2="16.7" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-82.7" x2="57.2" y2="-49.7" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="-49.7" x2="0.0" y2="-16.7" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-116.0" x2="57.2" y2="-83.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="-83.0" x2="0.0" y2="-50.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-149.3" x2="57.2" y2="-116.3" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="-116.3" x2="0.0" y2="-83.3" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-182.7" x2="57.2" y2="-149.7" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="-149.7" x2="0.0" y2="-116.7" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="57.2" y1="117.0" x2="57.2" y2="-183.0" stroke="#F59D1A" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>
+<polygon points="-140.3,135.0 -88.3,165.0 -88.3,45.0 -140.3,15.0" fill="#F59D1A" fill-opacity="0.028" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="-36.4,135.0 -88.3,165.0 -88.3,45.0 -36.4,15.0" fill="#F59D1A" fill-opacity="0.06" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="-88.3,-15.0 -36.4,15.0 -88.3,45.0 -140.3,15.0" fill="#F59D1A" fill-opacity="0.09" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="-88.3" y1="75.0" x2="-36.4" y2="105.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="-36.4" y1="105.0" x2="-88.3" y2="135.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="-88.3" y1="45.0" x2="-36.4" y2="75.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="-36.4" y1="75.0" x2="-88.3" y2="105.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="-88.3" y1="15.0" x2="-36.4" y2="45.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="-36.4" y1="45.0" x2="-88.3" y2="75.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="-36.4" y1="135.0" x2="-36.4" y2="15.0" stroke="#F59D1A" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>
+<polygon points="-20.8,168.0 31.2,198.0 31.2,-27.0 -20.8,-57.0" fill="#F59D1A" fill-opacity="0.028" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="83.1,168.0 31.2,198.0 31.2,-27.0 83.1,-57.0" fill="#F59D1A" fill-opacity="0.06" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="31.2,-87.0 83.1,-57.0 31.2,-27.0 -20.8,-57.0" fill="#F59D1A" fill-opacity="0.09" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="31.2" y1="105.9" x2="83.1" y2="135.9" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="83.1" y1="135.9" x2="31.2" y2="165.9" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="31.2" y1="73.7" x2="83.1" y2="103.7" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="83.1" y1="103.7" x2="31.2" y2="133.7" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="31.2" y1="41.6" x2="83.1" y2="71.6" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="83.1" y1="71.6" x2="31.2" y2="101.6" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="31.2" y1="9.4" x2="83.1" y2="39.4" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="83.1" y1="39.4" x2="31.2" y2="69.4" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="31.2" y1="-22.7" x2="83.1" y2="7.3" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="83.1" y1="7.3" x2="31.2" y2="37.3" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="31.2" y1="-54.9" x2="83.1" y2="-24.9" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="83.1" y1="-24.9" x2="31.2" y2="5.1" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="83.1" y1="168.0" x2="83.1" y2="-57.0" stroke="#F59D1A" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>
+<polygon points="-77.9,195.0 -31.2,222.0 -31.2,132.0 -77.9,105.0" fill="#F59D1A" fill-opacity="0.028" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="10.4,198.0 -31.2,222.0 -31.2,132.0 10.4,108.0" fill="#F59D1A" fill-opacity="0.06" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<polygon points="-36.4,81.0 10.4,108.0 -31.2,132.0 -77.9,105.0" fill="#F59D1A" fill-opacity="0.09" stroke="#F59D1A" stroke-opacity="0.85" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="-36.4" y1="141.0" x2="10.4" y2="168.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="10.4" y1="168.0" x2="-31.2" y2="192.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="-36.4" y1="111.0" x2="10.4" y2="138.0" stroke="#F59D1A" stroke-opacity="0.32" stroke-width="1" stroke-linecap="round"/>
+<line x1="10.4" y1="138.0" x2="-31.2" y2="162.0" stroke="#F59D1A" stroke-opacity="0.18" stroke-width="1" stroke-linecap="round"/>
+<line x1="10.4" y1="198.0" x2="10.4" y2="108.0" stroke="#F59D1A" stroke-opacity="0.55" stroke-width="1.4" stroke-linecap="round"/>
+<line x1="0.0" y1="-30.0" x2="-233.8" y2="105.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="26.0" y1="-15.0" x2="-207.8" y2="120.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="52.0" y1="0.0" x2="-181.9" y2="135.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="77.9" y1="15.0" x2="-155.9" y2="150.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="103.9" y1="30.0" x2="-129.9" y2="165.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="129.9" y1="45.0" x2="-103.9" y2="180.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="155.9" y1="60.0" x2="-77.9" y2="195.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="181.9" y1="75.0" x2="-52.0" y2="210.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="207.8" y1="90.0" x2="-26.0" y2="225.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="233.8" y1="105.0" x2="0.0" y2="240.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="-30.0" x2="233.8" y2="105.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-26.0" y1="-15.0" x2="207.8" y2="120.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-52.0" y1="0.0" x2="181.9" y2="135.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-77.9" y1="15.0" x2="155.9" y2="150.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-103.9" y1="30.0" x2="129.9" y2="165.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-129.9" y1="45.0" x2="103.9" y2="180.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-155.9" y1="60.0" x2="77.9" y2="195.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-181.9" y1="75.0" x2="52.0" y2="210.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-207.8" y1="90.0" x2="26.0" y2="225.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="-233.8" y1="105.0" x2="0.0" y2="240.0" stroke="#F59D1A" stroke-opacity="0.05" stroke-width="1" stroke-linecap="round"/>
+<line x1="0.0" y1="84.0" x2="0.0" y2="-291.0" stroke="#F59D1A" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="2 4" stroke-linecap="round"/>
+<line x1="57.2" y1="-258.0" x2="0.0" y2="-291.0" stroke="#F59D1A" stroke-opacity="0.22" stroke-width="1" stroke-dasharray="2 4" stroke-linecap="round"/>
+</svg>
