@@ -392,6 +392,64 @@ h2.title{
   html{scroll-behavior:auto}
   .reveal{opacity:1;transform:none}
 }
+
+/* ===== CURSOS (carrusel + modal) ===== */
+.cursos{background:var(--gris-100);position:relative;overflow:hidden}
+.cursos-head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;margin-bottom:2.4rem;flex-wrap:wrap}
+.cursos-head .lead{margin-top:.6rem}
+.carousel-nav{display:flex;gap:.6rem}
+.carousel-nav button{width:46px;height:46px;border-radius:50%;border:1.5px solid var(--gris-300);background:var(--blanco);cursor:pointer;display:grid;place-items:center;transition:.18s var(--ease)}
+.carousel-nav button:hover{background:var(--negro);border-color:var(--negro)}
+.carousel-nav button:hover svg{color:var(--naranja)}
+.carousel-nav button svg{width:20px;height:20px;color:var(--negro);transition:color .18s}
+.cursos-track{display:flex;gap:1.3rem;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:.4rem .2rem 1.4rem;-ms-overflow-style:none;scrollbar-width:none;cursor:grab}
+.cursos-track::-webkit-scrollbar{display:none}
+.cursos-track.dragging{cursor:grabbing;scroll-behavior:auto}
+.curso-card{flex:0 0 auto;width:clamp(256px,80vw,310px);scroll-snap-align:start;cursor:pointer;border-radius:4px;overflow:hidden;background:var(--blanco);border:1px solid var(--gris-150);box-shadow:0 6px 20px rgba(0,0,0,.06);transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.curso-card:hover{transform:translateY(-5px);box-shadow:0 16px 36px rgba(0,0,0,.12)}
+.curso-card .flyer{position:relative;aspect-ratio:1;overflow:hidden}
+.curso-card .flyer img{width:100%;height:100%;object-fit:cover;transition:transform .45s var(--ease);-webkit-user-drag:none;user-select:none}
+.curso-card:hover .flyer img{transform:scale(1.05)}
+.curso-card .flyer .ver{position:absolute;inset:0;display:flex;align-items:flex-end;padding:1.1rem;opacity:0;transition:opacity .25s var(--ease);background:linear-gradient(0deg,rgba(13,13,13,.86),rgba(13,13,13,.1) 55%,transparent)}
+.curso-card:hover .flyer .ver{opacity:1}
+.curso-card .flyer .ver span{display:inline-flex;align-items:center;gap:.5rem;color:#fff;font-weight:700;font-size:.92rem}
+.curso-card .flyer .ver svg{width:18px;height:18px;color:var(--naranja)}
+.curso-card .pie{padding:1rem 1.1rem 1.15rem;border-top:3px solid var(--naranja)}
+.curso-card .pie h4{font-size:1rem;font-weight:700;line-height:1.22;margin-bottom:.35rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.5em}
+.curso-card .pie .pon{font-size:.82rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+.curso-card .pie .pon svg{width:14px;height:14px;color:var(--naranja);flex:0 0 auto}
+.cursos-hint{font-size:.8rem;color:var(--muted);margin-top:.4rem}
+
+/* modal */
+.modal-ov{position:fixed;inset:0;z-index:10000;background:rgba(13,13,13,.84);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:none;align-items:center;justify-content:center;padding:18px;opacity:0;transition:opacity .25s var(--ease)}
+.modal-ov.open{display:flex;opacity:1}
+.modal-card{background:var(--blanco);border-radius:8px;max-width:880px;width:100%;max-height:92vh;overflow:auto;display:grid;grid-template-columns:1fr 1fr;position:relative;transform:translateY(14px) scale(.985);transition:transform .3s var(--ease);-ms-overflow-style:none;scrollbar-width:none}
+.modal-card::-webkit-scrollbar{display:none}
+.modal-ov.open .modal-card{transform:none}
+.modal-figure{position:relative;background:var(--negro);min-height:240px}
+.modal-figure img{width:100%;height:100%;object-fit:cover;display:block}
+.modal-close{position:absolute;top:12px;right:12px;width:40px;height:40px;border-radius:50%;border:0;background:rgba(13,13,13,.55);color:#fff;cursor:pointer;display:grid;place-items:center;transition:background .18s;z-index:2}
+.modal-close:hover{background:var(--naranja);color:var(--negro-puro)}
+.modal-close svg{width:20px;height:20px}
+.modal-body{padding:clamp(1.6rem,3vw,2.3rem)}
+.modal-body .eyebrow{margin-bottom:.7rem}
+.modal-body h3{font-size:clamp(1.35rem,2.6vw,1.8rem);font-weight:800;line-height:1.1;letter-spacing:-.01em;margin-bottom:.8rem}
+.modal-pon{display:flex;align-items:center;gap:.55rem;font-weight:600;color:var(--negro);font-size:.95rem;margin-bottom:1.1rem}
+.modal-pon svg{width:18px;height:18px;color:var(--naranja);flex:0 0 auto}
+.modal-resumen{color:var(--muted);font-size:.98rem;margin-bottom:1.4rem}
+.modal-meta{display:flex;flex-wrap:wrap;gap:.7rem;margin-bottom:.9rem}
+.modal-meta .chip{display:inline-flex;align-items:center;gap:.5rem;background:var(--gris-100);border:1px solid var(--gris-150);border-radius:40px;padding:.5rem .9rem;font-size:.84rem;font-weight:600;color:var(--negro)}
+.modal-meta .chip svg{width:16px;height:16px;color:var(--naranja)}
+.modal-cert{font-size:.84rem;color:var(--muted);display:flex;align-items:center;gap:.5rem;margin-bottom:1.6rem}
+.modal-cert svg{width:16px;height:16px;color:var(--naranja);flex:0 0 auto}
+.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:.6rem;width:100%;background:#25D366;color:#fff;font-weight:700;font-size:1rem;padding:1rem 1.4rem;border-radius:4px;border:0;cursor:pointer;font-family:inherit;transition:transform .15s var(--ease),box-shadow .15s var(--ease)}
+.btn-wa:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(37,211,102,.4)}
+.btn-wa svg{width:22px;height:22px;fill:#fff}
+@media(max-width:680px){
+  .modal-card{grid-template-columns:1fr}
+  .modal-figure{min-height:0;aspect-ratio:16/10}
+}
+
 </style>
 </head>
 <body>
@@ -407,6 +465,7 @@ h2.title{
       <li><a href="#esencia">Esencia</a></li>
       <li><a href="#servicios">Servicios</a></li>
       <li><a href="#capacitaciones">Capacitaciones</a></li>
+      <li><a href="#cursos">Cursos</a></li>
       <li><a href="#capacidades">Capacidades</a></li>
     </ul>
     <div class="nav-cta">
@@ -420,6 +479,7 @@ h2.title{
   <a href="#esencia">Esencia</a>
   <a href="#servicios">Servicios</a>
   <a href="#capacitaciones">Capacitaciones</a>
+  <a href="#cursos">Cursos</a>
   <a href="#capacidades">Capacidades</a>
   <a href="#contacto" class="btn btn-primary">Contáctanos</a>
 </div>
@@ -577,6 +637,67 @@ h2.title{
   </div>
 </section>
 
+
+<!-- ===== CURSOS ===== -->
+<section class="sec cursos" id="cursos">
+  <div class="wrap">
+    <div class="cursos-head">
+      <div>
+        <span class="eyebrow">Nuestros cursos</span>
+        <h2 class="title" style="margin-bottom:0">Capacítate con especialistas</h2>
+        <p class="lead">Cursos en vivo con certificado digital. Toca cualquiera para ver el detalle y reservar tu lugar.</p>
+      </div>
+      <div class="carousel-nav">
+        <button id="cursoPrev" aria-label="Anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button id="cursoNext" aria-label="Siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+      </div>
+    </div>
+    <div class="cursos-track" id="cursosTrack">
+        <article class="curso-card" data-curso="0" role="button" tabindex="0" aria-label="Ver detalles de Supervisión Integral de Obra Civil e Industrial">
+          <div class="flyer"><img src="assets/cursos/curso-01-supervision.jpg" alt="Supervisión Integral de Obra Civil e Industrial"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Supervisión Integral de Obra Civil e Industrial</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Arq. Luis Roberto Bautista Retama</div></div>
+        </article>
+        <article class="curso-card" data-curso="1" role="button" tabindex="0" aria-label="Ver detalles de Contratos en la Construcción">
+          <div class="flyer"><img src="assets/cursos/curso-02-contratos.jpg" alt="Contratos en la Construcción"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Contratos en la Construcción</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Lic. Margarita López Lara</div></div>
+        </article>
+        <article class="curso-card" data-curso="2" role="button" tabindex="0" aria-label="Ver detalles de Trabes AASHTO: Fabricación, Montaje y Control en Puentes">
+          <div class="flyer"><img src="assets/cursos/curso-03-trabes.jpg" alt="Trabes AASHTO: Fabricación, Montaje y Control en Puentes"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Trabes AASHTO: Fabricación, Montaje y Control en Puentes</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Ing. Jorge Sánchez Hernández</div></div>
+        </article>
+        <article class="curso-card" data-curso="3" role="button" tabindex="0" aria-label="Ver detalles de Control Físico Financiero de Obra">
+          <div class="flyer"><img src="assets/cursos/curso-04-control-financiero.jpg" alt="Control Físico Financiero de Obra"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Control Físico Financiero de Obra</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Ing. Laura Mariella Hernández Pitalua</div></div>
+        </article>
+        <article class="curso-card" data-curso="4" role="button" tabindex="0" aria-label="Ver detalles de Residente de Obra">
+          <div class="flyer"><img src="assets/cursos/curso-05-residente.jpg" alt="Residente de Obra"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Residente de Obra</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Ing. Ángel Ricardo Fisher López</div></div>
+        </article>
+        <article class="curso-card" data-curso="5" role="button" tabindex="0" aria-label="Ver detalles de Elaboración de Láminas Arquitectónicas Profesionales">
+          <div class="flyer"><img src="assets/cursos/curso-06-laminas.jpg" alt="Elaboración de Láminas Arquitectónicas Profesionales"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Elaboración de Láminas Arquitectónicas Profesionales</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Arq. Alesiram Sotelo Peñuelas</div></div>
+        </article>
+        <article class="curso-card" data-curso="6" role="button" tabindex="0" aria-label="Ver detalles de Elaboración de Números Generadores">
+          <div class="flyer"><img src="assets/cursos/curso-07-numeros.jpg" alt="Elaboración de Números Generadores"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Elaboración de Números Generadores</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Arq. Alesiram Sotelo Peñuelas</div></div>
+        </article>
+        <article class="curso-card" data-curso="7" role="button" tabindex="0" aria-label="Ver detalles de SketchUp Profesional">
+          <div class="flyer"><img src="assets/cursos/curso-08-sketchup.jpg" alt="SketchUp Profesional"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>SketchUp Profesional</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Arq. Carlos Mauricio Pérez Zepeda</div></div>
+        </article>
+        <article class="curso-card" data-curso="8" role="button" tabindex="0" aria-label="Ver detalles de Gerencia de Proyectos en Construcción">
+          <div class="flyer"><img src="assets/cursos/curso-09-gerencia.jpg" alt="Gerencia de Proyectos en Construcción"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Gerencia de Proyectos en Construcción</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Mtro. Arq. Juan Pablo Hernández García</div></div>
+        </article>
+        <article class="curso-card" data-curso="9" role="button" tabindex="0" aria-label="Ver detalles de Paisajismo Rentable: Costos, Presupuestos y Precios">
+          <div class="flyer"><img src="assets/cursos/curso-10-paisajismo.jpg" alt="Paisajismo Rentable: Costos, Presupuestos y Precios"><div class="ver"><span>Ver detalles <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></div></div>
+          <div class="pie"><h4>Paisajismo Rentable: Costos, Presupuestos y Precios</h4><div class="pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>Arq. Laura Elizabeth Espinoza</div></div>
+        </article>
+    </div>
+    <p class="cursos-hint">Desliza para ver más cursos →</p>
+  </div>
+</section>
+
 <!-- ===== CAPACIDADES / PROYECTOS ===== -->
 <section class="sec dark" id="capacidades">
   <div class="wrap">
@@ -716,6 +837,28 @@ h2.title{
   </div>
 </footer>
 
+
+<!-- ===== MODAL CURSO ===== -->
+<div class="modal-ov" id="cursoModal" role="dialog" aria-modal="true" aria-labelledby="cmTitulo">
+  <div class="modal-card">
+    <button class="modal-close" id="cursoModalClose" aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></button>
+    <div class="modal-figure"><img id="cmImg" src="" alt=""></div>
+    <div class="modal-body">
+      <span class="eyebrow">Curso</span>
+      <h3 id="cmTitulo"></h3>
+      <div class="modal-pon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg><span id="cmPonente"></span></div>
+      <p class="modal-resumen" id="cmResumen"></p>
+      <div class="modal-meta">
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg><span id="cmFecha"></span></span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9a2.5 2.5 0 0 0-2.5-1.6c-1.5 0-2.5.9-2.5 2s1 1.7 2.5 2 2.5.9 2.5 2-1 2-2.5 2A2.5 2.5 0 0 1 9.5 15M12 6v1.4M12 16.6V18"/></svg><span id="cmInversion"></span></span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="13" height="12" rx="2"/><path d="m15.5 10 6-3v10l-6-3z"/></svg><span id="cmModalidad"></span></span>
+      </div>
+      <div class="modal-cert"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="m9 13-1.5 7L12 18l4.5 2L15 13"/></svg><span id="cmCert"></span></div>
+      <a class="btn-wa" id="cmWa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.821 11.821 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.477-.607z"/></svg> Más información por WhatsApp</a>
+    </div>
+  </div>
+</div>
+
 <!-- ===== WHATSAPP FLOTANTE (REEMPLAZAR NÚMERO) ===== -->
 <a class="wa-float" id="waFloat" href="https://wa.me/5212225245127?text=Hola%2C%20me%20interesa%20m%C3%A1s%20informaci%C3%B3n%20sobre%20IMFRA%20Desarrollo" target="_blank" rel="noopener" aria-label="WhatsApp">
   <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.821 11.821 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.477-.607zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
@@ -757,6 +900,51 @@ document.getElementById('sendBtn').addEventListener('click',()=>{
   if(t) txt+=`\nTel: ${t}`;
   window.open(`https://wa.me/${WA}?text=${encodeURIComponent(txt)}`,'_blank');
 });
+
+// ===== CURSOS: datos, carrusel y modal =====
+const CURSOS = [{"img": "assets/cursos/curso-01-supervision.jpg", "titulo": "Supervisión Integral de Obra Civil e Industrial", "ponente": "Arq. Luis Roberto Bautista Retama", "resumen": "Control técnico, coordinación multidisciplinaria y gestión en campo de obras civiles e industriales. Aprende a supervisar asegurando calidad, tiempos y cumplimiento normativo.", "fecha": "29 de junio", "inversion": "$750 MXN", "modalidad": "En vivo · Google Meet", "cert": "Certificado digital con folio y QR"}, {"img": "assets/cursos/curso-02-contratos.jpg", "titulo": "Contratos en la Construcción", "ponente": "Lic. Margarita López Lara", "resumen": "Aprende a redactar contratos de construcción, evitar riesgos legales y proteger tu obra. Blinda tus proyectos desde el papel.", "fecha": "22 de junio", "inversion": "$750 MXN", "modalidad": "Clase online en vivo", "cert": "Reconocimiento institucional con folio y QR"}, {"img": "assets/cursos/curso-03-trabes.jpg", "titulo": "Trabes AASHTO: Fabricación, Montaje y Control en Puentes", "ponente": "Ing. Jorge Sánchez Hernández", "resumen": "Fabricación, montaje y control normativo de trabes AASHTO en puentes (tipos II a V), conforme a la normativa vigente.", "fecha": "22 de junio", "inversion": "$750 MXN", "modalidad": "Curso online", "cert": "Certificado digital con QR"}, {"img": "assets/cursos/curso-04-control-financiero.jpg", "titulo": "Control Físico Financiero de Obra", "ponente": "Ing. Laura Mariella Hernández Pitalua", "resumen": "Analiza el avance físico y financiero, detecta variaciones, toma decisiones oportunas y optimiza recursos y costos de tu obra.", "fecha": "29 de junio", "inversion": "$750 MXN", "modalidad": "En vivo · Clase online", "cert": "Certificado digital con QR"}, {"img": "assets/cursos/curso-05-residente.jpg", "titulo": "Residente de Obra", "ponente": "Ing. Ángel Ricardo Fisher López", "resumen": "Domina las funciones, responsabilidades y el control técnico que exige la residencia de obra en proyectos de construcción.", "fecha": "29 de junio", "inversion": "$750 MXN", "modalidad": "En vivo · Google Meet", "cert": "Certificado digital con QR"}, {"img": "assets/cursos/curso-06-laminas.jpg", "titulo": "Elaboración de Láminas Arquitectónicas Profesionales", "ponente": "Arq. Alesiram Sotelo Peñuelas", "resumen": "Crea láminas arquitectónicas profesionales, de la idea a la presentación final, con dominio de Photoshop. Eleva la calidad visual de tus proyectos.", "fecha": "29 de junio", "inversion": "$750 MXN", "modalidad": "Online · Google Meet", "cert": "Certificado digital con QR"}, {"img": "assets/cursos/curso-07-numeros.jpg", "titulo": "Elaboración de Números Generadores", "ponente": "Arq. Alesiram Sotelo Peñuelas", "resumen": "Elabora números generadores para cuantificar y controlar volúmenes de obra con precisión; clave para presupuestos y estimaciones confiables.", "fecha": "22 de junio", "inversion": "$750 MXN", "modalidad": "Clase online en vivo", "cert": "Reconocimiento institucional con folio y QR"}, {"img": "assets/cursos/curso-08-sketchup.jpg", "titulo": "SketchUp Profesional", "ponente": "Arq. Carlos Mauricio Pérez Zepeda", "resumen": "Modelado arquitectónico completo en SketchUp, de cero a nivel intermedio. Crea modelos 3D profesionales para presentar tus proyectos.", "fecha": "29 de junio", "inversion": "$750 MXN", "modalidad": "Online · Google Meet", "cert": "Certificado digital con QR"}, {"img": "assets/cursos/curso-09-gerencia.jpg", "titulo": "Gerencia de Proyectos en Construcción", "ponente": "Mtro. Arq. Juan Pablo Hernández García", "resumen": "Planifica, ejecuta y controla proyectos de construcción con enfoque profesional y herramientas de gestión. Lidera con visión estratégica.", "fecha": "22 de junio", "inversion": "$750 MXN", "modalidad": "Curso online", "cert": "Certificado digital con QR"}, {"img": "assets/cursos/curso-10-paisajismo.jpg", "titulo": "Paisajismo Rentable: Costos, Presupuestos y Precios", "ponente": "Arq. Laura Elizabeth Espinoza", "resumen": "Costea, presupuesta y fija precios estratégicos en proyectos de paisajismo para hacerlos rentables. Convierte tu talento en un negocio.", "fecha": "06 de julio", "inversion": "$950 MXN", "modalidad": "En vivo · Google Meet", "cert": "Certificado digital con QR"}];
+const WA_CURSOS = "522382196286";
+(function(){
+  const track=document.getElementById('cursosTrack');
+  if(track){
+    const card=track.querySelector('.curso-card');
+    const step=()=> card ? card.offsetWidth+20 : 320;
+    document.getElementById('cursoPrev').addEventListener('click',()=>track.scrollBy({left:-step(),behavior:'smooth'}));
+    document.getElementById('cursoNext').addEventListener('click',()=>track.scrollBy({left:step(),behavior:'smooth'}));
+    // arrastrar con mouse
+    let down=false,sx=0,sl=0,moved=0;
+    track.addEventListener('mousedown',e=>{down=true;moved=0;sx=e.pageX;sl=track.scrollLeft;track.classList.add('dragging')});
+    window.addEventListener('mouseup',()=>{down=false;track.classList.remove('dragging')});
+    track.addEventListener('mouseleave',()=>{down=false;track.classList.remove('dragging')});
+    track.addEventListener('mousemove',e=>{if(!down)return;e.preventDefault();const dx=e.pageX-sx;moved+=Math.abs(dx);track.scrollLeft=sl-dx});
+    track.querySelectorAll('.curso-card').forEach(cardEl=>{
+      const open=()=>{if(moved>6)return;openCurso(+cardEl.dataset.curso)};
+      cardEl.addEventListener('click',open);
+      cardEl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openCurso(+cardEl.dataset.curso)}});
+    });
+  }
+  const ov=document.getElementById('cursoModal');
+  window.openCurso=function(i){
+    const c=CURSOS[i]; if(!c)return;
+    document.getElementById('cmImg').src=c.img;
+    document.getElementById('cmImg').alt=c.titulo;
+    document.getElementById('cmTitulo').textContent=c.titulo;
+    document.getElementById('cmPonente').textContent='Imparte: '+c.ponente;
+    document.getElementById('cmResumen').textContent=c.resumen;
+    document.getElementById('cmFecha').textContent=c.fecha;
+    document.getElementById('cmInversion').textContent=c.inversion;
+    document.getElementById('cmModalidad').textContent=c.modalidad;
+    document.getElementById('cmCert').textContent=c.cert;
+    const msg='Hola, me interesa el curso: '+c.titulo+'. ¿Me pueden dar más información?';
+    document.getElementById('cmWa').href='https://wa.me/'+WA_CURSOS+'?text='+encodeURIComponent(msg);
+    ov.classList.add('open'); document.body.style.overflow='hidden';
+  };
+  function closeCurso(){ov.classList.remove('open');document.body.style.overflow=''}
+  document.getElementById('cursoModalClose').addEventListener('click',closeCurso);
+  ov.addEventListener('click',e=>{if(e.target===ov)closeCurso()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCurso()});
+})();
+
 </script>
 </body>
 </html>
