@@ -478,7 +478,7 @@ body{display:block}
     </div>
 
     <div>
-      <h1 class="auth-hero__title">Domina las certificaciones que la industria <em>te está pidiendo</em>.</h1>
+      <h1 class="auth-hero__title">Domina la obra y la gestión que tu proyecto <em>te está pidiendo</em>.</h1>
       <p class="auth-hero__desc">Ingeniería civil, construcción y obra: cursos con certificado de folio oficial, herramientas pro (próximamente) y clases en vivo. Esto te espera adentro:</p>
 
       <div class="hero-marquee" aria-hidden="true"><div class="track"><img src="assets/img/cursos/curso-01-supervision.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-02-contratos.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-03-trabes.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-04-control-financiero.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-05-residente.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-06-laminas.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-07-numeros.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-08-sketchup.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-09-gerencia.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-10-paisajismo.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-01-supervision.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-02-contratos.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-03-trabes.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-04-control-financiero.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-05-residente.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-06-laminas.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-07-numeros.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-08-sketchup.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-09-gerencia.jpg" alt="" loading="lazy"><img src="assets/img/cursos/curso-10-paisajismo.jpg" alt="" loading="lazy"></div></div>
@@ -489,15 +489,17 @@ body{display:block}
       <ul class="hero-benefits">
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Biblioteca completa</b> con cursos de ingeniería civil y construcción</span></li>
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Herramientas pro</b>: próximamente</span></li>
-        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Clases en vivo</b> con expertos de la industria</span></li>
+        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Clases en vivo</b> con especialistas del sector construcción</span></li>
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Certificados con folio oficial</b> verificables</span></li>
-        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Comunidad de ingenieros</b> · sin permanencia</span></li>
+        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Asesoría personalizada</b> y canal VIP · sin permanencia</span></li>
       </ul>
 
+      <!-- Los precios NO se muestran en el auth: solo se invita a registrarse gratis.
+           Los planes se ven y se cobran adentro del panel (sección Suscripción). -->
       <div class="hero-price">
-        <div class="opt opt--star">
-          <b>Regístrate gratis</b>
-          <small>Crea tu cuenta y prueba las primeras clases y el primer material sin costo.</small>
+        <div class="opt opt--star" data-cta-registro style="cursor:pointer;text-align:center;">
+          <b style="font-size:1.5rem;">Regístrate Gratis</b>
+          <small>Crea tu cuenta sin tarjeta y empieza hoy<br>Cancela cuando quieras</small>
         </div>
       </div>
 
@@ -508,7 +510,7 @@ body{display:block}
           <span class="avi">LH</span>
           <div style="flex:1;">
             <div class="bub">
-              <b>Luis Hernández <small>· Supervisor de producción</small></b>
+              <b>Luis Hernández <small>· Residente de obra</small></b>
               <p>Con los cursos de IMFRA armé el proyecto que me subió de puesto en la obra</p>
               <span class="lk"><i><svg viewBox="0 0 24 24"><path d="M2 10h4v12H2zM22 11c0-1.1-.9-2-2-2h-5.2l.9-4.4v-.3c0-.4-.2-.8-.4-1.1L14.2 2 8.6 7.6c-.4.4-.6.9-.6 1.4v9c0 1.1.9 2 2 2h7c.8 0 1.5-.5 1.8-1.2l2.1-5c.1-.2.1-.5.1-.8v-2z"/></svg></i>13</span>
             </div>
@@ -532,9 +534,9 @@ body{display:block}
     </div>
 
     <div class="auth-hero__stats">
-      <div class="auth-stat"><span class="auth-stat__num">100%</span><span class="auth-stat__lbl">online</span></div>
       <div class="auth-stat"><span class="auth-stat__num">24/7</span><span class="auth-stat__lbl">acceso</span></div>
       <div class="auth-stat"><span class="auth-stat__num">100%</span><span class="auth-stat__lbl">certificable</span></div>
+      <div class="auth-stat"><span class="auth-stat__num">Pro</span><span class="auth-stat__lbl">herramientas</span></div>
     </div>
   </aside>
 
@@ -764,6 +766,12 @@ import {
   getDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+/* El CTA "Regístrate Gratis" cambia a la pestaña de Crear cuenta. */
+document.querySelector('[data-cta-registro]')?.addEventListener('click', () => {
+  document.querySelector('[data-tab="register"]')?.click();
+  document.querySelector(".card")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
 
 /* =========================================================
    CONFIG · Firebase IMFRA
