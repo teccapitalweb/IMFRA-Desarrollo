@@ -3189,7 +3189,7 @@ window.WEBHOOK_URL = WEBHOOK_URL;
 // reproducción. La API key permanece únicamente en el servidor.
 window.BUNNY_VIDEO_LIBRARY_ID = '727791';
 
-const ADMIN_EMAILS = ['teccapitalweb@gmail.com','imframx@gmail.com' /* TODO: confirma el correo admin real de IMFRA */,'imfraconsultoria@gmail.com' /* TODO: confirma el correo admin real de IMFRA */];
+const ADMIN_EMAILS = ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
 
 function calcIniciales(nameOrEmail){
   const s = (nameOrEmail||'').trim();
@@ -7885,8 +7885,8 @@ const Sections = (function(){
         if (!clientSecret) throw new Error('No recibimos clientSecret');
         if (!window.__stripe) {
           if (!window.Stripe) throw new Error('Stripe.js no cargó');
-          // Clave pública de la cuenta Stripe compartida (la misma de los demás clubes)
-          window.__stripe = window.Stripe('pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b');
+          // Clave pública de Stripe · cuenta Bioorigen (acct_1ThG5SDCxZfVu338)
+          window.__stripe = window.Stripe('pk_live_51ThG5SDCxZfVu338m6ncLX0wUzQ4VvaJshknjfwnBTsuTFu65UiNiyx5NC1diPWQXwKqsubMOkXLMb9OGS4vEkZh00eHnjbWV4');
         }
         // El elemento del DOM pudo haber cambiado al re-renderizar; re-obtenerlo
         const liveMount = document.getElementById('sub-checkout-mount');
