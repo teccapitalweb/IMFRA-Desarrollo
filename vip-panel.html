@@ -3183,7 +3183,7 @@ window.__fs = { collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, li
 setPersistence(auth, browserLocalPersistence);
 
 // ⚠️ CAMBIA esta URL por la de tu Railway cuando esté deployado
-const WEBHOOK_URL = 'https://imfra-webhook-production.up.railway.app  /* ⚠️ pon aquí la URL real de Railway cuando despliegues el webhook de IMFRA */';
+const WEBHOOK_URL = 'https://imfra-backend-production.up.railway.app';
 window.WEBHOOK_URL = WEBHOOK_URL;
 // El ID de la biblioteca es público y Bunny lo incluye en sus URLs de
 // reproducción. La API key permanece únicamente en el servidor.
@@ -7868,7 +7868,7 @@ const Sections = (function(){
       }
       mountEl.innerHTML = `<div class="sub-loading"><div class="sub-loading__spin"></div><div>Cargando plan ${selectedPlan}…</div></div>`;
       try {
-        const res = await fetch(`${window.WEBHOOK_URL || 'https://imfra-webhook-production.up.railway.app  /* ⚠️ pon aquí la URL real de Railway cuando despliegues el webhook de IMFRA */'}/stripe/checkout`, {
+        const res = await fetch(`${window.WEBHOOK_URL || 'https://imfra-backend-production.up.railway.app'}/stripe/checkout`, {
           method:'POST',
           headers:{'Content-Type':'application/json'},
           body: JSON.stringify({
@@ -8046,7 +8046,7 @@ const Sections = (function(){
   // 🚫 BOTONES DE CANCELAR/REACTIVAR + BILLING PORTAL
   // Conectan con el webhook de Railway · operación real sobre Stripe
   // ═══════════════════════════════════════════════════════════════
-  const WEBHOOK_BASE_URL = 'https://imfra-webhook-production.up.railway.app  /* ⚠️ pon aquí la URL real de Railway cuando despliegues el webhook de IMFRA */';
+  const WEBHOOK_BASE_URL = 'https://imfra-backend-production.up.railway.app';
 
   function bindSuscripcionButtons(container) {
     const btnCancelar = container.querySelector('#btn-cancelar-sub');

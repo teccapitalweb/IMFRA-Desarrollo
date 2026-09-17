@@ -1,0 +1,119 @@
+rules_version = '2';
+// ═══════════════════════════════════════════════════════════════════
+// FIRESTORE RULES — imfra-backend (Club VIP de IMFRA Desarrollo)
+// Réplica de las reglas de IMDIIL, cambiando solo los correos admin.
+//   · config/club lo LEEN sin sesión las páginas públicas que muestran
+//     precios; lo ESCRIBE solo un admin desde vip-admin.html.
+//   · certificados: lectura pública para que verificar.html valide folios.
+//   · El webhook de Railway usa Admin SDK y NO pasa por estas reglas.
+//
+// Admins: teccapitalweb@gmail.com (superadmin) e imfradesarrollo@gmail.com.
+//    Idénticos a ADMIN_EMAILS en vip-panel.html y ADMINS en vip-admin.html.
+// ═══════════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ───────── CURSOS ─────────
+    match /cursos/{cursoId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ───────── CONFIG/CLUB (precios editables) ─────────
+    match /config/club {
+      allow read: if true;
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ───────── MIEMBROS ─────────
+    match /miembros/{docId} {
+      allow read: if request.auth != null &&
+        (request.auth.uid == docId ||
+         request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']);
+      allow create: if (request.auth != null && request.auth.uid == docId &&
+                        request.resource.data.activa == false &&
+                        request.resource.data.plan == null)
+                    || (request.auth != null &&
+                        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']);
+      allow update: if (request.auth != null &&
+                        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'])
+                    || (request.auth != null && request.auth.uid == docId &&
+                        request.resource.data.activa == resource.data.activa &&
+                        request.resource.data.plan == resource.data.plan &&
+                        (!('expiraEn' in request.resource.data) ||
+                         request.resource.data.expiraEn == resource.data.expiraEn));
+      allow delete: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ───────── NOTIFICACIONES ─────────
+    match /notificaciones/{notifId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ───────── MATERIALES ─────────
+    match /materiales/{matId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ───────── WEBINARS ─────────
+    match /webinars/{webId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ───────── CERTIFICADOS ─────────
+    match /certificados/{folio} {
+      allow read: if true;
+      allow create: if request.auth != null &&
+        request.resource.data.uid == request.auth.uid;
+      allow update, delete: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ───────── NOTICIAS AUTO ─────────
+    match /noticias_auto/{noticiaId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    // ═════════ FORO ═════════
+    match /posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.uid ||
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'] ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes','likedBy','comentariosCount'])
+      );
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.uid ||
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']
+      );
+      match /comentarios/{comId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null &&
+          request.resource.data.uid == request.auth.uid;
+        allow delete: if request.auth != null && (
+          request.auth.uid == resource.data.uid ||
+          request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']
+        );
+      }
+    }
+    // ═════════ DIRECTORIO VIP ═════════
+    match /directorio/{uid} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null &&
+        request.auth.uid == uid &&
+        request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && (
+        request.auth.uid == uid ||
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']
+      );
+    }
+    // ───────── DEFAULT ─────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
