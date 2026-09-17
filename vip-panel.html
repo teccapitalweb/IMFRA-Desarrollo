@@ -7885,9 +7885,8 @@ const Sections = (function(){
         if (!clientSecret) throw new Error('No recibimos clientSecret');
         if (!window.__stripe) {
           if (!window.Stripe) throw new Error('Stripe.js no cargó');
-          // TODO: pon aquí el pk_live real de la cuenta de Stripe que uses para IMFRA
-          // (si usas la misma cuenta Stripe que las demás consultoras, reutiliza esa misma pk_live)
-          window.__stripe = window.Stripe('pk_live_TODO_STRIPE_PUBLIC_KEY');
+          // Clave pública de la cuenta Stripe compartida (la misma de los demás clubes)
+          window.__stripe = window.Stripe('pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b');
         }
         // El elemento del DOM pudo haber cambiado al re-renderizar; re-obtenerlo
         const liveMount = document.getElementById('sub-checkout-mount');
