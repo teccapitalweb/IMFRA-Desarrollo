@@ -1042,12 +1042,12 @@ import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersi
 import { getFirestore, collection, doc, getDoc, getDocs, addDoc, setDoc, updateDoc, deleteDoc, query, orderBy, where, limit, onSnapshot, serverTimestamp, Timestamp, writeBatch, increment } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "TODO_FIREBASE_API_KEY" /* ⚠️ pega aquí el apiKey del proyecto Firebase "imfra-vip" que crees en console.firebase.google.com */,
-  authDomain: "imfra-vip.firebaseapp.com",
-  projectId: "imfra-vip",
-  storageBucket: "imfra-vip.firebasestorage.app",
-  messagingSenderId: "TODO_MESSAGING_SENDER_ID",
-  appId: "TODO_APP_ID"
+  apiKey: "AIzaSyDBY5kZinOkKKVARTUro5hE59h8i58RZx4",
+  authDomain: "imfra-backend.firebaseapp.com",
+  projectId: "imfra-backend",
+  storageBucket: "imfra-backend.firebasestorage.app",
+  messagingSenderId: "487973195288",
+  appId: "1:487973195288:web:a421bbe0f28912301e7d6d"
 };
 const ADMINS = ["teccapitalweb@gmail.com","imframx@gmail.com" /* TODO: confirma el correo admin real de IMFRA */,"imfraconsultoria@gmail.com" /* TODO: confirma el correo admin real de IMFRA */];
 
@@ -5047,7 +5047,7 @@ const Pages={
           <div class="dash-card">
             <div class="dash-card__header"><div class="dash-card__title"><svg class="ic"><use href="#i-bolt"/></svg>Estado de servicios</div></div>
             <div class="mini-list">
-              <div class="mini-row" style="--c1:#34D399;"><div class="mini-row__dot"><svg class="ic"><use href="#i-shield-check"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Firebase Auth</div><div class="mini-row__meta">imfra-vip · Funcionando</div></div><span class="tag tag--success">OK</span></div>
+              <div class="mini-row" style="--c1:#34D399;"><div class="mini-row__dot"><svg class="ic"><use href="#i-shield-check"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Firebase Auth</div><div class="mini-row__meta">imfra-backend · Funcionando</div></div><span class="tag tag--success">OK</span></div>
               <div class="mini-row" style="--c1:#34D399;"><div class="mini-row__dot"><svg class="ic"><use href="#i-shield-check"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Firestore</div><div class="mini-row__meta">us-central1 · Reglas v1</div></div><span class="tag tag--success">OK</span></div>
               <div class="mini-row" style="--c1:#FBBF24;"><div class="mini-row__dot"><svg class="ic"><use href="#i-bolt"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Stripe LIVE</div><div class="mini-row__meta">Webhook pendiente de conectar</div></div><span class="tag tag--warning">Pendiente</span></div>
               <div class="mini-row" style="--c1:#34D399;"><div class="mini-row__dot"><svg class="ic"><use href="#i-refresh"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Railway Cron (noticias)</div><div class="mini-row__meta">Última: ${c.cronUltima}</div></div><span class="tag tag--success">OK</span></div>

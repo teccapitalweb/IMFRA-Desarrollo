@@ -1,0 +1,124 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════
+// IMFRA · Club VIP · Reglas de Firestore (proyecto: imfra-backend)
+//
+// Principios:
+//  · El contenido del club (cursos, webinars, materiales, noticias) es de
+//    LECTURA para cualquier usuario autenticado y de ESCRITURA solo admin.
+//  · Los precios (config/club) son de lectura PÚBLICA: la página los muestra
+//    sin login. Escritura solo admin.
+//  · Cada miembro solo puede leer/editar SU propio documento, y nunca puede
+//    activarse la membresía a sí mismo (eso lo hace el webhook con Admin SDK,
+//    que se salta estas reglas).
+//  · El foro y el directorio son de la comunidad: escribe el dueño del post.
+//  · Los certificados los emite el propio alumno al terminar un curso, pero
+//    nadie puede borrarlos ni editar los de otro.
+//
+// Publicar: Firebase Console → Firestore Database → pestaña Reglas → pegar → Publicar
+// ═══════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──
+    function auth()      { return request.auth != null; }
+    function uid()       { return request.auth.uid; }
+    function correo()    { return request.auth.token.email; }
+
+    // Lista de administradores. Debe coincidir con ADMIN_EMAILS de vip-panel.html
+    // y con ADMINS de vip-admin.html.
+    function esAdmin() {
+      return auth() && correo() in [
+        'teccapitalweb@gmail.com',
+        'imframx@gmail.com',
+        'imfraconsultoria@gmail.com'
+      ];
+    }
+
+    // ── Configuración del club (precios, contacto) ──
+    // Lectura pública: el auth y el panel muestran precios sin sesión iniciada.
+    match /config/{doc} {
+      allow read: if true;
+      allow write: if esAdmin();
+    }
+
+    // ── Contenido del club ──
+    match /cursos/{doc} {
+      allow read:  if auth();
+      allow write: if esAdmin();
+    }
+    match /webinars/{doc} {
+      allow read:  if auth();
+      allow write: if esAdmin();
+    }
+    match /materiales/{doc} {
+      allow read:  if auth();
+      allow write: if esAdmin();
+    }
+    match /noticias_auto/{doc} {
+      allow read:  if auth();
+      allow write: if esAdmin(); // el cron de Railway escribe con Admin SDK
+    }
+
+    // ── Miembros ──
+    // Cada quien lee y actualiza solo su documento. Los campos de membresía
+    // los controla el webhook de Stripe; el usuario no puede tocarlos.
+    match /miembros/{memberId} {
+      allow read:   if esAdmin() || (auth() && uid() == memberId);
+      allow create: if auth() && uid() == memberId;
+      allow update: if esAdmin() || (
+                      auth() && uid() == memberId &&
+                      !request.resource.data.diff(resource.data).affectedKeys()
+                        .hasAny(['activa','plan','activadoEn','expiraEn',
+                                 'fechaVipDesde','stripeCustomerId','stripeSubscriptionId'])
+                    );
+      allow delete: if esAdmin();
+    }
+
+    // ── Notificaciones ──
+    match /notificaciones/{doc} {
+      allow read:  if auth();
+      allow write: if esAdmin();
+    }
+
+    // ── Foro VIP ──
+    // Publica cualquier miembro autenticado; edita/borra solo su autor o un admin.
+    match /posts/{postId} {
+      allow read:   if auth();
+      allow create: if auth() && request.resource.data.uid == uid();
+      allow update: if auth() && (esAdmin() || resource.data.uid == uid() ||
+                      // permite reaccionar/comentar en posts ajenos
+                      request.resource.data.diff(resource.data).affectedKeys()
+                        .hasOnly(['likes','likedBy','comentarios','comentariosCount']));
+      allow delete: if esAdmin() || (auth() && resource.data.uid == uid());
+
+      match /{sub=**} {
+        allow read:   if auth();
+        allow write:  if auth();
+      }
+    }
+
+    // ── Directorio VIP ──
+    // Cada miembro administra su propia tarjeta; todos la pueden ver.
+    match /directorio/{memberId} {
+      allow read:   if auth();
+      allow write:  if esAdmin() || (auth() && uid() == memberId);
+    }
+
+    // ── Certificados ──
+    // Lectura PÚBLICA: verificar.html valida folios sin sesión iniciada.
+    // Los crea el alumno al completar el curso; no se editan ni se borran.
+    match /certificados/{folio} {
+      allow read:   if true;
+      allow create: if auth();
+      allow update: if esAdmin();
+      allow delete: if esAdmin();
+    }
+
+    // ── Todo lo demás queda bloqueado ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
