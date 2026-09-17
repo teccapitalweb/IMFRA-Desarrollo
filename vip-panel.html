@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0D0D0D">
-<meta name="description" content="IMFRA Panel VIP · Capacitación industrial, herramientas pro y certificación con folio.">
+<meta name="description" content="IMFRA Panel VIP · Capacitación en ingeniería civil y construcción, herramientas pro y certificación con folio.">
 <title>IMFRA · Panel VIP</title>
 <link rel="icon" type="image/png" sizes="192x192" href="assets/imfra-app-icon-192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="assets/imfra-app-icon-180.png">
@@ -2192,6 +2192,20 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 }
 .wa-stat__num{font-size:22px;font-weight:600;letter-spacing:-.5px;color:var(--whatsapp);font-feature-settings:"tnum" 1}
 .wa-stat__lbl{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:1.3px;text-transform:uppercase;color:var(--text-3);margin-top:4px}
+.social-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+@media(max-width:720px){.social-grid{grid-template-columns:1fr}}
+.social-card{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:16px;background:var(--surface);border:0.5px solid var(--border-2);text-decoration:none;color:var(--text);position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s,border-color .2s}
+.social-card::before{content:"";position:absolute;inset:0;opacity:.09;background:var(--sc-bg,var(--primary));pointer-events:none}
+.social-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-card);border-color:color-mix(in srgb,var(--sc-color,var(--primary)) 40%,transparent)}
+.social-card__ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:var(--sc-bg,var(--primary));color:#fff;position:relative;z-index:1}
+.social-card__ic .ic{width:22px;height:22px}
+.social-card__body{flex:1;min-width:0;position:relative;z-index:1}
+.social-card__title{font-size:14px;font-weight:700;letter-spacing:-.2px}
+.social-card__sub{font-size:12px;color:var(--text-2);margin-top:3px;line-height:1.4}
+.social-card__arrow{width:16px;height:16px;color:var(--text-3);position:relative;z-index:1;transition:transform .2s}
+.social-card:hover .social-card__arrow{transform:translateX(3px);color:var(--sc-color,var(--primary))}
+.social-card--ig{--sc-bg:linear-gradient(135deg,#F58529,#DD2A7B 50%,#8134AF);--sc-color:#DD2A7B}
+.social-card--fb{--sc-bg:#1877F2;--sc-color:#1877F2}
 .wa-rules{
   background:var(--surface);
   border:0.5px solid var(--border);
@@ -3336,12 +3350,12 @@ window.__showWelcomeSplash = function(opts) {
     icono = '⭐';
     kicker = '¡BIENVENIDO AL CLUB VIP!';
     titulo = `Bienvenido al <em>club VIP Anual</em>`;
-    desc = `${nombre}, te uniste por todo un año a la comunidad de ingenieros industriales más activa de México. Esto es tuyo:`;
+    desc = `${nombre}, te uniste por todo un año a la comunidad de construcción más activa de México. Esto es tuyo:`;
   } else {
     icono = '⚙️';
     kicker = '¡MEMBRESÍA VIP ACTIVA!';
     titulo = `Bienvenido al <em>club VIP Mensual</em>`;
-    desc = `${nombre}, ya eres parte de la comunidad de ingenieros industriales más activa de México. Esto es tuyo:`;
+    desc = `${nombre}, ya eres parte de la comunidad de construcción más activa de México. Esto es tuyo:`;
   }
 
   // ── Recorrido "película" · los beneficios del panel ──
@@ -3529,6 +3543,8 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></symbol>
 <symbol id="i-messages" viewBox="0 0 24 24"><path d="M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9a1 1 0 0 1 1 1v10"/><path d="M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2"/></symbol>
 <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"/></symbol>
+<symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8A4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></symbol>
+<symbol id="i-facebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></symbol>
 <symbol id="i-credit-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></symbol>
 <symbol id="i-bell" viewBox="0 0 24 24"><path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></symbol>
@@ -4118,27 +4134,43 @@ function sectionPlaceholder(section){
    ========================================================= */
 const Sections = (function(){
   const COLOR_AREA = {
-    'Seguridad':'#F59D1A',
-    'Logística':'#3B82F6',
+    'Obra':'#F59D1A',
+    'Obra pública':'#F59D1A',
+    'Supervisión de obra':'#F97316',
+    'Proyectos':'#3B82F6',
+    'Gerencia de proyectos':'#3B82F6',
+    'Costos y presupuestos':'#06B6D4',
     'Calidad':'#10B981',
-    'Mantenimiento':'#A855F7'
+    'Normatividad':'#8B5CF6',
+    'Arquitectura':'#A855F7',
+    'Ingeniería civil':'#F59D1A',
+    'Topografía':'#14B8A6',
+    'Maquinaria':'#EF4444'
   };
   const ICON_AREA = {
-    'Seguridad':'i-shield-check',
-    'Logística':'i-chart-bar',
+    'Obra':'i-shield-check',
+    'Obra pública':'i-shield-check',
+    'Supervisión de obra':'i-clipboard-check',
+    'Proyectos':'i-chart-bar',
+    'Gerencia de proyectos':'i-chart-bar',
+    'Costos y presupuestos':'i-credit-card',
     'Calidad':'i-gauge',
-    'Mantenimiento':'i-tools'
+    'Normatividad':'i-book-2',
+    'Arquitectura':'i-tools',
+    'Ingeniería civil':'i-shield-check',
+    'Topografía':'i-gauge',
+    'Maquinaria':'i-tools'
   };
   const COLOR_CAT = {
-    'Seguridad':'#F59D1A',
-    'Logística':'#3B82F6',
+    'Obra':'#F59D1A',
+    'Proyectos':'#3B82F6',
     'Calidad':'#10B981',
     'Comunidad':'#A855F7',
     'Maestría':'#FFCF7A'
   };
   const ICON_CAT = {
-    'Seguridad':'i-shield-check',
-    'Logística':'i-chart-bar',
+    'Obra':'i-shield-check',
+    'Proyectos':'i-chart-bar',
     'Calidad':'i-gauge',
     'Comunidad':'i-messages',
     'Maestría':'i-crown'
@@ -4460,7 +4492,7 @@ const Sections = (function(){
         folio, uid, nombre,
         cursoId: curso.id,
         curso: curso.titulo || '',
-        area: curso.area || 'Ingeniería Industrial',
+        area: curso.area || 'Ingeniería civil',
         horas: curso.horas || 0,
         sesiones,
         instructor: curso.instructor || 'Equipo IMFRA',
@@ -4485,7 +4517,7 @@ const Sections = (function(){
     const nombre = window.UserState?.nombre || window.UserState?.displayName || (window.UserState?.email||'').split('@')[0] || 'Usuario VIP';
     // Objeto certificado real (mismos campos que en la sección Certificados)
     const certObj = {
-      id: curso.id, titulo: curso.titulo, area: curso.area || 'Ingeniería Industrial',
+      id: curso.id, titulo: curso.titulo, area: curso.area || 'Ingeniería civil',
       horas: curso.horas || 0, sesiones: (curso.sesiones && curso.sesiones.length) || 0,
       folio, emitido: fecha, instructor: curso.instructor || 'Equipo IMFRA'
     };
@@ -4752,75 +4784,61 @@ const Sections = (function(){
     });
   });
 
-  // ─── Portadas automáticas · URLs Unsplash VERIFICADAS al 100% ───
-  // 8 URLs reales · industriales · sin retail
+  // ─── Portadas automáticas · imágenes locales de IMFRA ───
   const PORTADAS_CURSOS = {
-    // Energías renovables → paneles solares industriales (verificada)
-    'energías renovables':'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    'energía':            'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    'renovable':          'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    'solar':              'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    // Aguas residuales → planta de tratamiento (verificada)
-    'aguas residuales':   'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=900&auto=format&fit=crop&q=80',
-    'tratamiento':        'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=900&auto=format&fit=crop&q=80',
-    'biológic':           'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=900&auto=format&fit=crop&q=80',
-    'medio ambiente':     'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=900&auto=format&fit=crop&q=80',
-    // Supervisión / Producción / Planta → planta industrial moderna
-    'supervisión':        'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'supervisor':         'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'producción':         'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'planta':             'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'operaciones':        'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    // Forecasting → laptop con dashboards (verificada)
-    'forecasting':        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'pronóstic':          'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'demanda':            'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    // Kaizen → mecánico industrial / piso de planta
-    'kaizen':             'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'innovación':         'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'mejora continua':    'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    // Lean Manufacturing / Six Sigma / Procesos → industria moderna
-    'lean':               'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'six sigma':          'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'ingeniería de procesos':'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'procesos':           'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    // Costos / Finanzas / Controller → dashboards / oficina técnica
-    'costos':             'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'control de costos':  'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'planificación':      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'finanzas':           'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'controller':         'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    'reporting':          'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    // Project Management → oficina profesional
-    'project management': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    'pmbok':              'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    // Inventario / Almacén → planta industrial (NO retail)
-    'inventario':         'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'almacén':            'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'logístic':           'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    // Secretariado → oficina profesional
-    'secretariad':        'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    'administrativ':      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    // Seguridad / NOM
-    'nom-':               'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=900&auto=format&fit=crop&q=80',
-    'iso ':               'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'seguridad':          'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=900&auto=format&fit=crop&q=80',
-    'eléctric':           'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=900&auto=format&fit=crop&q=80',
-    'iper':               'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'riesgo':             'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=900&auto=format&fit=crop&q=80',
-    'calidad':            'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    // Mantenimiento
-    'mantenimiento':      'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'tpm':                'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'oee':                'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'mecánic':            'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    // Industrial genérico
-    'industrial':         'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'ingeniería':         'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80'
+    // Portadas locales de IMFRA (assets/img/cursos) asignadas por palabra clave del título.
+    // Sin dependencias externas: si no hay portada en Firestore, se usa una de estas.
+    'supervis':          'assets/img/cursos/curso-01-supervision.jpg',
+    'residente':         'assets/img/cursos/curso-05-residente.jpg',
+    'superintend':       'assets/img/cursos/curso-05-residente.jpg',
+    'contrat':           'assets/img/cursos/curso-02-contratos.jpg',
+    'licitaci':          'assets/img/cursos/curso-02-contratos.jpg',
+    'obra pública':      'assets/img/cursos/curso-02-contratos.jpg',
+    'obra publica':      'assets/img/cursos/curso-02-contratos.jpg',
+    'municipal':         'assets/img/cursos/curso-02-contratos.jpg',
+    'trabe':             'assets/img/cursos/curso-03-trabes.jpg',
+    'estructur':         'assets/img/cursos/curso-03-trabes.jpg',
+    'concreto':          'assets/img/cursos/curso-03-trabes.jpg',
+    'acero':             'assets/img/cursos/curso-03-trabes.jpg',
+    'cimentaci':         'assets/img/cursos/curso-03-trabes.jpg',
+    'costo':             'assets/img/cursos/curso-04-control-financiero.jpg',
+    'presupuesto':       'assets/img/cursos/curso-04-control-financiero.jpg',
+    'estimaci':          'assets/img/cursos/curso-04-control-financiero.jpg',
+    'generador':         'assets/img/cursos/curso-04-control-financiero.jpg',
+    'financ':            'assets/img/cursos/curso-04-control-financiero.jpg',
+    'precios unitarios': 'assets/img/cursos/curso-04-control-financiero.jpg',
+    'lámina':            'assets/img/cursos/curso-06-laminas.jpg',
+    'lamina':            'assets/img/cursos/curso-06-laminas.jpg',
+    'plano':             'assets/img/cursos/curso-06-laminas.jpg',
+    'autocad':           'assets/img/cursos/curso-06-laminas.jpg',
+    'dibujo':            'assets/img/cursos/curso-06-laminas.jpg',
+    'topograf':          'assets/img/cursos/curso-07-numeros.jpg',
+    'cálculo':           'assets/img/cursos/curso-07-numeros.jpg',
+    'calculo':           'assets/img/cursos/curso-07-numeros.jpg',
+    'números':           'assets/img/cursos/curso-07-numeros.jpg',
+    'sketchup':          'assets/img/cursos/curso-08-sketchup.jpg',
+    'revit':             'assets/img/cursos/curso-08-sketchup.jpg',
+    'bim':               'assets/img/cursos/curso-08-sketchup.jpg',
+    'modelado':          'assets/img/cursos/curso-08-sketchup.jpg',
+    'render':            'assets/img/cursos/curso-08-sketchup.jpg',
+    'gerencia':          'assets/img/cursos/curso-09-gerencia.jpg',
+    'proyecto':          'assets/img/cursos/curso-09-gerencia.jpg',
+    'iso 9001':          'assets/img/cursos/curso-09-gerencia.jpg',
+    'calidad':           'assets/img/cursos/curso-09-gerencia.jpg',
+    'gestión':           'assets/img/cursos/curso-09-gerencia.jpg',
+    'paisaj':            'assets/img/cursos/curso-10-paisajismo.jpg',
+    'arquitect':         'assets/img/cursos/curso-10-paisajismo.jpg',
+    'urban':             'assets/img/cursos/curso-10-paisajismo.jpg',
+    'interiores':        'assets/img/cursos/curso-10-paisajismo.jpg',
+    'maquinaria':        'assets/img/cursos/curso-01-supervision.jpg',
+    'tierras':           'assets/img/cursos/curso-01-supervision.jpg',
+    'obra':              'assets/img/cursos/curso-01-supervision.jpg',
+    'construc':          'assets/img/cursos/curso-01-supervision.jpg',
+    'ingenier':          'assets/img/cursos/curso-01-supervision.jpg'
   };
 
   // Portada por defecto (planta industrial moderna · verificada)
-  const PORTADA_DEFAULT = 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80';
+  const PORTADA_DEFAULT = 'assets/img/cursos/curso-01-supervision.jpg';
 
   function getPortadaCurso(curso){
     if (curso.portada) return curso.portada;
@@ -5012,32 +5030,32 @@ const Sections = (function(){
     {id:5,nombre:'Maestro',desde:2400,hasta:99999}
   ];
 
-  // ⚠️ Catálogo de logros ligado a cursos/herramientas que aún no existen en IMFRA
-  // (mismos nombres de curso que en IMDIIL). Revísalo cuando subas el catálogo real
-  // de IMFRA — la estructura {id,cat,nombre,desc,xp,unlock,criterio} se queda igual.
+  // Catálogo de logros de IMFRA. Los criterios son genéricos (no dependen de
+  // nombres de cursos), así que sirven aunque el catálogo crezca o cambie.
+  // Estructura {id,cat,nombre,desc,xp,unlock,criterio}.
   const logros = [
-    {id:'l1',cat:'Seguridad',nombre:'Primer paso',desc:'Completaste tu primer curso de seguridad',xp:50,unlock:'2026-04-18',criterio:'Termina 1 curso del área Seguridad'},
-    {id:'l2',cat:'Seguridad',nombre:'Defensor STPS',desc:'Completaste 3 NOMs de la STPS',xp:150,unlock:null,criterio:'Termina 3 cursos NOM-STPS'},
-    {id:'l3',cat:'Seguridad',nombre:'Casco de oro',desc:'Completaste 5 cursos de seguridad básica',xp:300,unlock:null,criterio:'Termina los 5 cursos básicos del área Seguridad'},
-    {id:'l4',cat:'Seguridad',nombre:'Herramienta pro',desc:'Usaste una herramienta pro 20 veces',xp:200,unlock:null,criterio:'Usa una herramienta pro 20 veces (próximamente)'},
-    {id:'l5',cat:'Seguridad',nombre:'Cero accidentes',desc:'Calificación 100 en un curso de seguridad',xp:100,unlock:null,criterio:'Saca 100 en cualquier curso de Seguridad'},
-    {id:'l6',cat:'Seguridad',nombre:'Guardián 24/7',desc:'Racha de 30 días aprendiendo seguridad',xp:250,unlock:null,criterio:'Estudia Seguridad 30 días seguidos'},
-    {id:'l7',cat:'Logística',nombre:'OTIF perfecto',desc:'Completaste el curso de indicadores logísticos',xp:120,unlock:null,criterio:'Termina "Indicadores logísticos: OTIF…"'},
-    {id:'l8',cat:'Logística',nombre:'Master del almacén',desc:'Completaste WMS y gestión de almacenes',xp:150,unlock:null,criterio:'Termina "WMS y gestión de almacenes 4.0"'},
-    {id:'l9',cat:'Logística',nombre:'KPI master',desc:'Calculaste 50 indicadores logísticos',xp:200,unlock:null,criterio:'Usa la herramienta Indicadores 50 veces'},
-    {id:'l10',cat:'Logística',nombre:'Cadena perfecta',desc:'Completaste todos los cursos de Logística',xp:400,unlock:null,criterio:'Termina los 5 cursos del área Logística'},
-    {id:'l11',cat:'Logística',nombre:'Tiempo es oro',desc:'Optimizaste 10 procesos medibles',xp:180,unlock:null,criterio:'Genera 10 reportes de mejora'},
-    {id:'l12',cat:'Calidad',nombre:'Lean adopter',desc:'Completaste Lean Manufacturing',xp:120,unlock:'2026-03-22',criterio:'Termina "Lean Manufacturing para supervisores"'},
-    {id:'l13',cat:'Calidad',nombre:'Six Sigma green',desc:'Obtuviste tu certificación Green Belt',xp:500,unlock:null,criterio:'Termina "Six Sigma Green Belt"'},
-    {id:'l14',cat:'Calidad',nombre:'AMEF master',desc:'Generaste 15 análisis AMEF completos',xp:200,unlock:null,criterio:'Completa 15 AMEFs en la plataforma'},
-    {id:'l15',cat:'Calidad',nombre:'Alto desempeño',desc:'Alcanzaste un indicador de calidad top',xp:300,unlock:null,criterio:'Usa una herramienta pro de calidad (próximamente)'},
-    {id:'l16',cat:'Calidad',nombre:'Cero defectos',desc:'Implementaste 5 mejoras de calidad',xp:250,unlock:null,criterio:'Documenta 5 acciones de mejora'},
-    {id:'l17',cat:'Comunidad',nombre:'Bienvenido al club',desc:'Te uniste al Club VIP IMFRA',xp:30,unlock:'2026-03-15',criterio:'Activa tu membresía VIP'},
+    {id:'l1',cat:'Obra',nombre:'Primera cimentación',desc:'Completaste tu primer curso',xp:50,unlock:null,criterio:'Termina 1 curso del catálogo'},
+    {id:'l2',cat:'Obra',nombre:'Residente en formación',desc:'Completaste 3 cursos de obra',xp:150,unlock:null,criterio:'Termina 3 cursos del área Obra'},
+    {id:'l3',cat:'Obra',nombre:'Casco de oro',desc:'Completaste 5 cursos de obra',xp:300,unlock:null,criterio:'Termina 5 cursos del área Obra'},
+    {id:'l4',cat:'Obra',nombre:'Herramienta pro',desc:'Usaste una herramienta pro 20 veces',xp:200,unlock:null,criterio:'Usa una herramienta pro 20 veces (próximamente)'},
+    {id:'l5',cat:'Obra',nombre:'Obra sin observaciones',desc:'Calificación 100 en un curso',xp:100,unlock:null,criterio:'Saca 100 en cualquier curso'},
+    {id:'l6',cat:'Obra',nombre:'Superintendente',desc:'Completaste todos los cursos de Obra',xp:400,unlock:null,criterio:'Termina todos los cursos del área Obra'},
+    {id:'l7',cat:'Proyectos',nombre:'Primer proyecto',desc:'Completaste tu primer curso de proyectos',xp:120,unlock:null,criterio:'Termina 1 curso del área Proyectos'},
+    {id:'l8',cat:'Proyectos',nombre:'Planificador',desc:'Completaste 3 cursos de proyectos',xp:150,unlock:null,criterio:'Termina 3 cursos del área Proyectos'},
+    {id:'l9',cat:'Proyectos',nombre:'Control de costos',desc:'Completaste un curso de costos o presupuestos',xp:200,unlock:null,criterio:'Termina 1 curso de costos, presupuestos o estimaciones'},
+    {id:'l10',cat:'Proyectos',nombre:'Gerente de proyecto',desc:'Completaste todos los cursos de Proyectos',xp:400,unlock:null,criterio:'Termina todos los cursos del área Proyectos'},
+    {id:'l11',cat:'Proyectos',nombre:'Tiempo es oro',desc:'Terminaste un curso en menos de 7 días',xp:180,unlock:null,criterio:'Completa un curso en 7 días o menos'},
+    {id:'l12',cat:'Calidad',nombre:'Primera auditoría',desc:'Completaste tu primer curso de calidad',xp:120,unlock:null,criterio:'Termina 1 curso del área Calidad'},
+    {id:'l13',cat:'Calidad',nombre:'Norma dominada',desc:'Completaste un curso de normatividad',xp:250,unlock:null,criterio:'Termina 1 curso de normatividad o ISO'},
+    {id:'l14',cat:'Calidad',nombre:'Inspector',desc:'Completaste 3 cursos de calidad',xp:200,unlock:null,criterio:'Termina 3 cursos del área Calidad'},
+    {id:'l15',cat:'Calidad',nombre:'Alto desempeño',desc:'Promedio general arriba de 90',xp:300,unlock:null,criterio:'Mantén promedio de 90+ en 3 cursos'},
+    {id:'l16',cat:'Calidad',nombre:'Cero defectos',desc:'Cinco cursos con calificación perfecta',xp:250,unlock:null,criterio:'Saca 100 en 5 cursos'},
+    {id:'l17',cat:'Comunidad',nombre:'Bienvenido al club',desc:'Te uniste al Club VIP IMFRA',xp:30,unlock:null,criterio:'Activa tu membresía VIP'},
     {id:'l18',cat:'Comunidad',nombre:'Voz del foro',desc:'Publicaste 10 mensajes en el foro VIP',xp:100,unlock:null,criterio:'Crea 10 posts en el foro'},
     {id:'l19',cat:'Comunidad',nombre:'Ayudador',desc:'Recibiste 25 likes en respuestas',xp:150,unlock:null,criterio:'Ayuda y consigue 25 likes'},
     {id:'l20',cat:'Comunidad',nombre:'Presente en vivo',desc:'Asististe a 5 clases en vivo',xp:200,unlock:null,criterio:'Conéctate a 5 webinars en vivo'},
     {id:'l21',cat:'Comunidad',nombre:'Embajador IMFRA',desc:'Invitaste a 3 colegas',xp:300,unlock:null,criterio:'Refiere a 3 personas que se registren'},
-    {id:'l22',cat:'Maestría',nombre:'Estudiante constante',desc:'Racha de 7 días aprendiendo',xp:70,unlock:'2026-05-19',criterio:'Aprende 7 días seguidos'},
+    {id:'l22',cat:'Maestría',nombre:'Estudiante constante',desc:'Racha de 7 días aprendiendo',xp:70,unlock:null,criterio:'Aprende 7 días seguidos'},
     {id:'l23',cat:'Maestría',nombre:'Estudiante de hierro',desc:'Racha de 30 días aprendiendo',xp:300,unlock:null,criterio:'Aprende 30 días seguidos'},
     {id:'l24',cat:'Maestría',nombre:'Maratonista',desc:'Acumulaste 100 horas de estudio',xp:400,unlock:null,criterio:'Acumula 100 horas totales'},
     {id:'l25',cat:'Maestría',nombre:'Tres áreas dominadas',desc:'Certificados en 3 áreas distintas',xp:350,unlock:null,criterio:'Obtén certificados en 3 áreas distintas'},
@@ -5534,8 +5552,8 @@ const Sections = (function(){
   };
 
   function moduloTitulo(c,i){
-    const g={'Seguridad':['Introducción y normativa','Identificación de peligros','Evaluación de riesgos','Controles operativos','Equipo de protección','Casos prácticos','Plan de acción','Evaluación final'],'Logística':['Fundamentos','Indicadores clave','Medición OTIF','Fill Rate avanzado','Rotación de inventario','Casos reales','Mejora continua','Evaluación'],'Calidad':['Bases de mejora continua','7 mudas','Value stream mapping','5S en planta','Kaizen y kanban','Casos prácticos','Implementación','Evaluación'],'Mantenimiento':['Introducción al TPM','Mantenimiento autónomo','Mantenimiento planeado','Capacitación','Mejora enfocada','Calidad cero','Casos prácticos','Evaluación']};
-    const t=g[c.area]||g['Seguridad'];return 'Módulo '+i+': '+t[(i-1)%t.length];
+    const g={'Obra':['Introducción y normativa','Planeación de la obra','Control de avance','Supervisión en campo','Seguridad en obra','Casos prácticos','Cierre y entrega','Evaluación final'],'Proyectos':['Fundamentos','Alcance y programa','Costos y presupuesto','Contratos y licitación','Control de cambios','Casos reales','Cierre del proyecto','Evaluación'],'Calidad':['Bases de calidad en construcción','Normatividad aplicable','Inspección y pruebas','Control documental','No conformidades','Casos prácticos','Implementación','Evaluación'],'Arquitectura':['Conceptualización','Anteproyecto','Proyecto ejecutivo','Especificaciones','Coordinación con ingenierías','Casos prácticos','Presentación','Evaluación']};
+    const t=g[c.area]||g['Obra'];return 'Módulo '+i+': '+t[(i-1)%t.length];
   }
 
   /* ============================ CERTIFICADOS ============================ */
@@ -6133,7 +6151,7 @@ const Sections = (function(){
     const proxNivel=niveles[nivelActual.id]?.nombre||'Maestro';
     const ganados=logros.filter(l=>l.unlock).length;
     const totalXp=logros.filter(l=>l.unlock).reduce((s,l)=>s+l.xp,0);
-    const cats=['Seguridad','Logística','Calidad','Comunidad','Maestría'];
+    const cats=['Obra','Proyectos','Calidad','Comunidad','Maestría'];
     container.innerHTML=`
       <div class="fade-up">
         <div class="sec-hero">
@@ -6254,7 +6272,7 @@ const Sections = (function(){
           <div class="sec-hero">
             <span class="sec-hero__eyebrow">Aprende en directo</span>
             <h1 class="sec-hero__title">Clases en vivo</h1>
-            <p class="sec-hero__sub">Sesiones en directo con ingenieros y especialistas del sector industrial. Pregunta en vivo, las grabaciones quedan disponibles.</p>
+            <p class="sec-hero__sub">Sesiones en directo con ingenieros, arquitectos y especialistas del sector construcción. Pregunta en vivo, las grabaciones quedan disponibles.</p>
           </div>
           <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
             <div style="width:64px;height:64px;border-radius:50%;background:color-mix(in srgb, var(--primary) 12%, transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
@@ -6278,7 +6296,7 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Aprende en directo</span>
           <h1 class="sec-hero__title">Clases en vivo</h1>
-          <p class="sec-hero__sub">Sesiones en directo con ingenieros y especialistas del sector industrial. Pregunta en vivo, las grabaciones quedan disponibles.</p>
+          <p class="sec-hero__sub">Sesiones en directo con ingenieros, arquitectos y especialistas del sector construcción. Pregunta en vivo, las grabaciones quedan disponibles.</p>
         </div>
         ${prox?renderProxHero(prox):''}
         <div class="tabs">
@@ -6674,10 +6692,10 @@ const Sections = (function(){
 
   function _renderPdfCard(m) {
     const colorMap = {
-      'Seguridad':'#EF4444','Calidad':'#10B981','Logística':'#3B82F6',
-      'Mantenimiento':'#A855F7','Producción':'#F59E0B','Energía':'#FFCF7A',
-      'Medio Ambiente':'#14B8A6','Operaciones':'#F97316','Gestión':'#8B5CF6',
-      'Finanzas':'#06B6D4','Administrativo':'#EC4899','General':'#F59D1A'
+      'Obra':'#F59D1A','Obra pública':'#F59D1A','Supervisión de obra':'#F97316',
+      'Proyectos':'#3B82F6','Gerencia de proyectos':'#3B82F6','Costos y presupuestos':'#06B6D4',
+      'Calidad':'#10B981','Normatividad':'#8B5CF6','Arquitectura':'#A855F7',
+      'Ingeniería civil':'#F59D1A','Topografía':'#14B8A6','Maquinaria':'#EF4444','General':'#F59D1A'
     };
     const c = colorMap[m.cursoArea] || '#F59D1A';
     const tipo = _inferirTipoMaterial(m.url);
@@ -7092,7 +7110,7 @@ const Sections = (function(){
         <label class="dir-form__lbl">Puesto / cargo</label>
         <input class="dir-form__in" id="dirf-puesto" maxlength="60" value="${(data.puesto||'').replace(/"/g,'&quot;')}" placeholder="Ej. Residente de obra">
         <label class="dir-form__lbl">Empresa</label>
-        <input class="dir-form__in" id="dirf-empresa" maxlength="60" value="${(data.empresa||'').replace(/"/g,'&quot;')}" placeholder="Ej. Grupo Industrial del Bajío">
+        <input class="dir-form__in" id="dirf-empresa" maxlength="60" value="${(data.empresa||'').replace(/"/g,'&quot;')}" placeholder="Ej. Constructora del Bajío">
         <label class="dir-form__lbl">Sector</label>
         <select class="dir-form__in" id="dirf-sector">
           <option value="">Selecciona…</option>
@@ -7231,7 +7249,7 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Comunidad activa</span>
           <h1 class="sec-hero__title">Foro VIP</h1>
-          <p class="sec-hero__sub">Comparte casos de planta, haz preguntas y conecta con la comunidad IMFRA. Publica texto e imágenes, comenta y reacciona.</p>
+          <p class="sec-hero__sub">Comparte casos de obra, haz preguntas y conecta con la comunidad IMFRA. Publica texto e imágenes, comenta y reacciona.</p>
         </div>
 
         <div class="foro-aviso">
@@ -7562,18 +7580,18 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Comunidad WhatsApp</span>
           <h1 class="sec-hero__title">Canal WhatsApp IMFRA</h1>
-          <p class="sec-hero__sub">Únete a nuestra comunidad de ingenieros industriales. Recibe alertas de nuevos cursos, noticias de la STPS, casos de planta y networking.</p>
+          <p class="sec-hero__sub">Únete a la comunidad IMFRA. Recibe alertas de nuevos cursos, noticias del sector construcción, casos de obra y networking.</p>
         </div>
 
         <section class="wa-hero">
           <div class="wa-hero__icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.264 8.264 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.23-8.22 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43s.17-.25.25-.41c.08-.17.04-.31-.02-.43s-.56-1.34-.76-1.84c-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18s-.22-.16-.47-.28z"/></svg></div>
           <h2 class="wa-hero__title">Únete al canal oficial</h2>
-          <p class="wa-hero__sub">486 miembros activos · ingenieros, técnicos y responsables de seguridad compartiendo casos reales todos los días.</p>
+          <p class="wa-hero__sub">Ingenieros, arquitectos, residentes y supervisores de obra compartiendo casos reales todos los días.</p>
 
           <div class="wa-stats">
-            <div class="wa-stat"><div class="wa-stat__num">486</div><div class="wa-stat__lbl">Miembros</div></div>
-            <div class="wa-stat"><div class="wa-stat__num">24</div><div class="wa-stat__lbl">Mensajes/día</div></div>
-            <div class="wa-stat"><div class="wa-stat__num">98%</div><div class="wa-stat__lbl">Activos</div></div>
+            <div class="wa-stat"><div class="wa-stat__num">24/7</div><div class="wa-stat__lbl">Activo</div></div>
+            <div class="wa-stat"><div class="wa-stat__num">100%</div><div class="wa-stat__lbl">Profesional</div></div>
+            <div class="wa-stat"><div class="wa-stat__num">0</div><div class="wa-stat__lbl">Spam</div></div>
           </div>
 
           <div style="position:relative;z-index:1;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
@@ -7581,6 +7599,25 @@ const Sections = (function(){
             <button class="btn btn--ghost" id="btn-wa-canal-share"><svg class="ic"><use href="#i-arrow-right"/></svg>Compartir invitación</button>
           </div>
         </section>
+
+        <div class="social-grid">
+          <a class="social-card social-card--ig" href="${IMFRA_CONTACT.instagram}" target="_blank" rel="noopener">
+            <div class="social-card__ic"><svg class="ic"><use href="#i-instagram"/></svg></div>
+            <div class="social-card__body">
+              <div class="social-card__title">Síguenos en Instagram</div>
+              <div class="social-card__sub">@imfradesarrollo · tips de obra, avances de cursos y comunidad</div>
+            </div>
+            <svg class="ic social-card__arrow"><use href="#i-arrow-right"/></svg>
+          </a>
+          <a class="social-card social-card--fb" href="${IMFRA_CONTACT.facebook}" target="_blank" rel="noopener">
+            <div class="social-card__ic"><svg class="ic"><use href="#i-facebook"/></svg></div>
+            <div class="social-card__body">
+              <div class="social-card__title">Síguenos en Facebook</div>
+              <div class="social-card__sub">IMFRA Desarrollo · noticias, lanzamientos y clases en vivo</div>
+            </div>
+            <svg class="ic social-card__arrow"><use href="#i-arrow-right"/></svg>
+          </a>
+        </div>
 
         <div class="wa-rules">
           <div class="wa-rules__title">Reglas de la comunidad</div>
@@ -7590,7 +7627,7 @@ const Sections = (function(){
           </div>
           <div class="wa-rule">
             <div class="wa-rule__check"><svg class="ic"><use href="#i-check"/></svg></div>
-            <div class="wa-rule__text"><strong>Comparte casos reales.</strong> Si compartes un caso de planta o pregunta técnica, da contexto: sector, tamaño, qué pasó.</div>
+            <div class="wa-rule__text"><strong>Comparte casos reales.</strong> Si compartes un caso de obra o pregunta técnica, da contexto: tipo de proyecto, tamaño, qué pasó.</div>
           </div>
           <div class="wa-rule">
             <div class="wa-rule__check"><svg class="ic"><use href="#i-check"/></svg></div>
@@ -8340,10 +8377,13 @@ const Sections = (function(){
 const IMFRA_CONTACT = {
   // Número único de contacto (vendedora · soporte · descuento · director)
   whatsapp: 'TODO_WHATSAPP_NUMERO',  // TODO: número WhatsApp de IMFRA
-  // Canal de difusión oficial
-  canal: 'https://whatsapp.com/channel/0029VbBP1NL1iUxYcsyoNE3c',
+  // Canal de difusión oficial (TODO: pegar el link del canal de WhatsApp de IMFRA)
+  canal: 'TODO_CANAL_WHATSAPP',
+  // Redes sociales oficiales
+  facebook: 'https://www.facebook.com/profile.php?id=61592146670186&locale=es_LA',
+  instagram: 'https://www.instagram.com/imfradesarrollo/?hl=es-la',
   // Zoom de la próxima clase (muestra · sustituir por el real al confirmar webinar)
-  zoom: 'https://zoom.us/j/85234567890?pwd=IMFRA2026OEE',
+  zoom: 'https://zoom.us/j/85234567890?pwd=IMFRA2026',
   // Sitio público
   sitio: 'https://www.imfradesarrollo.com',
 
@@ -8366,6 +8406,16 @@ const IMFRA_CONTACT = {
   }
 };
 window.IMFRA_CONTACT = IMFRA_CONTACT;
+// Abre el canal de WhatsApp; si aún no está configurado, avisa en vez de abrir un link roto
+window.abrirCanalIMFRA = function(){
+  const url = IMFRA_CONTACT.canal || '';
+  if (!url || url.startsWith('TODO')) {
+    if (typeof Toast !== 'undefined') Toast.info('Canal en preparación','Muy pronto te compartimos el link oficial del canal IMFRA.');
+    return false;
+  }
+  window.open(url,'_blank');
+  return true;
+};
 
 // ═══════════════════════════════════════════════════════════════════
 // Helpers Modal bonitos (logout, password reset, editar perfil)
@@ -8598,7 +8648,7 @@ window.__notifsState = { items: [], unsubscribe: null, loaded: false };
 const NOTIFS_DEMO = [
   {id:'demo-1', tipo:'clase', icono:'i-broadcast', color:'#F59D1A', titulo:'Próxima clase en vivo', descripcion:'Instructor de ejemplo · 28 mayo 19:00 hrs', createdAtMs: Date.now()-3600000},
   {id:'demo-2', tipo:'certificado', icono:'i-certificate', color:'#34D399', titulo:'¿Sabías qué? Cada curso tiene su certificado', descripcion:'Folio único con código QR verificable', createdAtMs: Date.now()-86400000},
-  {id:'demo-3', tipo:'logro', icono:'i-trophy', color:'#FBBF24', titulo:'5 niveles de progresión', descripcion:'Desde Aprendiz hasta Maestro Industrial', createdAtMs: Date.now()-2*86400000}
+  {id:'demo-3', tipo:'logro', icono:'i-trophy', color:'#FBBF24', titulo:'5 niveles de progresión', descripcion:'Desde Aprendiz hasta Maestro de Obra', createdAtMs: Date.now()-2*86400000}
 ];
 
 // Setup del listener de notificaciones — se llama al cargar el panel
@@ -8977,6 +9027,14 @@ function injectSupportFAB(){
         <div class="wa-fab-opt-ic" style="background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary);font-size:18px;">⭐</div>
         <div><div class="wa-fab-opt-tx">Mi descuento 20%</div><div class="wa-fab-opt-sub">Solicitar por WhatsApp</div></div>
       </div>
+      <div class="wa-fab-opt" data-wa="instagram">
+        <div class="wa-fab-opt-ic" style="background:linear-gradient(135deg,rgba(221,42,123,.16),rgba(129,52,175,.16));color:#DD2A7B;"><svg class="ic"><use href="#i-instagram"/></svg></div>
+        <div><div class="wa-fab-opt-tx">Instagram</div><div class="wa-fab-opt-sub">@imfradesarrollo</div></div>
+      </div>
+      <div class="wa-fab-opt" data-wa="facebook">
+        <div class="wa-fab-opt-ic" style="background:rgba(24,119,242,.14);color:#1877F2;"><svg class="ic"><use href="#i-facebook"/></svg></div>
+        <div><div class="wa-fab-opt-tx">Facebook</div><div class="wa-fab-opt-sub">IMFRA Desarrollo</div></div>
+      </div>
       <div class="wa-fab-opt" data-wa="support">
         <div class="wa-fab-opt-ic" style="background:color-mix(in srgb,var(--whatsapp) 14%,transparent);color:var(--whatsapp);"><svg class="ic"><use href="#i-whatsapp"/></svg></div>
         <div><div class="wa-fab-opt-tx">Soporte VIP</div><div class="wa-fab-opt-sub">Ayuda con tu cuenta</div></div>
@@ -8998,10 +9056,13 @@ function injectSupportFAB(){
           discount:{url:IMFRA_CONTACT.waLink(IMFRA_CONTACT.msgDescuento20()),msg:'Abriendo WhatsApp · Descuento 20%'},
           support:{url:IMFRA_CONTACT.waLink(IMFRA_CONTACT.msgSoporte()),msg:'Abriendo WhatsApp · Soporte'},
           director:{url:IMFRA_CONTACT.waLink(IMFRA_CONTACT.msgDirector()),msg:'Abriendo WhatsApp · Dirección'},
-          canal:{url:IMFRA_CONTACT.canal,msg:'Abriendo canal IMFRA'}
+          canal:{url:IMFRA_CONTACT.canal,msg:'Abriendo canal IMFRA'},
+          instagram:{url:IMFRA_CONTACT.instagram,msg:'Abriendo Instagram · @imfradesarrollo'},
+          facebook:{url:IMFRA_CONTACT.facebook,msg:'Abriendo Facebook · IMFRA Desarrollo'}
         };
+        if (action === 'canal') { if (window.abrirCanalIMFRA()) Toast.success(map[action].msg,'Comunidad oficial'); menu.remove(); return; }
         window.open(map[action].url,'_blank');
-        Toast.success(map[action].msg,'Te abrimos WhatsApp');
+        Toast.success(map[action].msg, (action==='instagram'||action==='facebook') ? 'Síguenos y comparte' : 'Te abrimos WhatsApp');
         menu.remove();
       });
     });
@@ -9080,8 +9141,7 @@ function initNav(){
   // ─── Botones del DOM estático (topbar, sidebar, widgets siempre presentes) ───
   document.getElementById('btn-logout')?.addEventListener('click',openLogoutModal);
   document.getElementById('btn-wa')?.addEventListener('click',()=>{
-    window.open(IMFRA_CONTACT.canal,'_blank');
-    Toast.success('Abriendo canal IMFRA','Comunidad oficial');
+    if (window.abrirCanalIMFRA()) Toast.success('Abriendo canal IMFRA','Comunidad oficial');
   });
   document.getElementById('btn-disc-wa')?.addEventListener('click',(e)=>{
     e.stopPropagation();
@@ -9180,8 +9240,7 @@ function initNav(){
 
     // Sección Canal WhatsApp · abrir grupo
     if(t.closest('#btn-wa-canal-open')){
-      window.open(IMFRA_CONTACT.canal,'_blank');
-      Toast.success('Abriendo canal','Comunidad IMFRA');
+      if (window.abrirCanalIMFRA()) Toast.success('Abriendo canal','Comunidad IMFRA');
       return;
     }
     // Sección Canal WhatsApp · compartir

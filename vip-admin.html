@@ -1939,39 +1939,57 @@ const Pages={
   // Mapeo de portadas auto-asignadas según palabra clave del título
   // (idéntico al panel VIP · garantiza consistencia visual)
   _portadasCursos: {
-    'energías renovables':'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    'energía':            'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    'renovable':          'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    'solar':              'https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&auto=format&fit=crop&q=80',
-    'aguas residuales':   'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=900&auto=format&fit=crop&q=80',
-    'tratamiento':        'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=900&auto=format&fit=crop&q=80',
-    'biológic':           'https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=900&auto=format&fit=crop&q=80',
-    'supervisión':        'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'producción':         'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'forecasting':        'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'demanda':            'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'kaizen':             'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'mejora continua':    'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'lean':               'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'six sigma':          'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'procesos':           'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'costos':             'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'planificación':      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&auto=format&fit=crop&q=80',
-    'controller':         'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    'project management': 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    'inventario':         'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'almacén':            'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'logístic':           'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
-    'secretariad':        'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    'administrativ':      'https://images.unsplash.com/photo-1497366216548-37526070297c?w=900&auto=format&fit=crop&q=80',
-    'nom-':               'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=900&auto=format&fit=crop&q=80',
-    'iso ':               'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'seguridad':          'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=900&auto=format&fit=crop&q=80',
-    'calidad':            'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=900&auto=format&fit=crop&q=80',
-    'mantenimiento':      'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80',
-    'oee':                'https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=900&auto=format&fit=crop&q=80'
+    // Portadas locales de IMFRA (assets/img/cursos) asignadas por palabra clave del título.
+    // Sin dependencias externas: si no hay portada en Firestore, se usa una de estas.
+    'supervis':          'assets/img/cursos/curso-01-supervision.jpg',
+    'residente':         'assets/img/cursos/curso-05-residente.jpg',
+    'superintend':       'assets/img/cursos/curso-05-residente.jpg',
+    'contrat':           'assets/img/cursos/curso-02-contratos.jpg',
+    'licitaci':          'assets/img/cursos/curso-02-contratos.jpg',
+    'obra pública':      'assets/img/cursos/curso-02-contratos.jpg',
+    'obra publica':      'assets/img/cursos/curso-02-contratos.jpg',
+    'municipal':         'assets/img/cursos/curso-02-contratos.jpg',
+    'trabe':             'assets/img/cursos/curso-03-trabes.jpg',
+    'estructur':         'assets/img/cursos/curso-03-trabes.jpg',
+    'concreto':          'assets/img/cursos/curso-03-trabes.jpg',
+    'acero':             'assets/img/cursos/curso-03-trabes.jpg',
+    'cimentaci':         'assets/img/cursos/curso-03-trabes.jpg',
+    'costo':             'assets/img/cursos/curso-04-control-financiero.jpg',
+    'presupuesto':       'assets/img/cursos/curso-04-control-financiero.jpg',
+    'estimaci':          'assets/img/cursos/curso-04-control-financiero.jpg',
+    'generador':         'assets/img/cursos/curso-04-control-financiero.jpg',
+    'financ':            'assets/img/cursos/curso-04-control-financiero.jpg',
+    'precios unitarios': 'assets/img/cursos/curso-04-control-financiero.jpg',
+    'lámina':            'assets/img/cursos/curso-06-laminas.jpg',
+    'lamina':            'assets/img/cursos/curso-06-laminas.jpg',
+    'plano':             'assets/img/cursos/curso-06-laminas.jpg',
+    'autocad':           'assets/img/cursos/curso-06-laminas.jpg',
+    'dibujo':            'assets/img/cursos/curso-06-laminas.jpg',
+    'topograf':          'assets/img/cursos/curso-07-numeros.jpg',
+    'cálculo':           'assets/img/cursos/curso-07-numeros.jpg',
+    'calculo':           'assets/img/cursos/curso-07-numeros.jpg',
+    'números':           'assets/img/cursos/curso-07-numeros.jpg',
+    'sketchup':          'assets/img/cursos/curso-08-sketchup.jpg',
+    'revit':             'assets/img/cursos/curso-08-sketchup.jpg',
+    'bim':               'assets/img/cursos/curso-08-sketchup.jpg',
+    'modelado':          'assets/img/cursos/curso-08-sketchup.jpg',
+    'render':            'assets/img/cursos/curso-08-sketchup.jpg',
+    'gerencia':          'assets/img/cursos/curso-09-gerencia.jpg',
+    'proyecto':          'assets/img/cursos/curso-09-gerencia.jpg',
+    'iso 9001':          'assets/img/cursos/curso-09-gerencia.jpg',
+    'calidad':           'assets/img/cursos/curso-09-gerencia.jpg',
+    'gestión':           'assets/img/cursos/curso-09-gerencia.jpg',
+    'paisaj':            'assets/img/cursos/curso-10-paisajismo.jpg',
+    'arquitect':         'assets/img/cursos/curso-10-paisajismo.jpg',
+    'urban':             'assets/img/cursos/curso-10-paisajismo.jpg',
+    'interiores':        'assets/img/cursos/curso-10-paisajismo.jpg',
+    'maquinaria':        'assets/img/cursos/curso-01-supervision.jpg',
+    'tierras':           'assets/img/cursos/curso-01-supervision.jpg',
+    'obra':              'assets/img/cursos/curso-01-supervision.jpg',
+    'construc':          'assets/img/cursos/curso-01-supervision.jpg',
+    'ingenier':          'assets/img/cursos/curso-01-supervision.jpg'
   },
-  _portadaDefault: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=900&auto=format&fit=crop&q=80',
+  _portadaDefault: 'assets/img/cursos/curso-01-supervision.jpg',
   _getPortada(curso) {
     if (curso.portada) return curso.portada;
     const t = (curso.titulo || '').toLowerCase();
@@ -2168,7 +2186,7 @@ const Pages={
       Toast.error('Catálogo incompleto', `Se esperaban 56 videos reproducibles y se encontraron ${totalVideos}`);
       return;
     }
-    const ok = confirm(`Se vincularán ${totalVideos} videos auditados de Bunny con ${catalogo.length} cursos.\n\nLos cursos que coincidan conservarán sus materiales. Los cursos antiguos sin correspondencia serán sustituidos en el mismo orden para evitar duplicados. El video dañado de Lean/Six Sigma quedará excluido.\n\n¿Continuar?`);
+    const ok = confirm(`Se vincularán ${totalVideos} videos auditados de Bunny con ${catalogo.length} cursos.\n\nLos cursos que coincidan conservarán sus materiales. Los cursos antiguos sin correspondencia serán sustituidos en el mismo orden para evitar duplicados.\n\n¿Continuar?`);
     if (!ok) return;
 
     if (btn) { btn.disabled = true; btn.style.opacity = '.65'; btn.textContent = 'Sincronizando…'; }
@@ -2410,7 +2428,7 @@ const Pages={
     const activo = c.activo !== false && c.disponible !== false;
     const area = c.area || 'Sin área';
     const areaColors = {
-      'Seguridad':'#EF4444', 'Calidad':'#10B981', 'Logística':'#3B82F6',
+      'Obra':'#F59D1A', 'Obra pública':'#F59D1A', 'Supervisión de obra':'#F97316', 'Proyectos':'#3B82F6', 'Gerencia de proyectos':'#3B82F6', 'Costos y presupuestos':'#06B6D4', 'Calidad':'#10B981', 'Normatividad':'#8B5CF6', 'Arquitectura':'#A855F7', 'Ingeniería civil':'#F59D1A', 'Topografía':'#14B8A6', 'Maquinaria':'#EF4444',
       'Mantenimiento':'#A855F7', 'Producción':'#F59E0B', 'Energía':'#FFCF7A',
       'Medio Ambiente':'#14B8A6', 'Operaciones':'#F97316', 'Gestión':'#8B5CF6',
       'Finanzas':'#06B6D4', 'Administrativo':'#EC4899'
@@ -2465,7 +2483,7 @@ const Pages={
     const activo = c.activo !== false && c.disponible !== false;
     const area = c.area || 'Sin área';
     const areaColors = {
-      'Seguridad':'#EF4444', 'Calidad':'#10B981', 'Logística':'#3B82F6',
+      'Obra':'#F59D1A', 'Obra pública':'#F59D1A', 'Supervisión de obra':'#F97316', 'Proyectos':'#3B82F6', 'Gerencia de proyectos':'#3B82F6', 'Costos y presupuestos':'#06B6D4', 'Calidad':'#10B981', 'Normatividad':'#8B5CF6', 'Arquitectura':'#A855F7', 'Ingeniería civil':'#F59D1A', 'Topografía':'#14B8A6', 'Maquinaria':'#EF4444',
       'Mantenimiento':'#A855F7', 'Producción':'#F59E0B', 'Energía':'#FFCF7A',
       'Medio Ambiente':'#14B8A6', 'Operaciones':'#F97316', 'Gestión':'#8B5CF6',
       'Finanzas':'#06B6D4', 'Administrativo':'#EC4899'
@@ -2594,7 +2612,7 @@ const Pages={
     const areasExistentes = store?.ready
       ? Array.from(new Set(store.cursos.map(c => c.area).filter(Boolean)))
       : [];
-    const areasEstandar = ['Calidad','Seguridad','Logística','Mantenimiento','Producción','Energía','Medio Ambiente','Operaciones','Gestión','Finanzas','Administrativo'];
+    const areasEstandar = ['Obra','Obra pública','Supervisión de obra','Proyectos','Gerencia de proyectos','Costos y presupuestos','Calidad','Normatividad','Arquitectura','Ingeniería civil','Topografía','Maquinaria'];
     const areas = Array.from(new Set([...areasEstandar, ...areasExistentes])).sort();
 
     const c = esEdicion ? curso : {};
@@ -3617,7 +3635,7 @@ const Pages={
     }
 
     const areaColors = {
-      'Seguridad':'#EF4444','Calidad':'#10B981','Logística':'#3B82F6',
+      'Obra':'#F59D1A', 'Obra pública':'#F59D1A', 'Supervisión de obra':'#F97316', 'Proyectos':'#3B82F6', 'Gerencia de proyectos':'#3B82F6', 'Costos y presupuestos':'#06B6D4', 'Calidad':'#10B981', 'Normatividad':'#8B5CF6', 'Arquitectura':'#A855F7', 'Ingeniería civil':'#F59D1A', 'Topografía':'#14B8A6', 'Maquinaria':'#EF4444',
       'Mantenimiento':'#A855F7','Producción':'#F59E0B','Energía':'#FFCF7A',
       'Medio Ambiente':'#14B8A6','Operaciones':'#F97316','Gestión':'#8B5CF6',
       'Finanzas':'#06B6D4','Administrativo':'#EC4899'
@@ -4927,7 +4945,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Cron automático</span>
           <h1 class="sec-hero__title">Noticias</h1>
-          <p class="sec-hero__sub">El cron de Railway corre cada día a las 7 AM y publica noticias del sector industrial en el panel VIP.</p>
+          <p class="sec-hero__sub">El cron de Railway corre cada día a las 7 AM y publica noticias del sector construcción en el panel VIP.</p>
         </div>
 
         <section class="cron-card">

@@ -6,12 +6,12 @@
   const steps = [
     {
       title: 'Bienvenido a tu panel IMFRA',
-      copy: 'Este es tu centro de capacitación en ingeniería industrial. Desde aquí puedes continuar tu aprendizaje, consultar recursos y administrar tu cuenta.',
+      copy: 'Este es tu centro de capacitación en ingeniería civil y construcción. Desde aquí puedes continuar tu aprendizaje, consultar recursos y administrar tu cuenta.',
       selectors: ['.sidebar .brand', '.topbar__left', '.topbar']
     },
     {
       title: 'Tu ruta de cursos',
-      copy: 'En Mis cursos encuentras la videoteca de seguridad, calidad, logística y producción. Aquí retomas clases, revisas tu avance y obtienes certificados al completar cada programa.',
+      copy: 'En Mis cursos encuentras la videoteca de obra, proyectos, costos, calidad y normatividad. Aquí retomas clases, revisas tu avance y obtienes certificados al completar cada programa.',
       selectors: ['.sidebar .nav-item[data-section="cursos"]', '.mobile-nav__item[data-section="cursos"]', '[data-section="cursos"]']
     },
     {
