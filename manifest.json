@@ -1,0 +1,38 @@
+{
+  "name": "IMFRA · Panel VIP",
+  "short_name": "IMFRA VIP",
+  "description": "Capacitación en ingeniería civil y construcción, herramientas pro y certificación con folio oficial IMFRA.",
+  "id": "./",
+  "start_url": "./vip-auth.html?source=pwa",
+  "scope": ".",
+  "display": "standalone",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "orientation": "portrait-primary",
+  "background_color": "#0D0D0D",
+  "theme_color": "#F59D1A",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "categories": ["education", "productivity", "business"],
+  "icons": [
+    {
+      "src": "assets/imfra-app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/imfra-app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/imfra-app-icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
