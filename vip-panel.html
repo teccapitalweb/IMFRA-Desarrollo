@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="onboarding-tour.css?v=1">
+<link rel="stylesheet" href="assets/imfra-tools.css?v=1">
 
 <style>
 /* IMFRA VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -3363,7 +3364,7 @@ window.__showWelcomeSplash = function(opts) {
     { ic:'📚', t:'Cursos premium',   d:'Catálogo completo con clases reales que se desbloquean a tu ritmo.' },
     { ic:'🎥', t:'Clases en vivo',   d:'Webinars con expertos y acceso a las grabaciones cuando quieras.' },
     { ic:'📂', t:'PDFs y material',  d:'Plantillas, formatos y recursos descargables listos para usar.' },
-    { ic:'🛠️', t:'Herramientas pro', d:'Próximamente: herramientas propias de IMFRA para tu trabajo en obra.' },
+    { ic:'🛠️', t:'8 herramientas pro', d:'Concreto, acero, muros, retenciones, Curva S, checklist de supervisión, bitácora y números generadores. Con PDF foliado.' },
     { ic:'🎓', t:'Certificados',     d:'Con folio oficial IMFRA para respaldar lo que aprendes.' }
   ];
 
@@ -3592,7 +3593,14 @@ window.__setDisplayName = async (nombre) => {
 
     <div class="nav-section">
       <div class="nav-label">Herramientas pro</div>
-      <a class="nav-item" style="opacity:.45;cursor:not-allowed;pointer-events:none"><svg class="ic"><use href="#i-shield-check"/></svg>Próximamente<span class="nav-item__badge" style="background:var(--surface-3);color:var(--text-3)">6-7</span></a>
+      <a class="nav-item" data-tool="concreto"><svg class="ic"><use href="#i-cube"/></svg>Volumen de concreto</a>
+      <a class="nav-item" data-tool="acero"><svg class="ic"><use href="#i-rebar"/></svg>Cuantificación de acero</a>
+      <a class="nav-item" data-tool="muros"><svg class="ic"><use href="#i-wall"/></svg>Muros y albañilería</a>
+      <a class="nav-item" data-tool="retenciones"><svg class="ic"><use href="#i-percent"/></svg>Retenciones en estimaciones</a>
+      <a class="nav-item" data-tool="curvas"><svg class="ic"><use href="#i-trend"/></svg>Curva S</a>
+      <a class="nav-item" data-tool="checklist"><svg class="ic"><use href="#i-clipboard-check"/></svg>Checklist de supervisión</a>
+      <a class="nav-item" data-tool="bitacora"><svg class="ic"><use href="#i-notebook"/></svg>Bitácora de obra</a>
+      <a class="nav-item" data-tool="generadores"><svg class="ic"><use href="#i-ruler"/></svg>Números generadores</a>
     </div>
 
     <div class="nav-section">
@@ -3644,7 +3652,7 @@ window.__setDisplayName = async (nombre) => {
         <div class="banner__info">
           <span class="banner__eyebrow"><span class="banner__eyebrow__dot"></span><span id="greeting-label">En vivo</span><span class="banner__version">v.2026.05</span></span>
           <h1 class="banner__title" id="hero-title">Buenas tardes, ingeniero</h1>
-          <p class="banner__sub">Tu acceso a cursos premium, herramientas pro (próximamente) y la comunidad de construcción más activa de México.</p>
+          <p class="banner__sub">Tu acceso a cursos premium, 8 herramientas pro para obra y la comunidad de construcción más activa de México.</p>
         </div>
         <div class="banner__stats">
           <div class="banner__stat" data-section="cursos" style="cursor:pointer"><div class="banner__stat-lbl">Cursos</div><div class="banner__stat-val">12</div></div>
@@ -3773,7 +3781,14 @@ window.__setDisplayName = async (nombre) => {
 
       <div class="mobile-drawer__section">
         <div class="mobile-drawer__label">Herramientas pro</div>
-        <a class="mobile-drawer__item" style="opacity:.45;cursor:not-allowed;pointer-events:none"><svg class="ic"><use href="#i-shield-check"/></svg>Próximamente</a>
+        <a class="mobile-drawer__item" data-tool="concreto"><svg class="ic"><use href="#i-cube"/></svg>Volumen de concreto</a>
+        <a class="mobile-drawer__item" data-tool="acero"><svg class="ic"><use href="#i-rebar"/></svg>Cuantificación de acero</a>
+        <a class="mobile-drawer__item" data-tool="muros"><svg class="ic"><use href="#i-wall"/></svg>Muros y albañilería</a>
+        <a class="mobile-drawer__item" data-tool="retenciones"><svg class="ic"><use href="#i-percent"/></svg>Retenciones en estimaciones</a>
+        <a class="mobile-drawer__item" data-tool="curvas"><svg class="ic"><use href="#i-trend"/></svg>Curva S</a>
+        <a class="mobile-drawer__item" data-tool="checklist"><svg class="ic"><use href="#i-clipboard-check"/></svg>Checklist de supervisión</a>
+        <a class="mobile-drawer__item" data-tool="bitacora"><svg class="ic"><use href="#i-notebook"/></svg>Bitácora de obra</a>
+        <a class="mobile-drawer__item" data-tool="generadores"><svg class="ic"><use href="#i-ruler"/></svg>Números generadores</a>
       </div>
 
       <div class="mobile-drawer__section">
@@ -4042,10 +4057,8 @@ function toolRequiereVIP(nombreHerramienta){
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Herramientas pro de IMFRA — PAUSADAS por ahora.
-// Aquí van a vivir las 6-7 herramientas propias de IMFRA cuando Jorge
-// las defina (misma lógica de módulo: const NombreTool = (function(){ ... return {mount}; })();
-// y se agregan a "renderers" más abajo, igual que estaban IPER/OEE/ATS/NOM/Logística en IMDIIL).
+// Herramientas pro de IMFRA: viven en assets/imfra-tools.js (window.IMFRATools)
+// y se registran en "renderers" como 'tool-<clave>'.
 // ═══════════════════════════════════════════════════════════════════
 
 /* ═══════════════════════════════════════════════════════════════
@@ -5037,7 +5050,7 @@ const Sections = (function(){
     {id:'l1',cat:'Obra',nombre:'Primera cimentación',desc:'Completaste tu primer curso',xp:50,unlock:null,criterio:'Termina 1 curso del catálogo'},
     {id:'l2',cat:'Obra',nombre:'Residente en formación',desc:'Completaste 3 cursos de obra',xp:150,unlock:null,criterio:'Termina 3 cursos del área Obra'},
     {id:'l3',cat:'Obra',nombre:'Casco de oro',desc:'Completaste 5 cursos de obra',xp:300,unlock:null,criterio:'Termina 5 cursos del área Obra'},
-    {id:'l4',cat:'Obra',nombre:'Herramienta pro',desc:'Usaste una herramienta pro 20 veces',xp:200,unlock:null,criterio:'Usa una herramienta pro 20 veces (próximamente)'},
+    {id:'l4',cat:'Obra',nombre:'Herramienta pro',desc:'Usaste una herramienta pro 20 veces',xp:200,unlock:null,criterio:'Usa una herramienta pro 20 veces'},
     {id:'l5',cat:'Obra',nombre:'Obra sin observaciones',desc:'Calificación 100 en un curso',xp:100,unlock:null,criterio:'Saca 100 en cualquier curso'},
     {id:'l6',cat:'Obra',nombre:'Superintendente',desc:'Completaste todos los cursos de Obra',xp:400,unlock:null,criterio:'Termina todos los cursos del área Obra'},
     {id:'l7',cat:'Proyectos',nombre:'Primer proyecto',desc:'Completaste tu primer curso de proyectos',xp:120,unlock:null,criterio:'Termina 1 curso del área Proyectos'},
@@ -7975,7 +7988,7 @@ const Sections = (function(){
           </div>
           <div class="plan-card__features">
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Acceso ilimitado a cursos</div>
-            <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Herramientas pro (próximamente)</div>
+            <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>8 herramientas pro para obra con PDF</div>
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Clases en vivo quincenales</div>
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Certificados con folio QR</div>
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Foro VIP y canal WhatsApp</div>
@@ -8363,8 +8376,15 @@ const Sections = (function(){
       canal:renderCanal,
       perfil:renderPerfil,
       suscripcion:renderSuscripcion,
-      // Herramientas pro de IMFRA: pausadas. Cuando Jorge agregue las 6-7
-      // herramientas, se registran aquí igual que estaban iper/oee/ats/etc.
+      // Herramientas pro (assets/imfra-tools.js)
+      'tool-concreto':(c)=>window.IMFRATools.concreto.mount(c),
+      'tool-acero':(c)=>window.IMFRATools.acero.mount(c),
+      'tool-muros':(c)=>window.IMFRATools.muros.mount(c),
+      'tool-retenciones':(c)=>window.IMFRATools.retenciones.mount(c),
+      'tool-curvas':(c)=>window.IMFRATools.curvas.mount(c),
+      'tool-checklist':(c)=>window.IMFRATools.checklist.mount(c),
+      'tool-bitacora':(c)=>window.IMFRATools.bitacora.mount(c),
+      'tool-generadores':(c)=>window.IMFRATools.generadores.mount(c),
     },
     countdownTimer:null
   };
@@ -9080,7 +9100,7 @@ function initNav(){
       }
       // Herramientas con sección propia (se abren dentro del panel, no como popup)
       // Vacío por ahora — se llena cuando Jorge agregue las herramientas pro de IMFRA.
-      const toolSections = {};
+      const toolSections = {concreto:'tool-concreto', acero:'tool-acero', muros:'tool-muros', retenciones:'tool-retenciones', curvas:'tool-curvas', checklist:'tool-checklist', bitacora:'tool-bitacora', generadores:'tool-generadores'};
       if(it.dataset.tool){
         if(toolSections[it.dataset.tool]){ navigateToSection(toolSections[it.dataset.tool]); return; }
         if(Tools[it.dataset.tool]){ Tools[it.dataset.tool].open(); return; }
@@ -10467,5 +10487,6 @@ body{letter-spacing:-.05px}
 }
 </style>
 <script src="onboarding-tour.js?v=1" defer></script>
+<script src="assets/imfra-tools.js?v=1"></script>
 </body>
 </html>
