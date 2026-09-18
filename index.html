@@ -391,7 +391,8 @@ h2.title{
   .footer-top{grid-template-columns:1fr 1fr}
 }
 @media(max-width:680px){
-  .nav-links,.nav-cta .btn{display:none}
+  .nav-links,.nav-cta .btn:not(.btn-vip){display:none}
+  .nav-cta .btn-vip{padding:8px 16px;font-size:13px}
   .burger{display:flex}
   .nav-cta{gap:0}
   .values{grid-template-columns:1fr}
