@@ -2507,13 +2507,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
   position:relative;overflow:hidden;
   min-height:90px;
 }
-.pdf-card__top::before{
-  content:"";position:absolute;inset:0;
-  background-image:linear-gradient(to right,rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.07) 1px,transparent 1px);
-  background-size:24px 24px;
-  -webkit-mask-image:radial-gradient(ellipse at center,#000 0%,transparent 75%);
-  mask-image:radial-gradient(ellipse at center,#000 0%,transparent 75%);
-}
+.pdf-card__top::before{display:none}
 .pdf-card__icon{
   width:48px;height:48px;
   border-radius:10px;
@@ -4887,6 +4881,11 @@ const Sections = (function(){
   const PORTADA_DEFAULT = 'assets/img/cursos/curso-01-supervision.jpg';
 
   function getPortadaCurso(curso){
+    // Si tiene portada local (keyword match), usarla; si no, Unsplash por área
+    if (!curso.portada && typeof coverIMG === 'function') {
+      const fallback = coverIMG(curso.area, curso.titulo);
+      if (fallback) return fallback;
+    }
     if (curso.portada) return curso.portada;
     const titulo = (curso.titulo || '').toLowerCase();
     for (const [keyword, url] of Object.entries(PORTADAS_CURSOS)) {
@@ -6783,7 +6782,7 @@ const Sections = (function(){
         data-titulo="${tituloEsc}"
         data-curso="${cursoEsc}"
         data-area="${m.cursoArea}">
-        <div class="pdf-card__top">
+        <div class="pdf-card__top" style="background-image:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.5)),url('${coverIMG(m.cursoArea, m.titulo)}');background-size:cover;background-position:center;">
           <div class="pdf-card__icon"><svg class="ic"><use href="#${ic}"/></svg></div>
           <span class="pdf-card__size">${tipoLabel}</span>
         </div>
@@ -8484,6 +8483,37 @@ const IMFRA_CONTACT = {
   }
 };
 window.IMFRA_CONTACT = IMFRA_CONTACT;
+
+// Portada automática por keyword (Unsplash, sin API key, solo URLs estáticas).
+// Se usa tanto para cursos sin portada local como para tarjetas de materiales.
+function coverIMG(area, titulo) {
+  const a = (area || '').toLowerCase();
+  const t = (titulo || '').toLowerCase();
+  const IMGS = {
+    calidad:     'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80&auto=format&fit=crop',
+    obra:        'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80&auto=format&fit=crop',
+    costos:      'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80&auto=format&fit=crop',
+    supervision: 'https://images.unsplash.com/photo-1581094794329-c8112a89af12?w=800&q=80&auto=format&fit=crop',
+    estructura:  'https://images.unsplash.com/photo-1590644365607-1c5e01f2f157?w=800&q=80&auto=format&fit=crop',
+    seguridad:   'https://images.unsplash.com/photo-1587440871875-191322ee64b0?w=800&q=80&auto=format&fit=crop',
+    topografia:  'https://images.unsplash.com/photo-1625708458528-802ec79b1ed8?w=800&q=80&auto=format&fit=crop',
+    maquinaria:  'https://images.unsplash.com/photo-1621922688758-9a3a3d4d60d0?w=800&q=80&auto=format&fit=crop',
+    general:     'https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80&auto=format&fit=crop'
+  };
+  function pick() {
+    if (/calidad|iso|9001|auditor/.test(a + ' ' + t)) return 'calidad';
+    if (/supervis|superintend|residen|bitacora|frente/.test(a + ' ' + t)) return 'supervision';
+    if (/costo|presupuesto|estimaci|generador|precio|rendimiento/.test(a + ' ' + t)) return 'costos';
+    if (/estruct|concret|acero|ciment|muro/.test(a + ' ' + t)) return 'estructura';
+    if (/seguridad|stps|nom/.test(a + ' ' + t)) return 'seguridad';
+    if (/topog|nivel|trazo/.test(a + ' ' + t)) return 'topografia';
+    if (/maquin|equipo|pesad/.test(a + ' ' + t)) return 'maquinaria';
+    if (/obra|constru/.test(a + ' ' + t)) return 'obra';
+    return 'general';
+  }
+  return IMGS[pick()];
+}
+window.coverIMG = coverIMG;
 // Abre el canal de WhatsApp; si aún no está configurado, avisa en vez de abrir un link roto
 window.abrirCanalIMFRA = function(){
   const url = IMFRA_CONTACT.canal || '';
