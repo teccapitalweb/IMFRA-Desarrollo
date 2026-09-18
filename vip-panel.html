@@ -1826,6 +1826,30 @@ body::after{
 .pdf-card__meta .ic{width:11px;height:11px}
 .pdf-card__tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:auto}
 
+
+/* ═══ BIBLIOTECA DE LIBROS ═══ */
+.shelf{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:20px;padding:4px 0}
+.shelf__item{text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:8px;transition:transform .2s}
+.shelf__item:hover{transform:translateY(-4px)}
+.shelf__cover{position:relative;aspect-ratio:2/3;border-radius:8px;overflow:hidden;box-shadow:4px 6px 20px rgba(0,0,0,.25),inset 0 0 0 1px rgba(255,255,255,.08)}
+.shelf__cover img{width:100%;height:100%;object-fit:cover;display:block}
+.shelf__cover .chip--lock{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
+.shelf__cover .chip--lock svg{width:14px;height:14px;color:#fff}
+.shelf__cover .chip--free{position:absolute;bottom:8px;left:8px;background:var(--success);color:#0D0D0D;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.5px;text-transform:uppercase}
+.shelf__title{font-size:13px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.shelf__meta{font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+.book-detail{display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px}
+.book-detail__cover{aspect-ratio:2/3;border-radius:10px;overflow:hidden;box-shadow:6px 8px 28px rgba(0,0,0,.3)}
+.book-detail__cover img{width:100%;height:100%;object-fit:cover;display:block}
+.book-detail__eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--primary);font-weight:700}
+.book-detail__title{font-size:24px;font-weight:800;line-height:1.25;margin:8px 0 4px;letter-spacing:-.3px}
+.book-detail__author{font-size:14px;color:var(--text-2);margin-bottom:12px}
+.book-detail__desc{font-size:14px;line-height:1.6;color:var(--text-2);margin-bottom:20px}
+.book-detail__facts{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:16px}
+.book-detail__facts h4{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin:0 0 2px;font-weight:700}
+.book-detail__facts p{margin:0;color:var(--text)}
+@media(max-width:600px){.shelf{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:14px}.book-detail{grid-template-columns:140px 1fr;gap:18px;padding:18px}.book-detail__title{font-size:19px}}
+
 /* =========================================================
    BIBLIOTECA POR MES · timeline
    ========================================================= */
@@ -3578,6 +3602,7 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos<span class="nav-item__badge">12</span></a>
       <a class="nav-item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo<span class="nav-item__dot"></span></a>
       <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
+      <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
       <a class="nav-item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
       <a class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
     </div>
@@ -3766,6 +3791,7 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos</a>
         <a class="mobile-drawer__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo</a>
         <a class="mobile-drawer__item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
+        <a class="mobile-drawer__item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
         <a class="mobile-drawer__item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
         <a class="mobile-drawer__item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
       </div>
@@ -4128,7 +4154,7 @@ function navigateToSection(section, opciones){
 }
 
 function sectionPlaceholder(section){
-  const names={pdfs:'PDFs y material','mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Foro VIP',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
+  const names={pdfs:'PDFs y material',libros:'Libros','mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Foro VIP',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
   const name=names[section]||section;
   return `<div class="fade-up" style="padding:80px 20px;text-align:center;"><div style="width:80px;height:80px;margin:0 auto 18px;border-radius:20px;background:var(--surface);border:0.5px solid var(--border-2);display:flex;align-items:center;justify-content:center;color:var(--primary);"><svg class="ic ic--xl"><use href="#i-tools"/></svg></div><h2 style="font-size:22px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;">${name}</h2><p style="color:var(--text-2);max-width:380px;margin:0 auto;line-height:1.55;font-size:13.5px;">Sección en construcción. La entrego en el siguiente sprint.</p><button class="btn btn--ghost" style="margin-top:20px;" onclick="navigateToSection('inicio')">Volver al inicio</button></div>`;
 }
@@ -6803,7 +6829,37 @@ const Sections = (function(){
     `;
   }
 
-  /* ============================ BIBLIOTECA POR MES ============================ */
+
+  // ═══ BIBLIOTECA DE LIBROS ═══
+  const IMFRA_LIBROS = [
+    {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:286,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://drive.google.com/file/d/1A0Kjr1M1EEsM87efHAxs2L_Xfviu3KKK/view?usp=sharing',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:true},
+    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:680,portada:'assets/libros/advanced_mechanics.jpg',url:'https://drive.google.com/file/d/1HFFZgL5fxAwJ7DCYV1hJJIR-yhNiDGQH/view?usp=sharing',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false},
+    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:560,portada:'assets/libros/advanced_strength.jpg',url:'https://drive.google.com/file/d/1Q-6gGdPX9SjdLFKuy6GgGmlUG2H5CmdU/view?usp=sharing',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false},
+    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:610,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://drive.google.com/file/d/1y_lJja0AwfoZhz3eKb-p2obZbSRkFm5Z/view?usp=sharing',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false}
+  ];
+  var _libroDetalle = null;
+  function renderLibros(container) {
+    if (_libroDetalle) { _renderLibroDetalle(container, _libroDetalle); return; }
+    var esVip = window.UserState?.modo === 'vip' || esAdminReal();
+    container.innerHTML = '<div class="fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Biblioteca</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">'+IMFRA_LIBROS.length+' libros de referencia para tu formación. <strong style="color:var(--primary);">El primero es gratis</strong>; el resto es exclusivo para miembros VIP.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){var acc=libro.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+(libro.gratis?'<span class="chip--free">Gratis</span>':'')+(!acc?'<span class="chip--lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' \u00b7 '+libro.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>';
+    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;renderLibros(container);});});
+  }
+  function _renderLibroDetalle(container, libroId) {
+    var libro = IMFRA_LIBROS.find(function(l){return l.id===libroId;});
+    if (!libro) { _libroDetalle = null; renderLibros(container); return; }
+    var esVip = window.UserState?.modo === 'vip' || esAdminReal();
+    var acc = libro.gratis || esVip;
+    var rel = IMFRA_LIBROS.filter(function(l){return l.id!==libro.id;}).slice(0,3);
+    var lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+    var openSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+    var btnHtml = acc ? '<a href="'+libro.url+'" target="_blank" rel="noopener" class="btn btn--accent" style="gap:8px;">'+openSvg+'Abrir libro</a>' : '<button class="btn btn--accent" style="gap:8px;opacity:.7;cursor:not-allowed;" disabled>'+lockSvg+'Solo VIP</button>';
+    var relHtml = rel.length ? '<div style="margin-top:32px;"><h3 style="font-size:16px;font-weight:700;margin-bottom:14px;">M\u00e1s libros</h3><div class="shelf">'+rel.map(function(r){var ra=r.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+r.id+'"><div class="shelf__cover"><img src="'+r.portada+'" alt="" loading="lazy">'+(r.gratis?'<span class="chip--free">Gratis</span>':'')+(!ra?'<span class="chip--lock">'+lockSvg+'</span>':'')+'</div><div class="shelf__title">'+r.titulo+'</div><div class="shelf__meta">'+r.autor+'</div></a>';}).join('')+'</div></div>' : '';
+    container.innerHTML = '<div class="fade-up"><div style="margin-bottom:20px;"><a href="javascript:void(0)" id="libros-back" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Biblioteca</a></div><div class="book-detail"><div class="book-detail__cover"><img src="'+libro.portada+'" alt=""></div><div><div class="book-detail__eyebrow">'+libro.area+' \u00b7 Libro</div><h2 class="book-detail__title">'+libro.titulo+'</h2><p class="book-detail__author">'+libro.autor+'</p><p class="book-detail__desc">'+libro.descripcion+'</p><div style="display:flex;gap:10px;margin-bottom:20px;">'+btnHtml+'</div><div class="book-detail__facts"><div><h4>Formato</h4><p>PDF \u00b7 '+libro.paginas+' p\u00e1ginas</p></div><div><h4>\u00c1rea</h4><p>'+libro.area+'</p></div><div><h4>Autor</h4><p>'+libro.autor+'</p></div><div><h4>Acceso</h4><p>'+(libro.gratis?'Gratis para todos':'Exclusivo VIP')+'</p></div></div></div></div>'+relHtml+'</div>';
+    container.querySelector('#libros-back')?.addEventListener('click',function(){_libroDetalle=null;renderLibros(container);});
+    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;_renderLibroDetalle(container,el.dataset.libroId);window.scrollTo({top:0,behavior:'smooth'});});});
+  }
+
+    /* ============================ BIBLIOTECA POR MES ============================ */
   // Vacío a propósito: Jorge sube la videoteca real de IMFRA por mes después.
   const bibliotecaMeses = {};
 
@@ -8423,6 +8479,7 @@ const Sections = (function(){
       logros:renderLogros,
       webinars:renderWebinars,
       pdfs:renderPDFs,
+      libros:renderLibros,
       foro:renderForo,
       directorio:renderDirectorio,
       canal:renderCanal,
