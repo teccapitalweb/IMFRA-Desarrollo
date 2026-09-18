@@ -357,6 +357,15 @@ HT.pdf = {
 const Tools = {};
 window.IMFRATools = Tools;
 
+// Inyectar los íconos AHORA (al cargar el script), no al abrir la primera
+// herramienta: así el navegador ya los tiene pintados y el <use> de cada
+// herramienta los encuentra desde el primer render, sin esperar a recargar.
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', HT.icons);
+} else {
+  HT.icons();
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    1 · VOLUMEN DE CONCRETO
    ═══════════════════════════════════════════════════════════════════ */

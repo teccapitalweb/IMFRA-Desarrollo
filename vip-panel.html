@@ -4394,11 +4394,15 @@ const Sections = (function(){
     return primero ? String(primero.id) : '';
   }
 
+  // Tope de clases gratis del primer curso, para dar una muestra real sin
+  // regalar el curso completo. Si el curso tiene menos clases que el tope,
+  // se dan todas menos la última (para que quede algo por desbloquear).
+  const CLASES_GRATIS_TOPE = 4;
   function cantidadClasesGratis(totalClases) {
     const total = Math.max(0, Number(totalClases) || 0);
     if (total === 0) return 0;
-    if (total === 1) return 1;
-    return total - 1;
+    if (total <= CLASES_GRATIS_TOPE) return Math.max(1, total - 1);
+    return CLASES_GRATIS_TOPE;
   }
 
   function textoOfertaGratis() {
