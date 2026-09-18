@@ -2489,7 +2489,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .pdf-card{
   background:var(--surface);
   border:1px solid var(--border);
-  border-radius:22px;
+  border-radius:14px;
   padding:0;
   display:flex;flex-direction:column;
   cursor:pointer;
@@ -2515,14 +2515,12 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
   mask-image:radial-gradient(ellipse at center,#000 0%,transparent 75%);
 }
 .pdf-card__icon{
-  width:52px;height:52px;
-  border-radius:14px;
-  background:rgba(255,255,255,.18);
-  backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.25);
+  width:48px;height:48px;
+  border-radius:10px;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.2);
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;position:relative;z-index:1;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.18);
 }
 .pdf-card__icon::after{display:none}
 .pdf-card__icon svg{width:24px;height:24px}
@@ -2531,9 +2529,8 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
   font-family:'JetBrains Mono',monospace;
   font-size:11px;font-weight:700;letter-spacing:.6px;
   padding:5px 11px;border-radius:100px;
-  background:rgba(0,0,0,.35);
-  backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.4);
+  border:1px solid rgba(255,255,255,.15);
   color:#fff;
 }
 .pdf-card__body{padding:18px 22px 20px;display:flex;flex-direction:column;gap:8px;flex:1}
@@ -6754,8 +6751,22 @@ const Sections = (function(){
     };
     const c = colorMap[m.cursoArea] || '#F59D1A';
     const tipo = _inferirTipoMaterial(m.url);
-    const iconMap = { excel:'i-chart-bar', pdf:'i-news', ppt:'i-chart-bar', doc:'i-news' };
-    const ic = iconMap[tipo] || 'i-news';
+    // Ícono contextual por palabra clave del título (no el mismo para todos)
+    const kwIcons = [
+      [['matriz','control','documental','registro'],'i-grid'],
+      [['conformidad','correctiv','accion','mejora'],'i-shield-check'],
+      [['auditoria','verificacion','lista','check'],'i-clipboard'],
+      [['supervision','frente','diario','inspeccion'],'i-helmet'],
+      [['reporte','avance','semanal','informe'],'i-chart-bar'],
+      [['personal','destajo','rendimiento','nomina'],'i-users'],
+      [['presupuesto','estimacion','costo','precio'],'i-calculator'],
+      [['plano','dibujo','sketch','proyecto'],'i-ruler'],
+      [['norma','nom','iso','regulacion'],'i-book'],
+      [['bitacora','obra','campo'],'i-edit']
+    ];
+    const tl = (m.titulo||'').toLowerCase();
+    let ic = {excel:'i-chart-bar',pdf:'i-news',ppt:'i-chart-bar',doc:'i-news'}[tipo]||'i-news';
+    for (const [kws, icon] of kwIcons) { if (kws.some(k => tl.includes(k))) { ic = icon; break; } }
     const tipoLabel = { excel:'Excel', pdf:'PDF', ppt:'PPT', doc:'DOC' }[tipo] || 'Archivo';
     const disponible = _materialDisponible(m);
     const diasFaltan = _diasParaMaterial(m);
