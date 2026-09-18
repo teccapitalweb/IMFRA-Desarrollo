@@ -1978,6 +1978,9 @@ const Pages={
     'proyecto':          'assets/img/cursos/curso-09-gerencia.jpg',
     'iso 9001':          'assets/img/cursos/curso-09-gerencia.jpg',
     'calidad':           'assets/img/cursos/curso-09-gerencia.jpg',
+    'iso':               'assets/img/cursos/curso-09-gerencia.jpg',
+    '9001':              'assets/img/cursos/curso-09-gerencia.jpg',
+    'superintend':       'assets/img/cursos/curso-05-residente.jpg',
     'gestión':           'assets/img/cursos/curso-09-gerencia.jpg',
     'paisaj':            'assets/img/cursos/curso-10-paisajismo.jpg',
     'arquitect':         'assets/img/cursos/curso-10-paisajismo.jpg',
@@ -2020,9 +2023,9 @@ const Pages={
           <h1 class="sec-hero__title">Cursos</h1>
           <p class="sec-hero__sub">Gestiona tu catálogo · activa o desactiva cursos al toque · busca y filtra. <strong style="color:var(--text-2);">Lectura conectada a Firestore en tiempo real.</strong></p>
           <div class="sec-hero__actions">
-            <button class="btn btn--ghost" id="sync-bunny-btn" title="Vincula los 56 videos auditados de Bunny con sus cursos">
+            <button class="btn btn--ghost" id="sync-bunny-btn" title="Vincula los videos de Bunny (assets/imfra-bunny-catalog.js) con los cursos del panel">
               <svg class="ic"><use href="#i-broadcast"/></svg>
-              Sincronizar 56 videos Bunny
+              Sincronizar videos Bunny
             </button>
             <button class="btn btn--accent" id="new-curso-btn">
               <svg class="ic"><use href="#i-plus"/></svg>
@@ -2173,17 +2176,17 @@ const Pages={
     const catalogo = window.IMFRA_BUNNY_CATALOG;
     const fb = window._fb;
     const btn = document.getElementById('sync-bunny-btn');
-    if (!Array.isArray(catalogo) || catalogo.length !== 12) {
-      Toast.error('Catálogo Bunny no disponible', 'No se encontró el mapa auditado de los 56 videos');
+    if (!Array.isArray(catalogo) || !catalogo.length) {
+      Toast.error('Catálogo Bunny no disponible', 'No se encontró assets/imfra-bunny-catalog.js o está vacío');
       return;
     }
     if (!fb?.setDoc || !fb?.getDocs || !fb?.collection || !fb?.doc || !fb?.db) {
       Toast.info('Firestore está cargando', 'Espera unos segundos e intenta de nuevo');
       return;
     }
-    const totalVideos = catalogo.reduce((n, c) => n + c.sesiones.length, 0);
-    if (totalVideos !== 56) {
-      Toast.error('Catálogo incompleto', `Se esperaban 56 videos reproducibles y se encontraron ${totalVideos}`);
+    const totalVideos = catalogo.reduce((n, c) => n + (Array.isArray(c.sesiones) ? c.sesiones.length : 0), 0);
+    if (!totalVideos || catalogo.some(c => !Array.isArray(c.sesiones) || c.sesiones.some(s => !s.videoId))) {
+      Toast.error('Catálogo incompleto', 'Hay cursos sin clases o clases sin videoId en el catálogo');
       return;
     }
     const ok = confirm(`Se vincularán ${totalVideos} videos auditados de Bunny con ${catalogo.length} cursos.\n\nLos cursos que coincidan conservarán sus materiales. Los cursos antiguos sin correspondencia serán sustituidos en el mismo orden para evitar duplicados.\n\n¿Continuar?`);
@@ -2231,7 +2234,7 @@ const Pages={
           })),
           materiales: relacionado && Array.isArray(previo?.materiales) ? previo.materiales : [],
           videoProvider: 'bunny',
-          bunnyLibraryId: 727791,
+          bunnyLibraryId: 755984,
           bunnyCollectionId: item.collectionId,
           migradoDesdeDrive: true,
           activo: true,
@@ -2273,7 +2276,7 @@ const Pages={
       if (btn) {
         btn.disabled = false;
         btn.style.opacity = '';
-        btn.innerHTML = '<svg class="ic"><use href="#i-broadcast"/></svg> Sincronizar 56 videos Bunny';
+        btn.innerHTML = '<svg class="ic"><use href="#i-broadcast"/></svg> Sincronizar videos Bunny';
       }
     }
   },

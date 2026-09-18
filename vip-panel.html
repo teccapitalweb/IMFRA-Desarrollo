@@ -3188,7 +3188,7 @@ const WEBHOOK_URL = 'https://imfra-backend-production.up.railway.app';
 window.WEBHOOK_URL = WEBHOOK_URL;
 // El ID de la biblioteca es público y Bunny lo incluye en sus URLs de
 // reproducción. La API key permanece únicamente en el servidor.
-window.BUNNY_VIDEO_LIBRARY_ID = '727791';
+window.BUNNY_VIDEO_LIBRARY_ID = '755984';
 
 const ADMIN_EMAILS = ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
 
@@ -4429,13 +4429,30 @@ const Sections = (function(){
     return curso ? diasParaDesbloquear(indexCurso, curso) : null;
   }
 
-  function claseDesbloqueada(cursoId, indexClase, sesiones) {
-    if (esAdminReal()) return true;
-    if (esClaseGratisGlobal(cursoId, indexClase, sesiones)) return true;
-    if (window.UserState?.modo !== 'vip') return false;
+  // Devuelve null si la clase está abierta, o el motivo del bloqueo:
+  //   {tipo:'drip', dias}      → el curso aún no llega a su turno (cada 6 días)
+  //   {tipo:'secuencia', numPrev} → falta marcar como vista la clase anterior
+  //   {tipo:'membresia'}       → usuario sin membresía
+  // Dentro de un curso desbloqueado las clases abren EN ORDEN: la 1 abre con el
+  // curso; cada siguiente abre al marcar como vista la anterior.
+  function motivoBloqueoClase(cursoId, indexClase, sesiones) {
+    if (esAdminReal()) return null;
+    if (esClaseGratisGlobal(cursoId, indexClase, sesiones)) return null;
+    if (window.UserState?.modo !== 'vip') return { tipo: 'membresia' };
     const curso = cursos.find(c => String(c.id) === String(cursoId));
     const indexCurso = cursos.findIndex(c => String(c.id) === String(cursoId));
-    return !!curso && cursoDesbloqueado(indexCurso, curso);
+    if (!curso || !cursoDesbloqueado(indexCurso, curso)) {
+      return { tipo: 'drip', dias: curso ? diasParaDesbloquear(indexCurso, curso) : null };
+    }
+    if (indexClase === 0) return null;
+    const lista = Array.isArray(sesiones) ? sesiones : (curso.sesiones || []);
+    const prev = lista[indexClase - 1];
+    const numPrev = (prev && prev.numero) || indexClase;
+    if (getProgresoCurso(cursoId).clasesVistas.includes(numPrev)) return null;
+    return { tipo: 'secuencia', numPrev };
+  }
+  function claseDesbloqueada(cursoId, indexClase, sesiones) {
+    return motivoBloqueoClase(cursoId, indexClase, sesiones) === null;
   }
 
   function esMaterialGratisGlobal(cursoId, indexMaterial) {
@@ -4662,7 +4679,12 @@ const Sections = (function(){
       return;
     }
 
-    if (!claseDesbloqueada(cursoId, sesionIdx, curso.sesiones)) {
+    const motivoClase = motivoBloqueoClase(cursoId, sesionIdx, curso.sesiones);
+    if (motivoClase && motivoClase.tipo === 'secuencia') {
+      Toast.info('Primero termina la clase anterior', `Marca como vista la clase ${motivoClase.numPrev} para abrir esta.`);
+      return;
+    }
+    if (motivoClase) {
       const totalMateriales = Array.isArray(curso.materiales) ? curso.materiales.length : 0;
       const diasFaltan = diasParaDesbloquearClase(cursoId, sesionIdx, curso.sesiones);
       if (window.UserState?.modo === 'vip' && diasFaltan > 0) {
@@ -4793,6 +4815,13 @@ const Sections = (function(){
         window.cerrarVisor();
         if (typeof window.__refrescarCursoDetalle === 'function') window.__refrescarCursoDetalle(cursoId);
         if (typeof renderCursosList === 'function') renderCursosList();
+        // Avisar que la siguiente clase ya quedó abierta (si existe y no es la última)
+        try {
+          const cur = cursos.find(x => String(x.id) === String(cursoId));
+          const idx = (cur?.sesiones || []).findIndex(s => (s.numero || 0) === numClase);
+          const sig = idx >= 0 ? cur.sesiones[idx + 1] : null;
+          if (sig && Toast?.success) setTimeout(() => Toast.success('Clase ' + (sig.numero || idx + 2) + ' desbloqueada', sig.titulo || ''), 700);
+        } catch(e) {}
       }, 1200);
     });
   });
@@ -4838,6 +4867,9 @@ const Sections = (function(){
     'proyecto':          'assets/img/cursos/curso-09-gerencia.jpg',
     'iso 9001':          'assets/img/cursos/curso-09-gerencia.jpg',
     'calidad':           'assets/img/cursos/curso-09-gerencia.jpg',
+    'iso':               'assets/img/cursos/curso-09-gerencia.jpg',
+    '9001':              'assets/img/cursos/curso-09-gerencia.jpg',
+    'superintend':       'assets/img/cursos/curso-05-residente.jpg',
     'gestión':           'assets/img/cursos/curso-09-gerencia.jpg',
     'paisaj':            'assets/img/cursos/curso-10-paisajismo.jpg',
     'arquitect':         'assets/img/cursos/curso-10-paisajismo.jpg',
@@ -5398,6 +5430,7 @@ const Sections = (function(){
               const desblok = claseDesbloqueada(cursoId, i, c.sesiones);
               const esGratis = esClaseGratisGlobal(cursoId, i, c.sesiones);
               const diasClase = diasParaDesbloquearClase(cursoId, i, c.sesiones);
+              const motivoBloq = desblok ? null : motivoBloqueoClase(cursoId, i, c.sesiones);
 
               if (vista && desblok) {
                 return `
@@ -5427,9 +5460,11 @@ const Sections = (function(){
                   <div class="modulo__num" style="background:var(--surface-3);color:var(--text-3);">🔒</div>
                   <div style="flex:1;min-width:0;">
                     <div class="modulo__title" style="color:var(--text-2);">${s.titulo}</div>
-                    <div class="modulo__meta">${window.UserState?.modo === 'vip' && diasClase > 0
-                      ? `Se desbloquea junto con el curso en ${diasClase} día${diasClase!==1?'s':''}`
-                      : 'Activa tu membresía para desbloquear esta clase'}</div>
+                    <div class="modulo__meta">${motivoBloq?.tipo === 'secuencia'
+                      ? `Se abre al marcar como vista la clase ${motivoBloq.numPrev}`
+                      : (window.UserState?.modo === 'vip' && diasClase > 0
+                        ? `Se desbloquea junto con el curso en ${diasClase} día${diasClase!==1?'s':''}`
+                        : 'Activa tu membresía para desbloquear esta clase')}</div>
                   </div>
                 </div>`;
             }).join('')}
@@ -8100,7 +8135,7 @@ const Sections = (function(){
         <h2 class="cancelm__title">¿Seguro(a) que deseas cancelar?</h2>
         <p class="cancelm__desc">Tu membresía se cancelará al final del periodo pagado.<br><strong style="color:var(--text);">Seguirás teniendo acceso completo</strong> hasta el <strong style="color:var(--primary);">${proxRenov}</strong>, pero ya no se te realizará ningún cobro.</p>
         <div class="cancelm__warnings">
-          <div class="cancelm__warning"><span>⚠️</span><span>Perderás acceso a los 12 cursos VIP después de esa fecha</span></div>
+          <div class="cancelm__warning"><span>⚠️</span><span>Perderás acceso a todos los cursos VIP después de esa fecha</span></div>
           <div class="cancelm__warning"><span>⚠️</span><span>Tus certificados ya emitidos siguen siendo válidos</span></div>
           <div class="cancelm__warning"><span>↩</span><span>Podrás reactivar antes de que expire el periodo</span></div>
         </div>
