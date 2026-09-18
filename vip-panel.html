@@ -4182,9 +4182,9 @@ const Sections = (function(){
     'Maestría':'#FFCF7A'
   };
   const ICON_CAT = {
-    'Obra':'i-shield-check',
-    'Proyectos':'i-chart-bar',
-    'Calidad':'i-gauge',
+    'Obra':'i-helmet',
+    'Proyectos':'i-ruler',
+    'Calidad':'i-shield-check',
     'Comunidad':'i-messages',
     'Maestría':'i-crown'
   };
@@ -5072,11 +5072,11 @@ const Sections = (function(){
   const certificados = [];
 
   const niveles = [
-    {id:1,nombre:'Aprendiz',desde:0,hasta:200},
-    {id:2,nombre:'Técnico',desde:200,hasta:600},
-    {id:3,nombre:'Profesional',desde:600,hasta:1200},
-    {id:4,nombre:'Líder',desde:1200,hasta:2400},
-    {id:5,nombre:'Maestro',desde:2400,hasta:99999}
+    {id:1,nombre:'Peón',desde:0,hasta:200},
+    {id:2,nombre:'Oficial',desde:200,hasta:600},
+    {id:3,nombre:'Residente',desde:600,hasta:1200},
+    {id:4,nombre:'Superintendente',desde:1200,hasta:2400},
+    {id:5,nombre:'Director de Obra',desde:2400,hasta:99999}
   ];
 
   // Catálogo de logros de IMFRA. Los criterios son genéricos (no dependen de
@@ -5108,7 +5108,7 @@ const Sections = (function(){
     {id:'l23',cat:'Maestría',nombre:'Estudiante de hierro',desc:'Racha de 30 días aprendiendo',xp:300,unlock:null,criterio:'Aprende 30 días seguidos'},
     {id:'l24',cat:'Maestría',nombre:'Maratonista',desc:'Acumulaste 100 horas de estudio',xp:400,unlock:null,criterio:'Acumula 100 horas totales'},
     {id:'l25',cat:'Maestría',nombre:'Tres áreas dominadas',desc:'Certificados en 3 áreas distintas',xp:350,unlock:null,criterio:'Obtén certificados en 3 áreas distintas'},
-    {id:'l26',cat:'Maestría',nombre:'Maestro IMFRA',desc:'Completaste 20 cursos. Una leyenda.',xp:1000,unlock:null,criterio:'Termina 20 cursos del catálogo'}
+    {id:'l26',cat:'Maestría',nombre:'Director de Obra IMFRA',desc:'Completaste 20 cursos. La obra es tuya.',xp:1000,unlock:null,criterio:'Termina 20 cursos del catálogo'}
   ];
 
   // ⚡ Webinars: ahora se cargan de Firestore (col `webinars`)
@@ -6209,7 +6209,7 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Tu progreso</span>
           <h1 class="sec-hero__title">Mis logros</h1>
-          <p class="sec-hero__sub">Cada curso, herramienta y participación te suma XP. Sube de nivel y desbloquea medallas. Llega a <em style="color:var(--primary);">Maestro</em>.</p>
+          <p class="sec-hero__sub">Cada curso, herramienta y participación te suma XP. Sube de nivel y desbloquea medallas. Llega a <em style="color:var(--primary);">Director de Obra</em>.</p>
         </div>
         <div class="logro-hero">
           <div class="logro-hero__row">
@@ -6228,18 +6228,21 @@ const Sections = (function(){
           <div class="logro-hero__xp-text"><span><strong>${usuario.xp}</strong> XP</span><span>${xpRest>0?xpRest+' XP para '+proxNivel:'¡Nivel máximo!'}</span><span><strong>${nivelActual.hasta===99999?'∞':nivelActual.hasta}</strong> XP</span></div>
         </div>
 
-        <section class="nivel-path" style="--nivel-progress:${Math.max(7,Math.min(93,((nivelActual.id-1)/(niveles.length-1))*100+(pct/100)*(100/(niveles.length-1))))}%">
-          <div class="nivel-path__title">Tu camino de aprendiz a maestro</div>
-          <div class="nivel-path__track">
+        <section class="imfra-rango" style="margin:24px 0 28px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);font-weight:600;margin-bottom:16px;">Tu rango en obra</div>
+          <div style="display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding-bottom:4px;">
             ${niveles.map((n,idx)=>{
-              const emojis=['🦺','⚙️','📐','🏭','🎖️'];
+              const iconos=['🧱','🔩','📋','🏗️','🏛️'];
               const isCurrent=n.id===nivelActual.id;
               const isDone=n.id<nivelActual.id;
-              const cls=isCurrent?'is-current':isDone?'is-done':'is-locked';
-              return `<div class="nivel-step ${cls}">
-                <div class="nivel-step__icon">${emojis[idx]||'·'}</div>
-                <div class="nivel-step__name">${n.nombre}</div>
-                <div class="nivel-step__xp">${isCurrent?'TÚ':n.desde+'+ XP'}</div>
+              const bg=isCurrent?'linear-gradient(135deg,var(--primary),#D9850E)':isDone?'var(--surface-2)':'var(--surface-2)';
+              const border=isCurrent?'none':isDone?'1px solid var(--primary)':'1px solid var(--border-2)';
+              const color=isCurrent?'#fff':isDone?'var(--text)':'var(--text-3)';
+              const opacity=(!isCurrent&&!isDone)?'0.5':'1';
+              return `<div style="flex:1;min-width:90px;background:${bg};border:${border};border-radius:12px;padding:14px 10px;text-align:center;opacity:${opacity};transition:all .3s;">
+                <div style="font-size:22px;line-height:1;margin-bottom:6px;">${iconos[idx]}</div>
+                <div style="font-size:12px;font-weight:700;color:${color};white-space:nowrap;">${n.nombre}</div>
+                <div style="font-size:10px;color:${isCurrent?'rgba(255,255,255,.8)':'var(--text-3)'};margin-top:3px;">${isCurrent?'Rango actual':isDone?'✓ Completado':n.desde+' XP'}</div>
               </div>`;
             }).join('')}
           </div>
@@ -7715,7 +7718,7 @@ const Sections = (function(){
             <div class="perfil-hero__email">${_em}</div>
             <div class="perfil-hero__badges">
               <span class="pill"><svg class="ic"><use href="#i-crown"/></svg>VIP Anual</span>
-              <span class="tag tag--new">Nivel 2 · Técnico</span>
+              <span class="tag tag--new">Nivel 2 · Oficial</span>
               <span class="tag tag--down">Miembro desde mar 2026</span>
             </div>
           </div>
@@ -8712,7 +8715,7 @@ window.__notifsState = { items: [], unsubscribe: null, loaded: false };
 const NOTIFS_DEMO = [
   {id:'demo-1', tipo:'clase', icono:'i-broadcast', color:'#F59D1A', titulo:'Próxima clase en vivo', descripcion:'Instructor de ejemplo · 28 mayo 19:00 hrs', createdAtMs: Date.now()-3600000},
   {id:'demo-2', tipo:'certificado', icono:'i-certificate', color:'#34D399', titulo:'¿Sabías qué? Cada curso tiene su certificado', descripcion:'Folio único con código QR verificable', createdAtMs: Date.now()-86400000},
-  {id:'demo-3', tipo:'logro', icono:'i-trophy', color:'#FBBF24', titulo:'5 niveles de progresión', descripcion:'Desde Aprendiz hasta Maestro de Obra', createdAtMs: Date.now()-2*86400000}
+  {id:'demo-3', tipo:'logro', icono:'i-trophy', color:'#FBBF24', titulo:'5 niveles de progresión', descripcion:'Progresa de Peón a Director de Obra', createdAtMs: Date.now()-2*86400000}
 ];
 
 // Setup del listener de notificaciones — se llama al cargar el panel
