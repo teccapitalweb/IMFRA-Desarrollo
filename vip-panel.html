@@ -3612,6 +3612,7 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
       <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
       <a class="nav-item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
+      <a class="nav-item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Entrenamiento<span class="nav-item__badge">NUEVO</span></a>
       <a class="nav-item" data-section="recompensas"><svg class="ic"><use href="#i-gift"/></svg>Recompensas<span class="nav-item__badge">NUEVO</span></a>
       <a class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
     </div>
@@ -3695,7 +3696,7 @@ window.__setDisplayName = async (nombre) => {
             <span class="command-section__eyebrow">Acceso operativo</span>
             <h2 id="command-title">Continúa desde aquí</h2>
           </div>
-          <span class="command-section__meta">3 accesos recomendados</span>
+            <span class="command-section__meta">3 accesos recomendados</span>
         </div>
         <div class="command-grid">
           <a class="command-card" href="#cursos">
@@ -3712,12 +3713,12 @@ window.__setDisplayName = async (nombre) => {
             <span>Obtén cantidades de obra con una herramienta guiada.</span>
             <small>Abrir herramienta <svg class="ic"><use href="#i-arrow-right"/></svg></small>
           </a>
-          <a class="command-card" href="#recompensas">
-            <span class="command-card__index">03 / RECOMPENSAS</span>
-            <span class="command-card__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
-            <strong>Resuelve el reto técnico</strong>
-            <span>Suma puntos IMFRA y acércate a un nuevo beneficio.</span>
-            <small>Participar ahora <svg class="ic"><use href="#i-arrow-right"/></svg></small>
+          <a class="command-card" href="#entrenamiento">
+            <span class="command-card__index">03 / ENTRENAMIENTO</span>
+            <span class="command-card__icon"><svg class="ic"><use href="#i-bolt"/></svg></span>
+            <strong>Entrena con casos reales</strong>
+            <span>Resuelve expedientes, repasa conceptos y mantén tu racha.</span>
+            <small>Abrir centro <svg class="ic"><use href="#i-arrow-right"/></svg></small>
           </a>
         </div>
       </section>
@@ -3837,6 +3838,7 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
         <a class="mobile-drawer__item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
         <a class="mobile-drawer__item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
+        <a class="mobile-drawer__item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Entrenamiento</a>
         <a class="mobile-drawer__item" data-section="recompensas"><svg class="ic"><use href="#i-gift"/></svg>Recompensas</a>
         <a class="mobile-drawer__item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
       </div>
@@ -8523,6 +8525,13 @@ const Sections = (function(){
       cursos:renderCursos,
       certificados:renderCertificados,
       logros:renderLogros,
+      entrenamiento:(c)=>{
+        if(window.IMFRATraining){ window.IMFRATraining.mount(c); return; }
+        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Entrenamiento…</div>';
+        window.addEventListener('imfra:training-ready',()=>{
+          if(location.hash==='#entrenamiento' && c.isConnected) window.IMFRATraining?.mount(c);
+        },{once:true});
+      },
       recompensas:(c)=>{
         if(window.IMFRARewards){ window.IMFRARewards.mount(c); return; }
         c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Recompensas…</div>';
@@ -10700,6 +10709,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v3-premium.css">
 <script src="onboarding-tour.js?v=1" defer></script>
 <script src="assets/imfra-tools.js?v=1"></script>
+<script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>
 </body>
 </html>

@@ -8,15 +8,17 @@
 - Casos de obra, cálculos y diagnóstico mediante fotografías.
 - Catálogo y flujo de canje.
 - Herramientas técnicas conservadas como sección independiente.
+- Centro de Entrenamiento con seis expedientes de tres decisiones.
+- Biblioteca de 18 flashcards con filtros y autoevaluación.
+- XP formativo, racha, misiones semanales e insignias.
+- Vista administrativa de preguntas, casos, flashcards y recompensas.
 
 ## Siguiente prioridad recomendada
 
-1. **Centro de retos:** separar Quiz Relámpago, Casos de Obra y Flashcards técnicas.
-2. **Misiones y racha:** objetivos semanales verificables, sin premiar visitas vacías.
-3. **Biblioteca profesional:** formatos y guías con filtros, favoritos y descargas.
-4. **Certificados verificables:** folio, QR y consulta pública al completar programas.
-5. **Clases o asesorías en vivo:** agenda, reserva y grabaciones posteriores.
-6. **Panel administrativo de contenidos:** alta y edición de preguntas, casos, imágenes y recompensas sin tocar código.
+1. **Persistencia segura:** llevar progreso, XP y borradores editoriales de localStorage a Firestore/API.
+2. **Libro mayor de puntos:** movimientos inmutables, idempotencia y transacciones de canje.
+3. **Entrega de recompensas:** inventario, vigencia, aprobación y acceso a licencias.
+4. **Editor completo:** publicación, revisión y versionado de preguntas e imágenes desde administración.
 
 ## Funciones que requieren backend antes de publicarse
 

@@ -1177,6 +1177,7 @@ window.__signOut = async () => {
       <a class="nav-item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo<span class="nav-item__badge">3</span></a>
       <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material<span class="nav-item__badge">9</span></a>
       <a class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados<span class="nav-item__badge">2</span></a>
+      <a class="nav-item" data-section="retos"><svg class="ic"><use href="#i-bolt"/></svg>Retos y recompensas<span class="nav-item__badge">NUEVO</span></a>
     </div>
 
     <div class="nav-section">
@@ -1354,6 +1355,13 @@ const SEED={
    PAGES
    ========================================================= */
 const Pages={
+  retos(p){
+    if(window.IMFRATrainingAdmin){ window.IMFRATrainingAdmin.mount(p); return; }
+    p.innerHTML='<div style="padding:72px 20px;text-align:center;color:var(--text-3)">Cargando administración de retos…</div>';
+    window.addEventListener('imfra:training-admin-ready',()=>{
+      if(location.hash==='#retos' && p.isConnected) window.IMFRATrainingAdmin?.mount(p);
+    },{once:true});
+  },
   dashboard(p){
     // Stats reales desde AdminStore (que lee Firestore)
     // Si AdminStore aún no carga, mostramos esqueleto · luego se re-renderea automáticamente
@@ -5819,6 +5827,7 @@ if (window.__currentAdmin) {
 </script>
 <link rel="stylesheet" href="./src/styles/v2-admin.css">
 <link rel="stylesheet" href="./src/styles/v3-admin-premium.css">
+<script type="module" src="./src/features/training/admin.ts"></script>
 
 </body>
 </html>
