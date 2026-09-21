@@ -28,9 +28,11 @@ La migración será incremental. La versión actual seguirá disponible mientras
 
 - [x] Crear la primera capa compartida de tokens de marca, espaciado, radios, sombras y accesibilidad.
 - [x] Aplicar al panel la dirección visual “Centro de control de obra”.
-- [ ] Unificar tipografías, colores, espacios, botones y formularios.
-- [ ] Crear navegación compartida para escritorio y móvil.
-- [ ] Crear estados de carga, error, vacío y sin acceso.
+- [x] Unificar tipografías, colores, espacios, botones y formularios del panel, acceso y administración.
+- [x] Crear navegación coherente para escritorio y móvil en panel y administración.
+- [x] Crear estados visuales compartidos de carga, error, vacío y sin acceso.
+- [x] Rediseñar catálogo y detalle interno de cursos.
+- [x] Añadir una vista local privada del panel administrativo para revisión sin publicar ni debilitar producción.
 - [ ] Migrar inicio de sesión y estructura del panel.
 
 ### Fase 2 — Experiencia académica

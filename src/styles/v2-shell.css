@@ -336,6 +336,101 @@ body::after {
 }
 .sec-hero__title { font-family: var(--font-display) !important; }
 
+/* Cursos: lectura editorial y jerarquía de capacitación */
+#dynamic-section .sec-hero {
+  position: relative;
+  min-height: 132px;
+  padding: 23px 26px 22px !important;
+  border: 1px solid var(--border-2) !important;
+  border-left: 4px solid var(--primary) !important;
+  background: var(--surface) !important;
+}
+#dynamic-section .sec-hero::after {
+  content: "FORMACIÓN / IMFRA";
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  color: var(--text-3);
+  font: 700 8px/1 var(--font-mono);
+  letter-spacing: .16em;
+}
+#dynamic-section .tabs {
+  width: fit-content !important;
+  padding: 3px !important;
+  border: 1px solid var(--border-2) !important;
+  border-radius: 3px !important;
+  background: var(--surface) !important;
+}
+#dynamic-section .tab { min-width: 138px; border-radius: 2px !important; }
+.cursos-grid { grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)) !important; gap: 12px !important; }
+.curso-card {
+  min-height: 390px;
+  border-left: 2px solid var(--border-2) !important;
+  box-shadow: none !important;
+}
+.curso-card:hover {
+  transform: translateY(-2px) !important;
+  border-left-color: var(--area-color, var(--primary)) !important;
+  box-shadow: none !important;
+}
+.curso-card__cover { height: 164px !important; }
+.curso-card__cover-badge { border-radius: 2px !important; font-family: var(--font-mono) !important; }
+.curso-card__body { gap: 11px !important; }
+.curso-card__title { font-size: 18px !important; }
+.curso-card__meta { margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); }
+.lock-overlay { border-radius: 2px !important; backdrop-filter: blur(2px) !important; }
+.lock-overlay__ic { border-radius: 3px !important; }
+
+/* Detalle de curso y lecciones */
+.modal { border-top: 3px solid var(--primary) !important; }
+.modal__header,
+.modal__footer { background: var(--surface) !important; }
+.modulo {
+  min-height: 62px;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+.modulo:hover { transform: translateX(2px) !important; box-shadow: none !important; }
+.modulo__num { border-radius: 2px !important; font-family: var(--font-mono) !important; }
+.mat-card { border-radius: 3px !important; box-shadow: none !important; }
+
+/* Un solo lenguaje para carga, vacío y error */
+.empty-state,
+.oee-empty,
+.ats-empty,
+.nom-empty,
+.iper-empty,
+.sub-empty,
+.curso-empty {
+  min-height: 190px;
+  padding: 38px 28px !important;
+  border: 1px dashed var(--border-2) !important;
+  border-left: 3px solid var(--primary) !important;
+  border-radius: 3px !important;
+  background: color-mix(in srgb, var(--surface) 82%, transparent) !important;
+}
+.empty-state__icon,
+.oee-empty__icon,
+.ats-empty__icon,
+.nom-empty__icon,
+.iper-empty__icon,
+.sub-empty__ic {
+  border-radius: 3px !important;
+  background: var(--surface-2) !important;
+}
+.sub-loading {
+  min-height: 180px;
+  border: 1px dashed var(--border-2);
+  border-left: 3px solid var(--primary);
+  border-radius: 3px !important;
+  background: var(--surface) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 11px !important;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.sub-loading__spin { box-shadow: none !important; }
+
 /* Recompensas dentro del mismo lenguaje visual */
 .rw-page { max-width: var(--content-max); }
 .rw-hero {
@@ -407,6 +502,10 @@ body::after {
   .banner__stats { width: 100%; }
   .mobile-nav,
   .mobile-drawer__panel { border-radius: 0 !important; }
+  #dynamic-section .sec-hero { min-height: 0; padding: 21px 18px !important; }
+  #dynamic-section .sec-hero::after { display: none; }
+  #dynamic-section .tabs { width: 100% !important; }
+  #dynamic-section .tab { min-width: 0; }
 }
 
 @media (max-width: 560px) {
@@ -415,4 +514,3 @@ body::after {
   .rw-hero { min-height: 0; padding: 25px 20px !important; }
   .rw-hero::after { display: none; }
 }
-

@@ -5361,7 +5361,7 @@ const Sections = (function(){
           <svg class="ic" style="opacity:.85;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"><use href="#${ICON_AREA[c.area]||'i-book'}"/></svg>
           ${c.disponibleSiempre && desbloqueado && toolEsVIP() ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0D0D0D;">DISPONIBLE</span>' : ''}
           ${!toolEsVIP() && String(c.id) === primerCursoGratisId() && c.sesiones?.length ? `<span class="curso-card__cover-badge curso-card__cover-badge--free" style="background:var(--success);left:12px;right:auto;">${cantidadClasesGratis(c.sesiones.length)} CLASE${cantidadClasesGratis(c.sesiones.length)!==1?'S':''} GRATIS</span>` : ''}
-          ${!desbloqueado ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.9);color:var(--primary);border:1px solid var(--primary);">🔒 ${etiquetaBloqueo}</span>` : ''}
+          ${!desbloqueado ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.9);color:var(--primary);border:1px solid var(--primary);">ACCESO VIP · ${etiquetaBloqueo}</span>` : ''}
         </div>
         <div class="curso-card__body">
           <div class="curso-card__tags">
@@ -5409,7 +5409,7 @@ const Sections = (function(){
     const iconArea = ICON_AREA[c.area] || 'i-book';
 
     // Hero con imagen de portada de fondo
-    const heroBg = `background:linear-gradient(135deg,rgba(0,0,0,.35),rgba(0,0,0,.7)),url('${portada}');background-size:cover;background-position:center;border-radius:14px;padding:24px;color:#fff;margin-bottom:18px;`;
+    const heroBg = `background:linear-gradient(135deg,rgba(0,0,0,.35),rgba(0,0,0,.76)),url('${portada}');background-size:cover;background-position:center;border-radius:4px;border-left:3px solid var(--primary);padding:24px;color:#fff;margin-bottom:18px;`;
 
     // Body con sesiones (clases) y materiales reales
     let bodyContent = `
@@ -5451,7 +5451,7 @@ const Sections = (function(){
       if (c.sesiones && c.sesiones.length > 0) {
         bodyContent += `
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-3);font-weight:600;">📺 Clases del curso</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-3);font-weight:600;display:flex;align-items:center;gap:7px;"><svg class="ic" style="color:var(--primary);"><use href="#i-broadcast"/></svg>Clases del curso</div>
             <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${pct===100?'var(--success)':'var(--primary)'};font-weight:700;">${progCurso.clasesVistas.length}/${totalSes} · ${pct}%</div>
           </div>
           <div style="height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden;margin-bottom:14px;">
