@@ -21,13 +21,16 @@ La versión privada permite validar la experiencia visual mediante:
 - Resultado por ronda, continuidad explícita y resultado final de precisión técnica.
 - Explicación de la respuesta.
 - Catálogo provisional.
-- Canjes simulados guardados únicamente en el navegador.
+- Canjes simulados guardados únicamente en el navegador cuando se usa modo demo.
+- En modo real, solicitudes pendientes sin descuento local ni activación anticipada.
 
 No entrega licencias reales ni modifica Firebase, Railway, Stripe o Bunny.
 
 ## Modelo previsto para producción
 
 Los puntos canjeables no deben calcularse ni modificarse en el navegador. El backend será la única autoridad.
+
+La interfaz ya respeta esta separación: registra intentos y solicitudes, y consulta el saldo autoritativo. Falta implementar y desplegar el procesador de servidor que valide y ejecute las transacciones.
 
 Fuentes propuestas:
 

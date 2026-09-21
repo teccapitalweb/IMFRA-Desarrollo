@@ -1,5 +1,6 @@
 import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
+import { isRewardsDemo, loadRewardBalance, submitQuizAttempt, submitRewardRequest } from "./cloud";
 
 interface Redemption {
   id: string;
@@ -35,7 +36,12 @@ function accountKey() {
 function readState(): RewardState {
   try {
     const saved = JSON.parse(localStorage.getItem(accountKey()) || "null") as Partial<RewardState> | null;
-    if (saved) return { ...defaultState(), ...saved, answered: saved.answered || {}, redemptions: saved.redemptions || [] };
+    if (saved) {
+      const redemptions = isRewardsDemo()
+        ? (saved.redemptions || [])
+        : (saved.redemptions || []).filter((entry) => entry.status === "pending");
+      return { ...defaultState(), ...saved, answered: saved.answered || {}, redemptions };
+    }
   } catch {}
   const initial = defaultState();
   if (window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo") initial.points = 620;
@@ -82,7 +88,7 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric" }).format(new Date(value));
 }
 
-function activeRedemption(state: RewardState, rewardId: string) {
+function redemptionFor(state: RewardState, rewardId: string) {
   return state.redemptions.find((entry) => entry.rewardId === rewardId && (!entry.validUntil || new Date(entry.validUntil) > new Date()));
 }
 
@@ -133,6 +139,7 @@ function renderOptionVisual(kind: NonNullable<RewardQuestion["optionVisuals"]>[n
 function mount(container: HTMLElement) {
   let state = readState();
   let pendingRewardId: string | null = null;
+  let redemptionError = "";
   const quizRounds = dailyQuiz();
   const quizQuestions = quizRounds.flat();
   const firstUnanswered = quizQuestions.find((question) => !state.answered[answerKey(question.id)]);
@@ -159,7 +166,8 @@ function mount(container: HTMLElement) {
       ? 100
       : Math.min(100, Math.round(((state.points - currentLevel.start) / (currentLevel.next - currentLevel.start)) * 100));
     const featuredReward = rewardCatalog.find((reward) => reward.featured);
-    const featuredAccess = featuredReward ? activeRedemption(state, featuredReward.id) : undefined;
+    const featuredAccess = featuredReward ? redemptionFor(state, featuredReward.id) : undefined;
+    const featuredPending = featuredAccess?.status === "pending";
     const pendingReward = rewardCatalog.find((reward) => reward.id === pendingRewardId);
 
     container.innerHTML = `
@@ -179,14 +187,14 @@ function mount(container: HTMLElement) {
 
         <div class="rw-private-note">
           <svg class="ic"><use href="#i-shield-check"/></svg>
-          <div><strong>Vista privada de desarrollo</strong><span>Este flujo funciona como prototipo, pero todavía no genera una licencia real ni modifica el sistema de IMDAC.</span></div>
+          <div><strong>${isRewardsDemo() ? "Vista privada de desarrollo" : "Canje con validación segura"}</strong><span>${isRewardsDemo() ? "Este flujo funciona como prototipo, pero todavía no genera una licencia real ni modifica el sistema de IMDAC." : "Las solicitudes se validan en el servidor antes de descontar puntos o habilitar un beneficio."}</span></div>
         </div>
 
-        ${featuredReward ? `<section class="rw-featured ${featuredAccess ? "is-active" : ""}" style="--reward-accent:${featuredReward.accent}">
+        ${featuredReward ? `<section class="rw-featured ${featuredAccess && !featuredPending ? "is-active" : ""} ${featuredPending ? "is-pending" : ""}" style="--reward-accent:${featuredReward.accent}">
           <div class="rw-featured__main">
             <div class="rw-featured__topline">
               <span class="rw-product-mark">IM<span>DAC</span></span>
-              <span class="rw-status"><i></i>${featuredAccess ? "Acceso activo" : "Recompensa destacada"}</span>
+              <span class="rw-status"><i></i>${featuredPending ? "Solicitud en revisión" : featuredAccess ? "Acceso activo" : "Recompensa destacada"}</span>
             </div>
             <span class="rw-eyebrow">Software profesional para construcción</span>
             <h2>${escapeHtml(featuredReward.name)}</h2>
@@ -198,7 +206,10 @@ function mount(container: HTMLElement) {
             </div>
           </div>
           <div class="rw-featured__side">
-            ${featuredAccess ? `<div class="rw-access-ready">
+            ${featuredPending ? `<div class="rw-access-ready rw-access-ready--pending">
+              <span class="rw-access-ready__icon"><svg class="ic"><use href="#i-clock"/></svg></span>
+              <div><span>Solicitud registrada</span><strong>Validación pendiente</strong><small>El servidor comprobará saldo, vigencia e inventario antes de descontar puntos.</small></div>
+            </div>` : featuredAccess ? `<div class="rw-access-ready">
               <span class="rw-access-ready__icon"><svg class="ic"><use href="#i-check-circle"/></svg></span>
               <div><span>Beneficio activado</span><strong>Tu acceso está listo</strong><small>${featuredAccess.validUntil ? `Válido hasta el ${formatDate(featuredAccess.validUntil)}` : "Acceso piloto registrado"}</small></div>
               <a class="btn btn--accent rw-access-button" href="${featuredReward.accessUrl}" target="_blank" rel="noopener noreferrer">Entrar a IMDAC <span aria-hidden="true">↗</span></a>
@@ -289,14 +300,14 @@ function mount(container: HTMLElement) {
           <div class="rw-rewards">
             ${rewardCatalog.filter((reward) => !reward.featured).map((reward) => {
               const canRedeem = state.points >= reward.points;
-              const redeemed = activeRedemption(state, reward.id);
+              const redeemed = redemptionFor(state, reward.id);
               return `<article class="rw-reward" style="--reward-accent:${reward.accent}">
                 <div class="rw-reward__icon"><svg class="ic"><use href="${rewardIcon(reward)}"/></svg></div>
                 <span class="rw-reward__type">${reward.category}</span>
                 <h3>${escapeHtml(reward.name)}</h3>
                 <p>${escapeHtml(reward.description)}</p>
                 <div class="rw-reward__meta"><strong>${reward.points.toLocaleString("es-MX")} puntos</strong><span>${reward.availability}</span></div>
-                <button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed ? "Beneficio canjeado" : canRedeem ? "Canjear beneficio" : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>
+                <button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? "Canjear beneficio" : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>
               </article>`;
             }).join("")}
           </div>
@@ -304,7 +315,7 @@ function mount(container: HTMLElement) {
 
         ${state.redemptions.length ? `<section class="rw-history"><div class="rw-section-head"><div><span class="rw-eyebrow">Tu actividad</span><h2>Historial de beneficios</h2></div></div>${state.redemptions.map((entry) => {
           const reward = rewardCatalog.find((item) => item.id === entry.rewardId);
-          return `<div class="rw-history__row"><span><svg class="ic"><use href="#i-check-circle"/></svg><span><strong>${escapeHtml(reward?.name || entry.rewardId)}</strong><small>${formatDate(entry.createdAt)} · ${entry.status === "active" ? "Acceso activado" : "Canje registrado"}</small></span></span><b>−${entry.points} puntos</b></div>`;
+          return `<div class="rw-history__row"><span><svg class="ic"><use href="${entry.status === "pending" ? "#i-clock" : "#i-check-circle"}"/></svg><span><strong>${escapeHtml(reward?.name || entry.rewardId)}</strong><small>${formatDate(entry.createdAt)} · ${entry.status === "active" ? "Acceso activado" : "Solicitud en validación"}</small></span></span><b>${entry.status === "pending" ? "Sin descuento" : `−${entry.points} puntos`}</b></div>`;
         }).join("")}</section>` : ""}
       </div>
 
@@ -316,7 +327,8 @@ function mount(container: HTMLElement) {
             <h2 id="rw-dialog-title">${escapeHtml(pendingReward.name)}</h2>
             <p>Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} puntos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}</p>
             <div class="rw-dialog__balance"><span>Saldo actual <b>${state.points.toLocaleString("es-MX")}</b></span><i>→</i><span>Saldo restante <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>
-            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>En esta vista privada la activación es una simulación segura. No se enviarán datos ni se creará una cuenta externa.</span></div>
+            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "En esta vista privada la activación es una simulación segura. No se enviarán datos ni se creará una cuenta externa." : "Primero se registrará una solicitud. El saldo solo cambiará después de que el servidor valide puntos, vigencia e inventario."}</span></div>
+            ${redemptionError ? `<div class="rw-dialog__error" role="alert">${escapeHtml(redemptionError)}</div>` : ""}
             <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">Confirmar canje</button></div>
           </section>
         </div>` : ""}`;
@@ -330,9 +342,10 @@ function mount(container: HTMLElement) {
         const selected = Number(button.dataset.answer);
         const correct = selected === answeredQuestion.correct;
         const earned = correct ? 25 : 5;
-        state.points += earned;
+        if (isRewardsDemo()) state.points += earned;
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
+        if (!isRewardsDemo()) void submitQuizAttempt(answeredQuestion.id, correct).catch((error) => console.warn("[rewards] Intento pendiente de sincronización", error));
         render();
       });
     });
@@ -360,8 +373,9 @@ function mount(container: HTMLElement) {
     container.querySelectorAll<HTMLButtonElement>("[data-redeem]").forEach((button) => {
       button.addEventListener("click", () => {
         const reward = rewardCatalog.find((item) => item.id === button.dataset.redeem);
-        if (!reward || state.points < reward.points || activeRedemption(state, reward.id)) return;
+        if (!reward || state.points < reward.points || redemptionFor(state, reward.id)) return;
         pendingRewardId = reward.id;
+        redemptionError = "";
         render();
       });
     });
@@ -370,26 +384,47 @@ function mount(container: HTMLElement) {
       element.addEventListener("click", (event) => {
         if (event.target !== element && element.classList.contains("rw-dialog-backdrop")) return;
         pendingRewardId = null;
+        redemptionError = "";
         render();
       });
     });
 
     container.querySelectorAll<HTMLButtonElement>("[data-confirm-redeem]").forEach((button) => {
-      button.addEventListener("click", () => {
+      button.addEventListener("click", async () => {
         const reward = rewardCatalog.find((item) => item.id === button.dataset.confirmRedeem);
-        if (!reward || state.points < reward.points || activeRedemption(state, reward.id)) return;
+        if (!reward || state.points < reward.points || redemptionFor(state, reward.id)) return;
         const createdAt = new Date();
-        const validUntil = reward.durationDays ? new Date(createdAt.getTime() + reward.durationDays * 86400000).toISOString() : undefined;
-        state.points -= reward.points;
-        state.redemptions.unshift({ id: crypto.randomUUID(), rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), validUntil, status: "active" });
-        pendingRewardId = null;
-        saveState(state);
-        render();
+        button.disabled = true;
+        button.textContent = "Registrando solicitud…";
+        try {
+          const request = await submitRewardRequest(reward.id);
+          if (isRewardsDemo()) {
+            const validUntil = reward.durationDays ? new Date(createdAt.getTime() + reward.durationDays * 86400000).toISOString() : undefined;
+            state.points -= reward.points;
+            state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), validUntil, status: "active" });
+          } else {
+            state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), status: "pending" });
+          }
+          pendingRewardId = null;
+          redemptionError = "";
+          saveState(state);
+          render();
+        } catch (error) {
+          redemptionError = error instanceof Error ? error.message : "No pudimos registrar la solicitud. Inténtalo de nuevo.";
+          console.error("[rewards] No se pudo registrar el canje", error);
+          render();
+        }
       });
     });
   };
 
   render();
+  void loadRewardBalance().then((balance) => {
+    if (balance === null) return;
+    state.points = balance;
+    saveState(state);
+    render();
+  });
   if (new URLSearchParams(location.search).has("quiz")) {
     requestAnimationFrame(() => container.querySelector(".rw-quiz")?.scrollIntoView({ behavior: "auto", block: "start" }));
   }

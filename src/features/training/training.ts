@@ -1,6 +1,7 @@
 import "./training.css";
 import { flashcards, trainingCases, type TrainingCase } from "./catalog";
 import { rewardQuestions } from "../rewards/catalog";
+import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -93,6 +94,7 @@ function mount(container: HTMLElement) {
   let cardIndex = 0;
   let cardFlipped = false;
   let cardArea = "Todas";
+  const persistState = () => { saveState(state); void syncTrainingProgress(state); };
 
   const goTo = (selector = ".tr-page") => requestAnimationFrame(() => container.querySelector(selector)?.scrollIntoView({ behavior: "smooth", block: "start" }));
 
@@ -213,7 +215,7 @@ function mount(container: HTMLElement) {
         const previous = state.cases[selectedCase.id];
         if (!previous) state.xp += 45 + caseScore * 5;
         state.cases[selectedCase.id] = { score: Math.max(previous?.score || 0, caseScore), completedAt: new Date().toISOString() };
-        registerDay(state); saveState(state); caseFinished = true; renderCase();
+        registerDay(state); persistState(); caseFinished = true; renderCase();
       }
       goTo(caseFinished ? ".tr-case-result" : ".tr-case-run");
     });
@@ -226,7 +228,7 @@ function mount(container: HTMLElement) {
       const rewardDate = previous?.rewardDate;
       state.cards[card.id] = { confidence: Math.max(previous?.confidence || 0, confidence), lastReviewed: new Date().toISOString(), rewardDate: today() };
       if (rewardDate !== today()) state.xp += confidence;
-      registerDay(state); saveState(state);
+      registerDay(state); persistState();
       cardIndex = (cardIndex + 1) % deck.length; cardFlipped = false; renderFlashcards();
     }));
   }
@@ -239,6 +241,15 @@ function mount(container: HTMLElement) {
   else if (initialView === "flashcards") { rebuildDeck(); renderFlashcards(); }
   else renderHub();
   if (initialCaseId || initialView === "cases" || initialView === "flashcards") requestAnimationFrame(() => container.querySelector(initialCaseId ? ".tr-case-run" : ".tr-back")?.scrollIntoView({ behavior: "auto", block: "start" }));
+  void loadTrainingProgress().then((remote) => {
+    if (!remote) return;
+    state = mergeTrainingProgress(state, remote);
+    saveState(state);
+    if (view === "cases") renderCases();
+    else if (view === "case") renderCase();
+    else if (view === "flashcards") renderFlashcards();
+    else renderHub();
+  });
 }
 
 window.IMFRATraining = { mount };

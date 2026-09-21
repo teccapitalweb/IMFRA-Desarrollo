@@ -1,8 +1,9 @@
 import "./admin.css";
 import { rewardCatalog, rewardQuestions } from "../rewards/catalog";
 import { flashcards, trainingCases } from "./catalog";
+import { isAdminDemo, saveTrainingDraft } from "./admin-cloud";
 
-interface Draft { id: string; type: string; title: string; area: string; createdAt: string }
+interface Draft { id: string; type: string; title: string; area: string; createdAt: string; remote?: boolean }
 declare global { interface Window { IMFRATrainingAdmin: { mount(container: HTMLElement): void } } }
 
 const DRAFT_KEY = "imfra:v2:training-admin:drafts";
@@ -15,6 +16,8 @@ function mount(container: HTMLElement) {
   let tab = "preguntas";
   let drafts = readDrafts();
   let composer = false;
+  let formError = "";
+  let saving = false;
 
   function rows() {
     if (tab === "casos") return trainingCases.map((item) => ({ title: item.title, area: item.area, type: `${item.steps.length} decisiones`, status: "Publicado" }));
@@ -27,11 +30,11 @@ function mount(container: HTMLElement) {
     const data = rows();
     container.innerHTML = `<div class="ta-page fade-up">
       <header class="ta-hero"><div><span>Administración académica</span><h1>Retos y recompensas</h1><p>Control editorial para preguntas, casos, tarjetas técnicas y beneficios del programa IMFRA.</p></div><button class="btn btn--primary" data-ta-new>${ico("i-plus")} Nueva actividad</button></header>
-      <div class="ta-private">${ico("i-bolt")}<div><strong>Entorno privado</strong><span>Los borradores creados aquí se guardan solo en este navegador. La publicación real requerirá el flujo de servidor y permisos administrativos.</span></div></div>
+      <div class="ta-private">${ico("i-bolt")}<div><strong>${isAdminDemo() ? "Entorno privado" : "Flujo editorial protegido"}</strong><span>${isAdminDemo() ? "Los borradores creados aquí se guardan solo en este navegador. Nada se publica ni modifica el sitio real." : "Los borradores se guardan con identidad administrativa. La publicación requiere una aprobación independiente."}</span></div></div>
       <section class="ta-kpis"><article><span>Preguntas</span><strong>${rewardQuestions.length}</strong><small>Banco multimodal</small></article><article><span>Casos</span><strong>${trainingCases.length}</strong><small>${trainingCases.reduce((total, item) => total + item.steps.length, 0)} decisiones</small></article><article><span>Flashcards</span><strong>${flashcards.length}</strong><small>${new Set(flashcards.map((item) => item.area)).size} áreas</small></article><article><span>Recompensas</span><strong>${rewardCatalog.length}</strong><small>Catálogo piloto</small></article></section>
       <section class="ta-panel"><div class="ta-tabs">${[["preguntas","Preguntas"],["casos","Casos"],["flashcards","Flashcards"],["recompensas","Recompensas"]].map(([id,label]) => `<button class="${tab === id ? "is-active" : ""}" data-ta-tab="${id}">${label}</button>`).join("")}</div><div class="ta-toolbar"><label>${ico("i-search")}<input type="search" data-ta-search placeholder="Buscar por título o área"></label><span>${data.length} elementos publicados · ${drafts.length} borradores locales</span></div><div class="ta-table"><div class="ta-row ta-row--head"><span>Contenido</span><span>Área</span><span>Formato</span><span>Estado</span></div>${data.map((item) => `<article class="ta-row" data-ta-row="${esc(`${item.title} ${item.area}`.toLowerCase())}"><div><strong>${esc(item.title)}</strong><small>ID editorial · ${tab}</small></div><span>${esc(item.area)}</span><span>${esc(item.type)}</span><b>${esc(item.status)}</b></article>`).join("")}</div></section>
-      <section class="ta-readiness"><div><span>Preparación para publicar</span><h2>Controles necesarios antes de producción</h2></div><ul><li class="is-done"><b>✓</b><span>Experiencia y contenido inicial</span></li><li><b>2</b><span>Persistencia en Firestore</span></li><li><b>3</b><span>Libro mayor de puntos</span></li><li><b>4</b><span>Aprobación y entrega de licencias</span></li></ul></section>
-      ${composer ? `<div class="ta-modal"><form data-ta-form><button type="button" data-ta-close aria-label="Cerrar">×</button><span>Nueva actividad</span><h2>Crear borrador editorial</h2><label>Tipo<select name="type" required><option>Pregunta</option><option>Caso de obra</option><option>Flashcard</option><option>Recompensa</option></select></label><label>Título<input name="title" required minlength="4" placeholder="Nombre o enunciado principal"></label><label>Área<input name="area" required placeholder="Ej. Supervisión de obra"></label><p>Este borrador no será visible para los usuarios hasta conectarlo con el backend y aprobar su publicación.</p><div><button type="button" class="btn btn--ghost" data-ta-close>Cancelar</button><button class="btn btn--primary" type="submit">Guardar borrador</button></div></form></div>` : ""}
+      <section class="ta-readiness"><div><span>Preparación para publicar</span><h2>Controles necesarios antes de producción</h2></div><ul><li class="is-done"><b>✓</b><span>Experiencia y contenido inicial</span></li><li class="is-done"><b>✓</b><span>Persistencia protegida preparada</span></li><li class="is-done"><b>✓</b><span>Modelo de libro mayor definido</span></li><li><b>4</b><span>Procesador y entrega de licencias</span></li></ul></section>
+      ${composer ? `<div class="ta-modal"><form data-ta-form><button type="button" data-ta-close aria-label="Cerrar">×</button><span>Nueva actividad</span><h2>Crear borrador editorial</h2><label>Tipo<select name="type" required><option>Pregunta</option><option>Caso de obra</option><option>Flashcard</option><option>Recompensa</option></select></label><label>Título<input name="title" required minlength="4" placeholder="Nombre o enunciado principal"></label><label>Área<input name="area" required placeholder="Ej. Supervisión de obra"></label><p>Este borrador no será visible para los usuarios hasta aprobarlo y publicarlo.</p>${formError ? `<p class="ta-form-error" role="alert">${esc(formError)}</p>` : ""}<div><button type="button" class="btn btn--ghost" data-ta-close>Cancelar</button><button class="btn btn--primary" type="submit" ${saving ? "disabled" : ""}>${saving ? "Guardando…" : "Guardar borrador"}</button></div></form></div>` : ""}
     </div>`;
     bind();
   }
@@ -39,9 +42,25 @@ function mount(container: HTMLElement) {
   function bind() {
     container.querySelectorAll<HTMLButtonElement>("[data-ta-tab]").forEach((button) => button.addEventListener("click", () => { tab = button.dataset.taTab || "preguntas"; render(); }));
     container.querySelector<HTMLInputElement>("[data-ta-search]")?.addEventListener("input", (event) => { const q = (event.currentTarget as HTMLInputElement).value.toLowerCase().trim(); container.querySelectorAll<HTMLElement>("[data-ta-row]").forEach((row) => { row.hidden = !!q && !row.dataset.taRow?.includes(q); }); });
-    container.querySelector<HTMLButtonElement>("[data-ta-new]")?.addEventListener("click", () => { composer = true; render(); });
+    container.querySelector<HTMLButtonElement>("[data-ta-new]")?.addEventListener("click", () => { composer = true; formError = ""; render(); });
     container.querySelectorAll<HTMLButtonElement>("[data-ta-close]").forEach((button) => button.addEventListener("click", () => { composer = false; render(); }));
-    container.querySelector<HTMLFormElement>("[data-ta-form]")?.addEventListener("submit", (event) => { event.preventDefault(); const form = new FormData(event.currentTarget as HTMLFormElement); drafts.unshift({ id: crypto.randomUUID(), type: String(form.get("type")), title: String(form.get("title")).trim(), area: String(form.get("area")).trim(), createdAt: new Date().toISOString() }); saveDrafts(drafts); composer = false; render(); });
+    container.querySelector<HTMLFormElement>("[data-ta-form]")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget as HTMLFormElement);
+      const input = { type: String(form.get("type")), title: String(form.get("title")).trim(), area: String(form.get("area")).trim() };
+      saving = true; formError = ""; render();
+      try {
+        const result = await saveTrainingDraft(input);
+        drafts.unshift({ id: result.id, ...input, createdAt: new Date().toISOString(), remote: result.remote });
+        saveDrafts(drafts);
+        composer = false;
+      } catch (error) {
+        formError = error instanceof Error ? error.message : "No fue posible guardar el borrador.";
+      } finally {
+        saving = false;
+        render();
+      }
+    });
   }
   render();
 }

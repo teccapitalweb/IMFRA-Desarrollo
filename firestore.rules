@@ -12,6 +12,16 @@ rules_version = '2';
 // ═══════════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return signedIn() &&
+        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+    }
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
     // ───────── CURSOS ─────────
     match /cursos/{cursoId} {
       allow read: if request.auth != null;
@@ -110,6 +120,94 @@ service cloud.firestore {
         request.auth.uid == uid ||
         request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']
       );
+    }
+    // ═════════ ENTRENAMIENTO IMFRA ═════════
+    // El contenido publicado se consulta con `where('status','==','published')`.
+    // Borradores, edición y eliminación son exclusivamente administrativos.
+    match /training_questions/{contentId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.status == 'published');
+      allow create, update, delete: if isAdmin();
+    }
+    match /training_cases/{contentId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.status == 'published');
+      allow create, update, delete: if isAdmin();
+    }
+    match /training_flashcards/{contentId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.status == 'published');
+      allow create, update, delete: if isAdmin();
+    }
+    match /training_drafts/{draftId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    // Progreso formativo: no contiene saldo canjeable. El alumno puede
+    // sincronizar únicamente su XP, casos, tarjetas y días de actividad.
+    match /training_progress/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) &&
+        request.resource.data.uid == uid &&
+        request.resource.data.keys().hasOnly([
+          'uid','xpFormativo','cases','cards','days','version','updatedAt'
+        ]) &&
+        request.resource.data.xpFormativo is int &&
+        request.resource.data.xpFormativo >= 0 &&
+        request.resource.data.xpFormativo <= 100000 &&
+        request.resource.data.cases is map &&
+        request.resource.data.cards is map &&
+        request.resource.data.days is list &&
+        request.resource.data.days.size() <= 90;
+      allow delete: if isAdmin();
+    }
+
+    // Intentos sirven para auditoría y analítica. El cliente puede crear el
+    // suyo, pero no modificarlo después; nunca otorgan puntos por sí solos.
+    match /training_attempts/{attemptId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.keys().hasOnly([
+          'uid','activityId','activityType','score','total','completedAt','version'
+        ]) &&
+        request.resource.data.activityId is string &&
+        request.resource.data.activityType in ['quiz','case','flashcards'] &&
+        request.resource.data.score is int && request.resource.data.score >= 0 &&
+        request.resource.data.total is int && request.resource.data.total > 0 &&
+        request.resource.data.score <= request.resource.data.total;
+      allow update, delete: if isAdmin();
+    }
+
+    // ═════════ RECOMPENSAS ═════════
+    match /reward_catalog/{rewardId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.status == 'published');
+      allow create, update, delete: if isAdmin();
+    }
+    // Cuenta y libro mayor son autoritativos: el navegador nunca escribe.
+    match /reward_accounts/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    match /reward_ledger/{entryId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+    match /reward_redemptions/{redemptionId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create, update, delete: if isAdmin();
+    }
+    // El usuario solo solicita. El servidor recalcula saldo, costo, inventario
+    // y vigencia antes de crear un canje y descontar puntos.
+    match /reward_requests/{requestId} {
+      allow read: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid);
+      allow create: if signedIn() &&
+        request.resource.data.uid == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.keys().hasOnly([
+          'uid','rewardId','requestKey','status','createdAt','source'
+        ]) &&
+        request.resource.data.rewardId is string &&
+        request.resource.data.requestKey is string &&
+        request.resource.data.source == 'web';
+      allow update, delete: if isAdmin();
     }
     // ───────── DEFAULT ─────────
     match /{document=**} {
