@@ -239,6 +239,10 @@ body::after { opacity: .2 !important; }
 .tr-mission,.tr-standard,.tr-achievements,.tr-case-card,.tr-case-run,.tr-flashcard { box-shadow: 0 8px 26px rgba(13,13,13,.05) !important; }
 .tr-standard { background: #151515 !important; }
 .tr-standard>span,.tr-standard li b { color: #ffc35f !important; }
+.book-detail__cover[role="link"] { position:relative; cursor:pointer; outline:none; }
+.book-detail__cover[role="link"]::after { content:"Abrir libro ↗"; position:absolute; right:10px; bottom:10px; padding:7px 9px; border-radius:9px; background:rgba(13,13,13,.88); color:#fff; font-size:9px; font-weight:750; letter-spacing:.4px; opacity:0; transform:translateY(4px); transition:.2s ease; }
+.book-detail__cover[role="link"]:hover::after,.book-detail__cover[role="link"]:focus-visible::after { opacity:1; transform:none; }
+.book-detail__cover[role="link"]:focus-visible { box-shadow:0 0 0 3px var(--primary-glow),6px 8px 28px rgba(0,0,0,.3); }
 
 /* Logros · la información se concentra como en Élite, con lenguaje IMFRA. */
 .achievements-page { display: grid; gap: 28px; width:100%; min-width:0; }

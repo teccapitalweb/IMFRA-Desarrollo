@@ -1076,10 +1076,10 @@ onAuthStateChanged(auth, (user) => {
     document.body.style.visibility = 'visible';
     const nameEl = document.querySelector('.avatar__name');
     const picEl = document.querySelector('.avatar__pic');
-    const modeEl = document.querySelector('.topbar__pill');
+    const modeEl = document.querySelector('.topbar__context-text');
     if (nameEl) nameEl.textContent = 'Equipo IMFRA';
     if (picEl) picEl.textContent = 'IM';
-    if (modeEl) modeEl.textContent = 'Vista privada · datos simulados';
+    if (modeEl) modeEl.textContent = 'Administración';
     window.dispatchEvent(new CustomEvent('adminready', { detail: { email, uid: 'local-review', demo: true } }));
     return;
   }
@@ -1203,7 +1203,7 @@ window.__signOut = async () => {
   <!-- MAIN -->
   <main class="main">
     <div class="topbar">
-      <span class="topbar__pill">Modo administrador</span>
+      <div class="topbar__context" aria-label="Área actual"><span>IMFRA</span><i>/</i><strong class="topbar__context-text">Administración</strong></div>
       <div class="topbar__right">
         <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema"><svg class="ic"><use href="#i-moon"/></svg></button>
         <div class="avatar">
@@ -1407,7 +1407,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Resumen general</span>
           <h1 class="sec-hero__title">Dashboard</h1>
-          <p class="sec-hero__sub">Vista general del panel IMFRA · miembros, contenido, certificados emitidos e ingresos del mes.</p>
+          <p class="sec-hero__sub">Todo lo importante de IMFRA en un vistazo.</p>
           ${loadingBadge}
         </div>
 
@@ -1415,32 +1415,26 @@ const Pages={
           <div class="kpi-card" style="--c1:#34D399;--c2:#22C55E;">
             <div class="kpi-card__label">Miembros activos</div>
             <div class="kpi-card__value">${stats.miembrosActivos}<span style="font-size:18px;color:var(--text-3);margin-left:4px;">/${stats.miembrosTotal}</span></div>
-            <div class="kpi-card__sub">${stats.miembrosTotal > 0 ? `<strong>${Math.round(stats.miembrosActivos/stats.miembrosTotal*100)}%</strong> activos` : 'Sin miembros aún'}</div>
           </div>
           <div class="kpi-card" style="--c1:#F59D1A;--c2:#FFCF7A;">
             <div class="kpi-card__label">Ingresos estimados/mes</div>
             <div class="kpi-card__value">${ingresoMes === null ? '$—' : '$' + ingresoMes.toLocaleString('es-MX')}</div>
-            <div class="kpi-card__sub">MXN · basado en miembros activos</div>
           </div>
           <div class="kpi-card" style="--c1:#3B82F6;--c2:#60A5FA;">
             <div class="kpi-card__label">Cursos activos</div>
             <div class="kpi-card__value">${stats.cursosActivos}<span style="font-size:18px;color:var(--text-3);margin-left:4px;">/${stats.cursosTotal}</span></div>
-            <div class="kpi-card__sub">${stats.cursosInactivos} inactivo${stats.cursosInactivos!==1?'s':''}</div>
           </div>
           <div class="kpi-card" style="--c1:#A855F7;--c2:#C084FC;">
             <div class="kpi-card__label">Certificados emitidos</div>
             <div class="kpi-card__value">${stats.certEmitidos}</div>
-            <div class="kpi-card__sub">Total acumulado</div>
           </div>
           <div class="kpi-card" style="--c1:#EF4444;--c2:#F87171;">
             <div class="kpi-card__label">Clases programadas</div>
             <div class="kpi-card__value">${stats.webinarsProx}</div>
-            <div class="kpi-card__sub">Próxima · ${proxWebinarFmt}</div>
           </div>
           <div class="kpi-card" style="--c1:#10B981;--c2:#34D399;">
             <div class="kpi-card__label">Material publicado</div>
             <div class="kpi-card__value">${stats.pdfsPubl}<span style="font-size:18px;color:var(--text-3);margin-left:4px;">/${stats.pdfsTotal}</span></div>
-            <div class="kpi-card__sub">${stats.pdfsTotal === 0 ? 'Sin material aún' : `${stats.pdfsTotal - stats.pdfsPubl} sin publicar`}</div>
           </div>
         </div>
 
@@ -1611,7 +1605,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Comunicación con miembros</span>
           <h1 class="sec-hero__title">Notificaciones</h1>
-          <p class="sec-hero__sub">Envía avisos a todos los miembros VIP. Aparecen <strong style="color:var(--primary);">en tiempo real</strong> en la campanita 🔔 del panel de usuario, con un punto rojo hasta que cada quien lo abra.</p>
+          <p class="sec-hero__sub">Crea y envía avisos a los miembros.</p>
         </div>
 
         <!-- KPIs rápidos -->
@@ -2048,7 +2042,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Catálogo de cursos</span>
           <h1 class="sec-hero__title">Cursos</h1>
-          <p class="sec-hero__sub">Gestiona tu catálogo · activa o desactiva cursos al toque · busca y filtra. <strong style="color:var(--text-2);">Lectura conectada a Firestore en tiempo real.</strong></p>
+          <p class="sec-hero__sub">Crea, edita y publica cursos.</p>
           <div class="sec-hero__actions">
             <button class="btn btn--ghost" id="sync-bunny-btn" title="Vincula los videos de Bunny (assets/imfra-bunny-catalog.js) con los cursos del panel">
               <svg class="ic"><use href="#i-broadcast"/></svg>
@@ -3037,7 +3031,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Programación en vivo</span>
           <h1 class="sec-hero__title">Clases en vivo</h1>
-          <p class="sec-hero__sub">Programa las transmisiones en vivo que verán los miembros VIP. <strong style="color:var(--text-2);">El countdown del Inicio del panel se actualiza automáticamente</strong> con el próximo webinar.</p>
+          <p class="sec-hero__sub">Programa y administra las clases en vivo.</p>
           <div class="sec-hero__actions">
             <button class="btn btn--accent" id="new-web-btn">
               <svg class="ic"><use href="#i-plus"/></svg>
@@ -3460,7 +3454,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Material descargable</span>
           <h1 class="sec-hero__title">PDFs y material</h1>
-          <p class="sec-hero__sub">Todos los materiales descargables están vinculados a un curso. Aquí ves la <strong style="color:var(--text-2);">lista completa</strong> de Firestore en tiempo real, sin importar a qué curso pertenecen.</p>
+          <p class="sec-hero__sub">Sube y organiza los materiales de cada curso.</p>
           <div class="sec-hero__actions">
             <button class="btn btn--accent" id="new-material-btn">
               <svg class="ic"><use href="#i-plus"/></svg>
@@ -3921,7 +3915,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Emisión</span>
           <h1 class="sec-hero__title">Certificados</h1>
-          <p class="sec-hero__sub">Emite certificados con folio único IMFRA-AÑO-XXXXX. El sistema genera el PDF, lo guarda y envía al estudiante por email.</p>
+          <p class="sec-hero__sub">Emite y consulta certificados IMFRA.</p>
           <div class="sec-hero__actions">
             <button class="btn btn--accent" id="new-cert"><svg class="ic"><use href="#i-plus"/></svg>Emitir certificado</button>
           </div>
@@ -4005,7 +3999,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Comunidad</span>
           <h1 class="sec-hero__title">Miembros VIP</h1>
-          <p class="sec-hero__sub">Aquí ves <strong style="color:var(--text-2);">todos los registrados</strong> (los que crearon cuenta) y <strong style="color:var(--text-2);">todos los miembros activos</strong> (los que ya pagaron). Cada uno con su fecha de registro y/o fecha de activación.</p>
+          <p class="sec-hero__sub">Consulta registros y membresías activas.</p>
           <div class="sec-hero__actions">
             <button class="btn btn--accent" id="new-mb-btn">
               <svg class="ic"><use href="#i-plus"/></svg>
@@ -4975,7 +4969,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Cron automático</span>
           <h1 class="sec-hero__title">Noticias</h1>
-          <p class="sec-hero__sub">El cron de Railway corre cada día a las 7 AM y publica noticias del sector construcción en el panel VIP.</p>
+          <p class="sec-hero__sub">Revisa las noticias que aparecen en el panel VIP.</p>
         </div>
 
         <section class="cron-card">
@@ -5030,7 +5024,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Ajustes globales</span>
           <h1 class="sec-hero__title">Configuración</h1>
-          <p class="sec-hero__sub">Precios de membresía Stripe, datos de contacto, emails admin y claves de servicios externos.</p>
+          <p class="sec-hero__sub">Administra precios, contacto y servicios.</p>
         </div>
 
         <div class="dash-grid">
