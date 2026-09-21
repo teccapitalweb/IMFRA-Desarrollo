@@ -12,7 +12,7 @@ interface Redemption {
 
 interface RewardState {
   points: number;
-  answered: Record<string, { correct: boolean; earned: number; answeredAt: string }>;
+  answered: Record<string, { correct: boolean; earned: number; answeredAt: string; selected?: number }>;
   redemptions: Redemption[];
 }
 
@@ -28,7 +28,7 @@ const dateKey = () => new Date().toISOString().slice(0, 10);
 
 function accountKey() {
   const isDemo = window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
-  const account = isDemo ? "demo-preview-v4" : (window.UserState?.uid || window.UserState?.email || "guest");
+  const account = isDemo ? "demo-preview-v6" : (window.UserState?.uid || window.UserState?.email || "guest");
   return `imfra:v2:rewards:${account}`;
 }
 
@@ -46,10 +46,16 @@ function saveState(state: RewardState) {
   localStorage.setItem(accountKey(), JSON.stringify(state));
 }
 
-function dailyQuestion(): RewardQuestion {
+function dailyQuiz(): RewardQuestion[] {
   const seed = [...dateKey()].reduce((total, char) => total + char.charCodeAt(0), 0);
-  return rewardQuestions[seed % rewardQuestions.length];
+  const formats: RewardQuestion["type"][] = ["visual", "measurement", "case", "concept"];
+  return formats.map((type, index) => {
+    const candidates = rewardQuestions.filter((question) => question.type === type);
+    return candidates[(seed + index) % candidates.length];
+  });
 }
+
+const answerKey = (questionId: string) => `${dateKey()}:${questionId}`;
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>'"]/g, (character) => ({
@@ -77,13 +83,62 @@ function rewardIcon(reward: RewardItem) {
   return reward.category === "Software" ? "#i-tools" : "#i-book";
 }
 
+function questionTypeLabel(type: RewardQuestion["type"]) {
+  return ({ concept: "Conocimiento", case: "Caso de obra", measurement: "Cálculo", visual: "Identificación visual" })[type];
+}
+
+function renderQuestionDiagram(question: RewardQuestion) {
+  if (question.visual === "slab-plan") {
+    return `<div class="rw-tech-diagram" aria-label="Planta y sección de una losa rectangular">
+      <svg viewBox="0 0 520 210" role="img">
+        <defs><pattern id="rw-grid" width="18" height="18" patternUnits="userSpaceOnUse"><path d="M18 0H0V18" fill="none" stroke="currentColor" stroke-opacity=".08"/></pattern></defs>
+        <rect width="520" height="210" fill="url(#rw-grid)"/>
+        <g fill="none" stroke="currentColor" stroke-width="2"><rect x="76" y="38" width="284" height="118" rx="3"/><path d="M76 174v18m284-18v18M76 184h284M64 38H45m19 118H45M54 38v118"/><path d="m83 180-7 4 7 4m270-8 7 4-7 4M50 45l4-7 4 7m-8 104 4 7 4-7"/></g>
+        <g fill="currentColor" font-family="JetBrains Mono,monospace" font-size="13"><text x="190" y="202">4.20 m</text><text x="18" y="102" transform="rotate(-90 18 102)">3.60 m</text><text x="384" y="74">ESPESOR</text><text x="384" y="98" font-size="25" font-weight="700">12 cm</text><text x="384" y="126" fill="#f59d1a">+ 5% desperdicio</text></g>
+        <g stroke="#f59d1a" stroke-width="2"><path d="M360 91h18"/><circle cx="360" cy="91" r="4" fill="#f59d1a"/></g>
+      </svg></div>`;
+  }
+  if (question.visual === "curve-s") {
+    return `<div class="rw-tech-diagram" aria-label="Curva S de avance programado y ejecutado">
+      <svg viewBox="0 0 520 210" role="img">
+        <g stroke="currentColor" stroke-opacity=".1"><path d="M58 35v135h420M58 136h420M58 102h420M58 68h420"/></g>
+        <path d="M58 169C135 165 166 147 218 116S318 48 472 38" fill="none" stroke="#7b8fff" stroke-width="4"/>
+        <path d="M58 169C137 166 170 154 222 132S326 76 472 59" fill="none" stroke="#f59d1a" stroke-width="4" stroke-dasharray="8 7"/>
+        <path d="M302 82v23" stroke="currentColor" stroke-opacity=".45" stroke-dasharray="3 3"/><circle cx="302" cy="82" r="5" fill="#7b8fff"/><circle cx="302" cy="105" r="5" fill="#f59d1a"/>
+        <g fill="currentColor" font-family="JetBrains Mono,monospace" font-size="12"><text x="316" y="80">48% programado</text><text x="316" y="111">39% ejecutado</text><text x="56" y="193">SEMANA 1</text><text x="421" y="193">SEMANA 12</text></g>
+      </svg></div>`;
+  }
+  return "";
+}
+
+function renderOptionVisual(kind: NonNullable<RewardQuestion["optionVisuals"]>[number]) {
+  const base = `viewBox="0 0 180 104" role="img" aria-hidden="true"`;
+  if (kind === "honeycomb") return `<svg ${base}><rect width="180" height="104" rx="8" fill="#a6a39c"/><g fill="#55534e">${[[25,26,9],[48,20,6],[74,34,10],[105,21,7],[139,31,11],[33,63,11],[63,75,7],[96,63,12],[128,76,8],[155,60,10]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}"/>`).join("")}</g><g fill="#d2c7b1"><circle cx="20" cy="82" r="7"/><circle cx="116" cy="48" r="6"/><circle cx="152" cy="88" r="5"/></g></svg>`;
+  if (kind === "crack") return `<svg ${base}><rect width="180" height="104" rx="8" fill="#aaa7a0"/><path d="M88 0 78 23l14 13-18 20 9 15-19 33" fill="none" stroke="#373737" stroke-width="4"/><path d="m80 48-24-9m20 28 22 8" stroke="#4a4a4a" stroke-width="2"/></svg>`;
+  if (kind === "efflorescence") return `<svg ${base}><rect width="180" height="104" rx="8" fill="#8d8b86"/><g fill="none" stroke="#f1eee5" stroke-width="8" opacity=".86"><path d="M20 15c17 14 16 29 6 48s2 29 13 37M77 4c-8 23 15 35 5 58S87 93 99 103M143 8c13 21-5 31 3 50s-3 29-9 42"/></g></svg>`;
+  if (kind === "corrosion") return `<svg ${base}><rect width="180" height="104" rx="8" fill="#a7a49e"/><path d="M0 68c38-18 61 13 93-5s58 7 87-8v49H0z" fill="#7d7770"/><path d="M8 72 172 49" stroke="#7e351d" stroke-width="12"/><path d="M8 72 172 49" stroke="#d66e32" stroke-width="4" stroke-dasharray="8 5"/><path d="m38 67 4 18m54-26 3 20m52-28 5 18" stroke="#5b291b" stroke-width="3"/></svg>`;
+  if (kind === "beam") return `<svg ${base}><rect x="17" y="20" width="146" height="64" rx="3" fill="#d9dce2" stroke="#596275" stroke-width="2"/><g fill="none" stroke="#f59d1a" stroke-width="2">${[32,57,82,107,132,148].map(x=>`<rect x="${x}" y="27" width="13" height="50" rx="2"/>`).join("")}</g><g fill="#3c4658"><circle cx="28" cy="33" r="4"/><circle cx="152" cy="33" r="4"/><circle cx="28" cy="71" r="4"/><circle cx="152" cy="71" r="4"/></g></svg>`;
+  if (kind === "column") return `<svg ${base}><rect x="70" y="7" width="40" height="90" fill="#d9dce2" stroke="#596275" stroke-width="2"/><g fill="none" stroke="#f59d1a" stroke-width="2">${[17,35,53,71].map(y=>`<rect x="76" y="${y}" width="28" height="10"/>`).join("")}</g><path d="M78 7v90m24-90v90" stroke="#3c4658" stroke-width="4"/></svg>`;
+  if (kind === "slab") return `<svg ${base}><rect x="10" y="42" width="160" height="28" rx="2" fill="#d9dce2" stroke="#596275" stroke-width="2"/><g stroke="#f59d1a" stroke-width="2">${[24,48,72,96,120,144].map(x=>`<path d="M${x} 46v20"/>`).join("")}<path d="M16 52h148M16 62h148"/></g></svg>`;
+  return `<svg ${base}><path d="M78 8h24v33h24l31 48H23l31-48h24z" fill="#d9dce2" stroke="#596275" stroke-width="2"/><g stroke="#f59d1a" stroke-width="2"><path d="M38 78h104M48 64h84"/>${[52,77,102,127].map(x=>`<path d="M${x} 57v26"/>`).join("")}</g></svg>`;
+}
+
 function mount(container: HTMLElement) {
   let state = readState();
   let pendingRewardId: string | null = null;
-  const question = dailyQuestion();
+  const quizQuestions = dailyQuiz();
+  const firstUnanswered = quizQuestions.find((question) => !state.answered[answerKey(question.id)]);
+  let activeQuestionId = firstUnanswered?.id || quizQuestions.at(-1)?.id || quizQuestions[0].id;
+  let showQuizSummary = !firstUnanswered;
 
   const render = () => {
-    const answered = state.answered[question.id];
+    const question = quizQuestions.find((item) => item.id === activeQuestionId) || quizQuestions[0];
+    const answered = state.answered[answerKey(question.id)];
+    const quizAnswers = quizQuestions.map((item) => state.answered[answerKey(item.id)]).filter(Boolean);
+    const completedCount = quizAnswers.length;
+    const correctCount = quizAnswers.filter((answer) => answer.correct).length;
+    const quizPoints = quizAnswers.reduce((total, answer) => total + answer.earned, 0);
+    const quizProgress = Math.round((completedCount / quizQuestions.length) * 100);
     const currentLevel = level(state.points);
     const progress = currentLevel.next === currentLevel.start
       ? 100
@@ -157,28 +212,49 @@ function mount(container: HTMLElement) {
         </section>
 
         <div class="rw-grid">
-          <section class="rw-quiz">
-            <div class="rw-section-head"><div><span class="rw-eyebrow">Reto del día · hasta 30 puntos</span><h2>Pregunta técnica</h2></div><span class="rw-area">${escapeHtml(question.area)}</span></div>
-            <p class="rw-question">${escapeHtml(question.question)}</p>
-            <div class="rw-options">
-              ${question.options.map((option, index) => {
-                const status = answered ? (index === question.correct ? " is-correct" : "") : "";
-                return `<button type="button" class="rw-option${status}" data-answer="${index}" ${answered ? "disabled" : ""}><span>${String.fromCharCode(65 + index)}</span>${escapeHtml(option)}</button>`;
-              }).join("")}
+          <section class="rw-quiz rw-quiz--pro">
+            <div class="rw-quiz__masthead">
+              <div><span class="rw-eyebrow">Quiz Técnico IMFRA · 4 desafíos</span><h2>Decisiones que ocurren en obra</h2></div>
+              <div class="rw-quiz__counter"><strong>${completedCount}</strong><span>/ ${quizQuestions.length}</span></div>
             </div>
-            ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? `Correcto · +${answered.earned} puntos` : `Sigue aprendiendo · +${answered.earned} puntos`}</strong><p>${escapeHtml(question.explanation)}</p><small>Vuelve mañana para encontrar una pregunta diferente.</small></div>` : ""}
+            <div class="rw-quiz__progress"><span style="width:${quizProgress}%"></span></div>
+            ${showQuizSummary ? `<div class="rw-quiz-summary">
+              <div class="rw-quiz-summary__score"><strong>${Math.round((correctCount / quizQuestions.length) * 100)}%</strong><span>Precisión técnica</span></div>
+              <div class="rw-quiz-summary__copy"><span class="rw-eyebrow">Reto completado</span><h3>${correctCount >= 3 ? "Buen criterio de obra" : "La práctica fortalece el criterio"}</h3><p>Respondiste correctamente ${correctCount} de ${quizQuestions.length} desafíos y sumaste <strong>${quizPoints} Puntos IMFRA</strong>.</p><small>Mañana encontrarás una nueva combinación de casos y ejercicios.</small></div>
+            </div>` : `<div class="rw-question-stage">
+              <div class="rw-question-meta"><span>${questionTypeLabel(question.type)}</span><span>${question.difficulty}</span><span>${escapeHtml(question.area)}</span></div>
+              ${question.context ? `<div class="rw-case-context"><b>Caso</b><p>${escapeHtml(question.context)}</p></div>` : ""}
+              ${renderQuestionDiagram(question)}
+              <h3 class="rw-question">${escapeHtml(question.question)}</h3>
+              <div class="rw-options ${question.optionVisuals ? "is-visual" : ""}">
+                ${question.options.map((option, index) => {
+                  const status = answered
+                    ? index === question.correct
+                      ? " is-correct"
+                      : answered.selected === index ? " is-wrong" : ""
+                    : "";
+                  return `<button type="button" class="rw-option${question.optionVisuals ? " has-visual" : ""}${status}" data-answer="${index}" data-question="${question.id}" ${answered ? "disabled" : ""}>
+                    ${question.optionVisuals ? `<div class="rw-option__visual">${renderOptionVisual(question.optionVisuals[index])}</div>` : ""}
+                    <b class="rw-option__letter">${String.fromCharCode(65 + index)}</b><div class="rw-option__text">${escapeHtml(option)}</div>
+                  </button>`;
+                }).join("")}
+              </div>
+              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? `Correcto · +${answered.earned} puntos` : `Respuesta registrada · +${answered.earned} puntos`}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${completedCount === quizQuestions.length ? "Ver resultado" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
+            </div>`}
           </section>
 
           <aside class="rw-how">
-            <span class="rw-eyebrow">Cómo acumular</span>
-            <h2>Tu actividad tiene valor</h2>
+            <span class="rw-eyebrow">Entrenamiento aplicado</span>
+            <h2>Más que preguntas</h2>
+            <p class="rw-how__intro">Cada sesión mezcla formatos para evaluar criterio, lectura técnica y toma de decisiones.</p>
             <ul>
-              <li><b>+30</b><span>Respuesta correcta del reto diario</span></li>
-              <li><b>+10</b><span>Participar aunque necesites repasar</span></li>
-              <li><b>+50</b><span>Completar un curso</span></li>
-              <li><b>+20</b><span>Aprobar una evaluación</span></li>
+              <li><b>01</b><span>Casos reales de supervisión</span></li>
+              <li><b>02</b><span>Planos, medidas y cálculos</span></li>
+              <li><b>03</b><span>Identificación mediante imágenes</span></li>
+              <li><b>04</b><span>Explicación técnica de cada respuesta</span></li>
             </ul>
-            <p>Antes de publicar, los puntos de cursos y evaluaciones se validarán en el servidor.</p>
+            <div class="rw-how__points"><span>Sesión diaria</span><strong>Hasta 120 pts</strong><small>30 por acierto · 10 por participación</small></div>
+            <p>Antes de publicar, los intentos y puntos se validarán en el servidor.</p>
           </aside>
         </div>
 
@@ -221,14 +297,25 @@ function mount(container: HTMLElement) {
 
     container.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => {
       button.addEventListener("click", () => {
-        if (state.answered[question.id]) return;
-        const correct = Number(button.dataset.answer) === question.correct;
+        const answeredQuestion = quizQuestions.find((item) => item.id === button.dataset.question);
+        if (!answeredQuestion) return;
+        const key = answerKey(answeredQuestion.id);
+        if (state.answered[key]) return;
+        const selected = Number(button.dataset.answer);
+        const correct = selected === answeredQuestion.correct;
         const earned = correct ? 30 : 10;
         state.points += earned;
-        state.answered[question.id] = { correct, earned, answeredAt: new Date().toISOString() };
+        state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
         render();
       });
+    });
+
+    container.querySelector<HTMLButtonElement>("[data-next-question]")?.addEventListener("click", () => {
+      const nextQuestion = quizQuestions.find((item) => !state.answered[answerKey(item.id)]);
+      if (nextQuestion) activeQuestionId = nextQuestion.id;
+      else showQuizSummary = true;
+      render();
     });
 
     container.querySelectorAll<HTMLButtonElement>("[data-redeem]").forEach((button) => {
