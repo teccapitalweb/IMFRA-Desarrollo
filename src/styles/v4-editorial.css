@@ -1,0 +1,246 @@
+/* IMFRA v4 · dirección editorial inspirada en la claridad de Élite Pecuaria.
+   La identidad sigue siendo propia: verde azulado mineral + latón técnico. */
+
+:root[data-theme="day"] {
+  --bg: #f4f6f4;
+  --bg-deep: #e9eeeb;
+  --surface: #ffffff;
+  --surface-2: #f1f4f2;
+  --surface-3: #e5ebe7;
+  --border: rgba(22, 46, 39, .08);
+  --border-2: rgba(22, 46, 39, .14);
+  --border-strong: rgba(30, 103, 91, .42);
+  --text: #17231f;
+  --text-2: #53625d;
+  --text-3: #87928e;
+  --primary: #1f6f63;
+  --primary-soft: #dceee8;
+  --primary-deep: #174f47;
+  --primary-glow: rgba(31, 111, 99, .15);
+  --highlight: #b98835;
+  --premium-dark: #10211e;
+  --premium-dark-2: #17332e;
+  --premium-blue: #367f78;
+  --premium-cyan: #69aa9c;
+  --premium-shadow: 0 12px 34px rgba(24, 52, 44, .075);
+  --premium-shadow-hover: 0 20px 48px rgba(24, 52, 44, .12);
+}
+
+:root[data-theme="night"] {
+  --bg: #0d1513;
+  --bg-deep: #09100e;
+  --surface: #131e1b;
+  --surface-2: #192723;
+  --surface-3: #22342f;
+  --border: rgba(224, 239, 233, .07);
+  --border-2: rgba(224, 239, 233, .12);
+  --border-strong: rgba(105, 170, 156, .4);
+  --text: #f1f6f4;
+  --text-2: #a6b6b0;
+  --text-3: #6f817a;
+  --primary: #72bbaa;
+  --primary-soft: rgba(114, 187, 170, .14);
+  --primary-deep: #4d9787;
+  --primary-glow: rgba(114, 187, 170, .14);
+  --highlight: #d2ad63;
+  --premium-dark: #0a1210;
+  --premium-dark-2: #12221e;
+  --premium-blue: #72bbaa;
+  --premium-cyan: #8bc8b8;
+  --premium-shadow: 0 18px 50px rgba(0, 0, 0, .25);
+  --premium-shadow-hover: 0 26px 64px rgba(0, 0, 0, .34);
+}
+
+body {
+  background:
+    radial-gradient(circle at 46% -18%, color-mix(in srgb, var(--primary) 8%, transparent), transparent 34%),
+    var(--bg) !important;
+}
+body::after { opacity: .2 !important; }
+
+/* La revisión local ya está identificada en la cabecera. Evita una segunda
+   franja promocional que roba altura y fragmenta el producto. */
+.fomo-banner[data-local-review="true"] { display: none !important; }
+
+.app { grid-template-columns: 252px minmax(0, 1fr) 304px !important; }
+.sidebar {
+  padding: 18px 14px 30px !important;
+  background: var(--surface) !important;
+  border-right: 1px solid var(--border-2) !important;
+  box-shadow: none !important;
+}
+:root[data-theme="night"] .sidebar { background: #0c1513 !important; }
+:root[data-theme="day"] .sidebar {
+  --text: #17231f;
+  --text-2: #65736e;
+  --text-3: #97a19d;
+  --surface: #ffffff;
+  --surface-2: #f1f4f2;
+  --surface-3: #e5ebe7;
+  --border: rgba(22,46,39,.08);
+  --border-2: rgba(22,46,39,.14);
+}
+.brand { min-height: 62px; margin-bottom: 17px !important; border-bottom-color: var(--border) !important; }
+.brand__logo {
+  border-color: color-mix(in srgb, var(--highlight) 45%, var(--border)) !important;
+  background: var(--surface-2) !important;
+  box-shadow: none !important;
+}
+.brand__name { color: var(--text) !important; }
+.brand__plan { color: var(--highlight) !important; background: color-mix(in srgb, var(--highlight) 10%, transparent) !important; }
+.nav-label { color: var(--text-3) !important; }
+.nav-item { color: var(--text-2) !important; border-radius: 10px !important; }
+.nav-item:hover { color: var(--text) !important; background: var(--surface-2) !important; transform: none !important; }
+.nav-item.is-active {
+  color: var(--primary-deep) !important;
+  background: color-mix(in srgb, var(--primary) 11%, var(--surface)) !important;
+  border-color: color-mix(in srgb, var(--primary) 16%, var(--border)) !important;
+  box-shadow: inset 3px 0 0 var(--primary) !important;
+}
+:root[data-theme="night"] .nav-item.is-active { color: var(--text) !important; }
+.nav-item.is-active .ic { color: var(--primary) !important; filter: none !important; }
+
+/* Una sola cabecera integrada. */
+.main { padding: 0 32px 64px !important; gap: 26px !important; }
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  min-height: 68px;
+  margin: 0 !important;
+  padding: 12px 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: color-mix(in srgb, var(--bg) 90%, transparent) !important;
+  box-shadow: none !important;
+  backdrop-filter: blur(18px) saturate(130%);
+}
+.pill {
+  min-height: 30px;
+  padding: 0 10px !important;
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border)) !important;
+  border-radius: 999px !important;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface)) !important;
+  color: var(--primary) !important;
+}
+.icon-btn,.theme-toggle,.install-app-btn,.avatar {
+  min-height: 40px;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  background: var(--surface) !important;
+  color: var(--text-2) !important;
+  box-shadow: 0 2px 8px rgba(24,52,44,.035) !important;
+}
+.icon-btn:hover,.theme-toggle:hover,.install-app-btn:hover,.avatar:hover {
+  border-color: var(--border-2) !important;
+  background: var(--surface-2) !important;
+}
+.install-app-btn { color: var(--text) !important; }
+.avatar__circle { background: var(--primary) !important; box-shadow: none !important; }
+.avatar__plan { color: var(--primary) !important; }
+
+/* Hero: contraste institucional, sin neón ni morado. */
+.banner {
+  min-height: 276px;
+  padding: 42px 42px 36px !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(210,173,99,.18), transparent 28%),
+    radial-gradient(circle at 67% 115%, rgba(114,187,170,.16), transparent 34%),
+    linear-gradient(135deg,#10241f 0%,#173a33 56%,#102a27 100%) !important;
+  box-shadow: 0 20px 54px rgba(13,36,31,.2) !important;
+}
+.banner::after { content: "IMFRA / CENTRO PROFESIONAL" !important; color: rgba(255,255,255,.34) !important; }
+.banner__eyebrow { color: #d8e8e2 !important; background: rgba(255,255,255,.07) !important; border-color: rgba(255,255,255,.12) !important; }
+.banner__eyebrow__dot { background: #7cd2b8 !important; box-shadow: 0 0 0 4px rgba(124,210,184,.11) !important; }
+.banner__title { color: #fff !important; font-size: clamp(38px,4vw,56px) !important; }
+.banner__sub { color: #b8c9c3 !important; }
+.banner__stat {
+  border-color: rgba(255,255,255,.11) !important;
+  background: rgba(255,255,255,.065) !important;
+  box-shadow: none !important;
+}
+.banner__stat:hover { background: rgba(255,255,255,.1) !important; }
+.banner__stat-lbl { color: #86a39a !important; }
+.banner__stat-val { color: #fff !important; }
+
+/* Componentes editoriales: menos efecto y mejor jerarquía. */
+.command-section__eyebrow,.rw-eyebrow,.ta-hero>div>span { color: var(--primary) !important; }
+.command-card,.widget,.kpi-card,.curso-card,.cert-card,.webinar-card,.news-card,.plan-card,.perfil-card,.perfil-hero,.content-row,.post {
+  border-color: var(--border) !important;
+  box-shadow: 0 7px 22px rgba(24,52,44,.045) !important;
+}
+.command-card { border-radius: 18px !important; }
+.command-card:first-child { background: linear-gradient(145deg,color-mix(in srgb,var(--primary) 6%,var(--surface)),var(--surface)) !important; }
+.command-card__icon,.command-card small { color: var(--primary) !important; background: color-mix(in srgb,var(--primary) 9%,var(--surface-2)) !important; }
+.command-card:hover,.widget:hover { border-color: color-mix(in srgb,var(--primary) 24%,var(--border)) !important; }
+.aside { background: color-mix(in srgb,var(--surface-2) 52%,transparent) !important; border-left-color: var(--border) !important; }
+.btn--accent,.row-btn {
+  color: #fff !important;
+  background: linear-gradient(135deg,var(--primary),var(--primary-deep)) !important;
+  box-shadow: 0 9px 22px var(--primary-glow) !important;
+}
+.btn--primary { background: var(--text) !important; color: var(--surface) !important; }
+.section-header__badge::before,.tag::before,.kpi-card__label::before,.banner__stat-lbl::before { background: var(--primary) !important; }
+
+/* Páginas internas y recompensas comparten la misma voz. */
+#dynamic-section .sec-hero,
+.rw-hero {
+  border-color: rgba(255,255,255,.09) !important;
+  background:
+    radial-gradient(circle at 87% 12%, rgba(210,173,99,.17), transparent 31%),
+    linear-gradient(135deg,#112720,#1a4037) !important;
+  box-shadow: 0 18px 48px rgba(13,36,31,.18) !important;
+}
+#dynamic-section .sec-hero__eyebrow,.rw-hero .rw-eyebrow { color: #dfbd79 !important; background: rgba(210,173,99,.08) !important; }
+#dynamic-section .sec-hero__sub,.rw-hero p { color: #b8c9c3 !important; }
+.rw-hero h1 em { color: #e1bd75 !important; background: none !important; -webkit-text-fill-color: currentColor !important; }
+.rw-balance strong { color: #e1bd75 !important; }
+.rw-progress span { background: linear-gradient(90deg,var(--primary),#90cbbd) !important; box-shadow: none !important; }
+.rw-private-note { border-color: color-mix(in srgb,var(--primary) 20%,var(--border)) !important; background: color-mix(in srgb,var(--primary) 6%,var(--surface)) !important; color: var(--primary) !important; }
+.rw-featured,.rw-level-card,.rw-quiz,.rw-how,.rw-catalog,.rw-history,.rw-reward { box-shadow: 0 8px 26px rgba(24,52,44,.05) !important; }
+
+/* Entrenamiento: conserva la energía de juego, dentro de la paleta editorial. */
+.tr-hero {
+  border-color: rgba(255,255,255,.1) !important;
+  background:
+    radial-gradient(circle at 91% 7%, rgba(210,173,99,.17), transparent 30%),
+    linear-gradient(135deg,#112720,#1a4037) !important;
+  box-shadow: 0 18px 48px rgba(13,36,31,.18) !important;
+}
+.tr-kicker,.tr-section-head>div>span { color: var(--highlight) !important; }
+.tr-hero h1 em { color: #e1bd75 !important; }
+.tr-level__bar span,.tr-mission__progress span,.tr-case-run__bar span { background: linear-gradient(90deg,var(--primary),#caa457) !important; }
+.tr-mode { box-shadow: 0 7px 22px rgba(24,52,44,.05) !important; }
+.tr-mode--quiz { --mode:#ad7f31 !important; }
+.tr-mode--case { --mode:#47798a !important; }
+.tr-mode--flash { --mode:#2a7c69 !important; }
+.tr-mission,.tr-standard,.tr-achievements,.tr-case-card,.tr-case-run,.tr-flashcard { box-shadow: 0 8px 26px rgba(24,52,44,.05) !important; }
+.tr-standard { background: #142a25 !important; }
+.tr-standard>span,.tr-standard li b { color: #d8b66d !important; }
+
+@media (max-width:1280px) {
+  .app { grid-template-columns: 242px minmax(0,1fr) !important; }
+  .main { padding-inline: 26px !important; }
+}
+
+@media (max-width:880px) {
+  .app { grid-template-columns: minmax(0,1fr) !important; }
+  .main { padding: 0 14px 96px !important; gap: 18px !important; }
+  .topbar { min-height: 64px; padding: 10px 2px !important; }
+  .banner { padding: 29px 23px !important; border-radius: 20px !important; }
+  .mobile-nav { background: color-mix(in srgb,var(--surface) 96%,transparent) !important; border-color: var(--border) !important; }
+}
+
+@media (max-width:560px) {
+  .topbar__left { max-width: 96px; }
+  .pill { min-height: 28px; padding-inline: 8px !important; font-size: 8px !important; }
+  #topbar-pill-text { font-size: 0; }
+  #topbar-pill-text::after { content: "REVISIÓN"; font-size: 8px; }
+  .topbar__right { gap: 5px; }
+  .topbar__right>.icon-btn,.topbar__right>.theme-toggle,.topbar__right>.install-app-btn { width: 40px; min-width: 40px; height: 40px; min-height: 40px; }
+  .banner { padding: 27px 20px !important; }
+  .banner__title { font-size: 34px !important; }
+}

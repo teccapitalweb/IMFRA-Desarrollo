@@ -1256,7 +1256,7 @@ window.__signOut = async () => {
    ========================================================= */
 
 const Theme={
-  revision:'executive-light-v2',
+  revision:'editorial-v4',
   init(){const migrated=localStorage.getItem('imfra-admin:theme-revision')===this.revision;const s=migrated?(localStorage.getItem('imfra-admin:theme')||'day'):'day';localStorage.setItem('imfra-admin:theme-revision',this.revision);localStorage.setItem('imfra-admin:theme',s);document.documentElement.dataset.theme=s;this.updateIcon();},
   toggle(){const c=document.documentElement.dataset.theme;const n=c==='night'?'day':'night';document.documentElement.dataset.theme=n;localStorage.setItem('imfra-admin:theme',n);this.updateIcon();},
   updateIcon(){const b=document.getElementById('theme-toggle');if(!b)return;const isDay=document.documentElement.dataset.theme==='day';b.innerHTML='<svg class="ic"><use href="#'+(isDay?'i-sun':'i-moon')+'"/></svg>';}
@@ -5827,6 +5827,7 @@ if (window.__currentAdmin) {
 </script>
 <link rel="stylesheet" href="./src/styles/v2-admin.css">
 <link rel="stylesheet" href="./src/styles/v3-admin-premium.css">
+<link rel="stylesheet" href="./src/styles/v4-admin-editorial.css">
 <script type="module" src="./src/features/training/admin.ts"></script>
 
 </body>
