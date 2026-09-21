@@ -15,10 +15,10 @@ La versión privada permite validar la experiencia visual mediante:
 
 - Saldo de Puntos IMFRA.
 - Nivel profesional.
-- Quiz técnico diario de cuatro desafíos.
+- Programa técnico diario de tres rondas y doce desafíos.
 - Casos de obra, cálculos con medidas, conceptos e identificación visual.
-- Diagramas técnicos propios para comparar patologías, elementos y detalles.
-- Progreso de la sesión y resultado de precisión técnica.
+- Fotografías reales aportadas por IMFRA y diagramas técnicos propios.
+- Resultado por ronda, continuidad explícita y resultado final de precisión técnica.
 - Explicación de la respuesta.
 - Catálogo provisional.
 - Canjes simulados guardados únicamente en el navegador.
@@ -33,8 +33,8 @@ Fuentes propuestas:
 
 | Actividad verificada | Puntos iniciales |
 | --- | ---: |
-| Reto diario correcto | 30 |
-| Reto diario completado | 10 |
+| Desafío diario correcto | 25 |
+| Desafío diario completado | 5 |
 | Evaluación aprobada | 20 |
 | Curso completado | 50 |
 

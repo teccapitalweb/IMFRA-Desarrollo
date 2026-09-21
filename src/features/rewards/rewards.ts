@@ -28,7 +28,7 @@ const dateKey = () => new Date().toISOString().slice(0, 10);
 
 function accountKey() {
   const isDemo = window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
-  const account = isDemo ? "demo-preview-v6" : (window.UserState?.uid || window.UserState?.email || "guest");
+  const account = isDemo ? "demo-preview-v7" : (window.UserState?.uid || window.UserState?.email || "guest");
   return `imfra:v2:rewards:${account}`;
 }
 
@@ -46,13 +46,20 @@ function saveState(state: RewardState) {
   localStorage.setItem(accountKey(), JSON.stringify(state));
 }
 
-function dailyQuiz(): RewardQuestion[] {
+const QUIZ_ROUNDS = [
+  { name: "Inspección visual", description: "Reconoce señales, detalles y condiciones en campo." },
+  { name: "Criterio de obra", description: "Resuelve cantidades y decide ante situaciones reales." },
+  { name: "Control profesional", description: "Integra calidad, planeación, seguridad y trazabilidad." }
+];
+const QUESTIONS_PER_ROUND = 4;
+
+function dailyQuiz(): RewardQuestion[][] {
   const seed = [...dateKey()].reduce((total, char) => total + char.charCodeAt(0), 0);
   const formats: RewardQuestion["type"][] = ["visual", "measurement", "case", "concept"];
-  return formats.map((type, index) => {
+  return QUIZ_ROUNDS.map((_, roundIndex) => formats.map((type, typeIndex) => {
     const candidates = rewardQuestions.filter((question) => question.type === type);
-    return candidates[(seed + index) % candidates.length];
-  });
+    return candidates[(seed + roundIndex + typeIndex) % candidates.length];
+  }));
 }
 
 const answerKey = (questionId: string) => `${dateKey()}:${questionId}`;
@@ -126,15 +133,23 @@ function renderOptionVisual(kind: NonNullable<RewardQuestion["optionVisuals"]>[n
 function mount(container: HTMLElement) {
   let state = readState();
   let pendingRewardId: string | null = null;
-  const quizQuestions = dailyQuiz();
+  const quizRounds = dailyQuiz();
+  const quizQuestions = quizRounds.flat();
   const firstUnanswered = quizQuestions.find((question) => !state.answered[answerKey(question.id)]);
   let activeQuestionId = firstUnanswered?.id || quizQuestions.at(-1)?.id || quizQuestions[0].id;
+  let activeRoundIndex = Math.max(0, quizRounds.findIndex((round) => round.some((question) => question.id === activeQuestionId)));
+  let showRoundSummary = false;
   let showQuizSummary = !firstUnanswered;
 
   const render = () => {
     const question = quizQuestions.find((item) => item.id === activeQuestionId) || quizQuestions[0];
+    const activeRound = quizRounds[activeRoundIndex] || quizRounds[0];
+    const roundInfo = QUIZ_ROUNDS[activeRoundIndex] || QUIZ_ROUNDS[0];
     const answered = state.answered[answerKey(question.id)];
     const quizAnswers = quizQuestions.map((item) => state.answered[answerKey(item.id)]).filter(Boolean);
+    const roundAnswers = activeRound.map((item) => state.answered[answerKey(item.id)]).filter(Boolean);
+    const roundCorrect = roundAnswers.filter((answer) => answer.correct).length;
+    const roundPoints = roundAnswers.reduce((total, answer) => total + answer.earned, 0);
     const completedCount = quizAnswers.length;
     const correctCount = quizAnswers.filter((answer) => answer.correct).length;
     const quizPoints = quizAnswers.reduce((total, answer) => total + answer.earned, 0);
@@ -214,32 +229,43 @@ function mount(container: HTMLElement) {
         <div class="rw-grid">
           <section class="rw-quiz rw-quiz--pro">
             <div class="rw-quiz__masthead">
-              <div><span class="rw-eyebrow">Quiz Técnico IMFRA · 4 desafíos</span><h2>Decisiones que ocurren en obra</h2></div>
+              <div><span class="rw-eyebrow">Quiz Técnico IMFRA · 3 rondas</span><h2>Decisiones que ocurren en obra</h2></div>
               <div class="rw-quiz__counter"><strong>${completedCount}</strong><span>/ ${quizQuestions.length}</span></div>
             </div>
             <div class="rw-quiz__progress"><span style="width:${quizProgress}%"></span></div>
+            <div class="rw-rounds" aria-label="Progreso por rondas">
+              ${QUIZ_ROUNDS.map((round, index) => {
+                const completed = quizRounds[index].every((item) => state.answered[answerKey(item.id)]);
+                const active = index === activeRoundIndex && !showQuizSummary;
+                return `<div class="rw-round ${completed ? "is-complete" : ""} ${active ? "is-active" : ""}"><b>${completed ? "✓" : index + 1}</b><span><strong>${round.name}</strong><small>${QUESTIONS_PER_ROUND} desafíos</small></span></div>`;
+              }).join("")}
+            </div>
             ${showQuizSummary ? `<div class="rw-quiz-summary">
               <div class="rw-quiz-summary__score"><strong>${Math.round((correctCount / quizQuestions.length) * 100)}%</strong><span>Precisión técnica</span></div>
-              <div class="rw-quiz-summary__copy"><span class="rw-eyebrow">Reto completado</span><h3>${correctCount >= 3 ? "Buen criterio de obra" : "La práctica fortalece el criterio"}</h3><p>Respondiste correctamente ${correctCount} de ${quizQuestions.length} desafíos y sumaste <strong>${quizPoints} Puntos IMFRA</strong>.</p><small>Mañana encontrarás una nueva combinación de casos y ejercicios.</small></div>
+              <div class="rw-quiz-summary__copy"><span class="rw-eyebrow">Programa completado</span><h3>${correctCount >= 9 ? "Criterio técnico sólido" : "La práctica fortalece el criterio"}</h3><p>Terminaste las tres rondas, respondiste correctamente ${correctCount} de ${quizQuestions.length} desafíos y sumaste <strong>${quizPoints} Puntos IMFRA</strong>.</p><small>Mañana encontrarás una nueva combinación de casos, fotografías y ejercicios.</small></div>
+            </div>` : showRoundSummary ? `<div class="rw-round-summary">
+              <span class="rw-round-summary__number">${activeRoundIndex + 1}</span>
+              <div><span class="rw-eyebrow">Ronda completada</span><h3>${roundInfo.name}</h3><p>Lograste <strong>${roundCorrect} de ${activeRound.length}</strong> respuestas correctas y sumaste <strong>${roundPoints} puntos</strong> en esta etapa.</p><button type="button" class="btn btn--accent" data-start-next-round>${activeRoundIndex === quizRounds.length - 1 ? "Ver resultado final" : `Comenzar ronda ${activeRoundIndex + 2}`} <span aria-hidden="true">→</span></button></div>
             </div>` : `<div class="rw-question-stage">
+              <div class="rw-round-intro"><span>Ronda ${activeRoundIndex + 1} de ${quizRounds.length}</span><strong>${roundInfo.name}</strong><small>${roundInfo.description}</small></div>
               <div class="rw-question-meta"><span>${questionTypeLabel(question.type)}</span><span>${question.difficulty}</span><span>${escapeHtml(question.area)}</span></div>
               ${question.context ? `<div class="rw-case-context"><b>Caso</b><p>${escapeHtml(question.context)}</p></div>` : ""}
               ${renderQuestionDiagram(question)}
               <h3 class="rw-question">${escapeHtml(question.question)}</h3>
-              <div class="rw-options ${question.optionVisuals ? "is-visual" : ""}">
+              <div class="rw-options ${question.optionVisuals || question.optionImages ? "is-visual" : ""}">
                 ${question.options.map((option, index) => {
                   const status = answered
                     ? index === question.correct
                       ? " is-correct"
                       : answered.selected === index ? " is-wrong" : ""
                     : "";
-                  return `<button type="button" class="rw-option${question.optionVisuals ? " has-visual" : ""}${status}" data-answer="${index}" data-question="${question.id}" ${answered ? "disabled" : ""}>
-                    ${question.optionVisuals ? `<div class="rw-option__visual">${renderOptionVisual(question.optionVisuals[index])}</div>` : ""}
+                  return `<button type="button" class="rw-option${question.optionVisuals || question.optionImages ? " has-visual" : ""}${status}" data-answer="${index}" data-question="${question.id}" ${answered ? "disabled" : ""}>
+                    ${question.optionImages ? `<div class="rw-option__visual rw-option__visual--photo"><img src="${escapeHtml(question.optionImages[index])}" alt="Opción ${String.fromCharCode(65 + index)}" loading="lazy"></div>` : question.optionVisuals ? `<div class="rw-option__visual">${renderOptionVisual(question.optionVisuals[index])}</div>` : ""}
                     <b class="rw-option__letter">${String.fromCharCode(65 + index)}</b><div class="rw-option__text">${escapeHtml(option)}</div>
                   </button>`;
                 }).join("")}
               </div>
-              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? `Correcto · +${answered.earned} puntos` : `Respuesta registrada · +${answered.earned} puntos`}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${completedCount === quizQuestions.length ? "Ver resultado" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
+              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? `Correcto · +${answered.earned} puntos` : `Respuesta registrada · +${answered.earned} puntos`}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${roundAnswers.length === activeRound.length ? "Ver resultado de la ronda" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
             </div>`}
           </section>
 
@@ -253,7 +279,7 @@ function mount(container: HTMLElement) {
               <li><b>03</b><span>Identificación mediante imágenes</span></li>
               <li><b>04</b><span>Explicación técnica de cada respuesta</span></li>
             </ul>
-            <div class="rw-how__points"><span>Sesión diaria</span><strong>Hasta 120 pts</strong><small>30 por acierto · 10 por participación</small></div>
+            <div class="rw-how__points"><span>Programa diario</span><strong>12 desafíos · hasta 300 pts</strong><small>3 rondas · 25 por acierto · 5 por participación</small></div>
             <p>Antes de publicar, los intentos y puntos se validarán en el servidor.</p>
           </aside>
         </div>
@@ -303,7 +329,7 @@ function mount(container: HTMLElement) {
         if (state.answered[key]) return;
         const selected = Number(button.dataset.answer);
         const correct = selected === answeredQuestion.correct;
-        const earned = correct ? 30 : 10;
+        const earned = correct ? 25 : 5;
         state.points += earned;
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
@@ -312,10 +338,23 @@ function mount(container: HTMLElement) {
     });
 
     container.querySelector<HTMLButtonElement>("[data-next-question]")?.addEventListener("click", () => {
-      const nextQuestion = quizQuestions.find((item) => !state.answered[answerKey(item.id)]);
+      const nextQuestion = activeRound.find((item) => !state.answered[answerKey(item.id)]);
       if (nextQuestion) activeQuestionId = nextQuestion.id;
-      else showQuizSummary = true;
+      else showRoundSummary = true;
       render();
+    });
+
+    container.querySelector<HTMLButtonElement>("[data-start-next-round]")?.addEventListener("click", () => {
+      showRoundSummary = false;
+      if (activeRoundIndex >= quizRounds.length - 1) {
+        showQuizSummary = true;
+      } else {
+        activeRoundIndex += 1;
+        const nextQuestion = quizRounds[activeRoundIndex].find((item) => !state.answered[answerKey(item.id)]) || quizRounds[activeRoundIndex][0];
+        activeQuestionId = nextQuestion.id;
+      }
+      render();
+      container.querySelector(".rw-quiz")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
 
     container.querySelectorAll<HTMLButtonElement>("[data-redeem]").forEach((button) => {
@@ -351,6 +390,9 @@ function mount(container: HTMLElement) {
   };
 
   render();
+  if (new URLSearchParams(location.search).has("quiz")) {
+    requestAnimationFrame(() => container.querySelector(".rw-quiz")?.scrollIntoView({ behavior: "auto", block: "start" }));
+  }
 }
 
 window.IMFRARewards = { mount };
