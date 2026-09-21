@@ -26,7 +26,7 @@ La migración será incremental. La versión actual seguirá disponible mientras
 
 ### Fase 1 — Sistema visual y shell
 
-- [ ] Extraer tokens de marca.
+- [x] Crear la primera capa compartida de tokens de marca, espaciado, radios, sombras y accesibilidad.
 - [ ] Unificar tipografías, colores, espacios, botones y formularios.
 - [ ] Crear navegación compartida para escritorio y móvil.
 - [ ] Crear estados de carga, error, vacío y sin acceso.

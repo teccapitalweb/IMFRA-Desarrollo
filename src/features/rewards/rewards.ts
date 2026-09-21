@@ -170,3 +170,4 @@ function mount(container: HTMLElement) {
 }
 
 window.IMFRARewards = { mount };
+window.dispatchEvent(new CustomEvent("imfra:rewards-ready"));

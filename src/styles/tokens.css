@@ -1,0 +1,56 @@
+/*
+ * IMFRA v2 · contratos visuales compartidos.
+ *
+ * Durante la migración los archivos heredados conservan sus variables de color.
+ * Este archivo añade una escala común para que los módulos nuevos no inventen
+ * tamaños, radios, sombras o tiempos de animación en cada pantalla.
+ */
+:root {
+  --font-body: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: "Plus Jakarta Sans", var(--font-body);
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-pill: 999px;
+  --shadow-xs: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --shadow-sm: 0 8px 28px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 16px 48px rgba(0, 0, 0, 0.18);
+  --ease-standard: cubic-bezier(.2, .8, .25, 1);
+  --duration-fast: 140ms;
+  --duration-normal: 220ms;
+  --content-max: 1180px;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--primary) 28%, transparent);
+}
+
+:root[data-theme="night"] {
+  --shadow-xs: 0 3px 14px rgba(0, 0, 0, 0.24);
+  --shadow-sm: 0 10px 34px rgba(0, 0, 0, 0.34);
+  --shadow-md: 0 20px 58px rgba(0, 0, 0, 0.46);
+}
+
+:where(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+

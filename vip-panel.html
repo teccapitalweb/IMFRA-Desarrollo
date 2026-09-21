@@ -3097,6 +3097,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+<link rel="stylesheet" href="./src/styles/tokens.css">
 </head>
 <body style="visibility:hidden">
 
@@ -8487,7 +8488,13 @@ const Sections = (function(){
       cursos:renderCursos,
       certificados:renderCertificados,
       logros:renderLogros,
-      recompensas:(c)=>window.IMFRARewards.mount(c),
+      recompensas:(c)=>{
+        if(window.IMFRARewards){ window.IMFRARewards.mount(c); return; }
+        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Recompensas…</div>';
+        window.addEventListener('imfra:rewards-ready',()=>{
+          if(location.hash==='#recompensas' && c.isConnected) window.IMFRARewards?.mount(c);
+        },{once:true});
+      },
       webinars:renderWebinars,
       pdfs:renderPDFs,
       libros:renderLibros,
