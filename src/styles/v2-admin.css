@@ -16,11 +16,11 @@
 }
 
 :root[data-theme="day"] {
-  --bg: #edf0f1;
-  --bg-deep: #e3e7e8;
-  --surface: #f9faf9;
-  --surface-2: #f0f2f1;
-  --surface-3: #e4e8e8;
+  --bg: #f3f1ec;
+  --bg-deep: #e9e6df;
+  --surface: #fbfaf7;
+  --surface-2: #f0ede6;
+  --surface-3: #e4e0d7;
   --border: rgba(17, 24, 29, .09);
   --border-2: rgba(17, 24, 29, .16);
   --border-strong: rgba(217, 127, 6, .48);
@@ -48,6 +48,19 @@ body::after { display: none !important; }
   background: color-mix(in srgb, var(--bg-deep) 96%, var(--primary) 4%) !important;
   border-right: 1px solid var(--border-2) !important;
 }
+
+:root[data-theme="day"] .sidebar {
+  --text: #f4f1ea;
+  --text-2: #b4b5b2;
+  --text-3: #747977;
+  --border: rgba(255, 255, 255, .07);
+  --border-2: rgba(255, 255, 255, .13);
+  --surface: #1b1f21;
+  --surface-2: #22272a;
+  --surface-3: #2b3134;
+  background: #15191b !important;
+}
+:root[data-theme="day"] .sidebar .brand__name { color: #f4f1ea !important; }
 
 .brand {
   min-height: 58px;

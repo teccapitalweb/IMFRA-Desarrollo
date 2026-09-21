@@ -11,6 +11,17 @@
   --auth-line: rgba(16, 19, 22, .14);
 }
 
+:root[data-theme="day"] body {
+  --bg: #f3f1ec;
+  --bg-deep: #e9e6df;
+  --surface: #fbfaf7;
+  --surface-2: #f0ede6;
+  --surface-3: #e4e0d7;
+  --text: #191c1e;
+  --text-2: #555b5f;
+  --text-3: #818589;
+}
+
 body {
   background-color: var(--bg) !important;
   background-image:
@@ -35,7 +46,12 @@ body::after {
 }
 
 :root[data-theme="day"] .auth-hero {
-  background: rgba(243, 242, 238, .86) !important;
+  --text: #f4f1ea;
+  --text-2: #b4b5b2;
+  --text-3: #747977;
+  --auth-grid: rgba(255, 255, 255, .035);
+  --auth-line: rgba(255, 255, 255, .11);
+  background: #15191b !important;
 }
 
 .auth-hero::before {

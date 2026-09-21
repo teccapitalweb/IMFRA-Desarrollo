@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="night">
+<html lang="es" data-theme="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -1255,7 +1255,8 @@ window.__signOut = async () => {
    ========================================================= */
 
 const Theme={
-  init(){const s=localStorage.getItem('imfra-admin:theme')||'night';document.documentElement.dataset.theme=s;this.updateIcon();},
+  revision:'executive-light-v2',
+  init(){const migrated=localStorage.getItem('imfra-admin:theme-revision')===this.revision;const s=migrated?(localStorage.getItem('imfra-admin:theme')||'day'):'day';localStorage.setItem('imfra-admin:theme-revision',this.revision);localStorage.setItem('imfra-admin:theme',s);document.documentElement.dataset.theme=s;this.updateIcon();},
   toggle(){const c=document.documentElement.dataset.theme;const n=c==='night'?'day':'night';document.documentElement.dataset.theme=n;localStorage.setItem('imfra-admin:theme',n);this.updateIcon();},
   updateIcon(){const b=document.getElementById('theme-toggle');if(!b)return;const isDay=document.documentElement.dataset.theme==='day';b.innerHTML='<svg class="ic"><use href="#'+(isDay?'i-sun':'i-moon')+'"/></svg>';}
 };

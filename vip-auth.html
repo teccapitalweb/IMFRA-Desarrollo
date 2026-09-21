@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="night">
+<html lang="es" data-theme="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -655,8 +655,12 @@ body{display:block}
 <script>
 /* ===== Tema ===== */
 const Theme = {
+  revision: 'executive-light-v2',
   init() {
-    const s = localStorage.getItem('imfra-auth:theme') || 'night';
+    const migrated = localStorage.getItem('imfra-auth:theme-revision') === this.revision;
+    const s = migrated ? (localStorage.getItem('imfra-auth:theme') || 'day') : 'day';
+    localStorage.setItem('imfra-auth:theme-revision', this.revision);
+    localStorage.setItem('imfra-auth:theme', s);
     document.documentElement.dataset.theme = s;
     this.updateIcon();
   },

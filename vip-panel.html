@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="night">
+<html lang="es" data-theme="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -3689,6 +3689,41 @@ window.__setDisplayName = async (nombre) => {
 
       <div style="height:22px"></div>
 
+      <section class="command-section" aria-labelledby="command-title">
+        <div class="command-section__head">
+          <div>
+            <span class="command-section__eyebrow">Acceso operativo</span>
+            <h2 id="command-title">Continúa desde aquí</h2>
+          </div>
+          <span class="command-section__meta">3 accesos recomendados</span>
+        </div>
+        <div class="command-grid">
+          <a class="command-card" href="#cursos">
+            <span class="command-card__index">01 / FORMACIÓN</span>
+            <span class="command-card__icon"><svg class="ic"><use href="#i-book"/></svg></span>
+            <strong>Retoma tus cursos</strong>
+            <span>Consulta clases, avance y material descargable.</span>
+            <small>Abrir catálogo <svg class="ic"><use href="#i-arrow-right"/></svg></small>
+          </a>
+          <a class="command-card" href="#tool-concreto">
+            <span class="command-card__index">02 / CÁLCULO</span>
+            <span class="command-card__icon"><svg class="ic"><use href="#i-tools"/></svg></span>
+            <strong>Calcula volumen de concreto</strong>
+            <span>Obtén cantidades de obra con una herramienta guiada.</span>
+            <small>Abrir herramienta <svg class="ic"><use href="#i-arrow-right"/></svg></small>
+          </a>
+          <a class="command-card" href="#recompensas">
+            <span class="command-card__index">03 / RECOMPENSAS</span>
+            <span class="command-card__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
+            <strong>Resuelve el reto técnico</strong>
+            <span>Suma puntos IMFRA y acércate a un nuevo beneficio.</span>
+            <small>Participar ahora <svg class="ic"><use href="#i-arrow-right"/></svg></small>
+          </a>
+        </div>
+      </section>
+
+      <div style="height:26px"></div>
+
       <!-- Noticias diarias (reales desde Firestore) -->
       <section>
         <div class="section-header">
@@ -3841,8 +3876,8 @@ const PREFIX='imfra:';
 const Storage={pref:{get(k,d){const v=localStorage.getItem(PREFIX+'pref:'+k);return v===null?d:v;},set(k,v){localStorage.setItem(PREFIX+'pref:'+k,String(v));}}};
 
 const Theme={
-  revision:'auth-palette-v1',
-  init(){const migrated=Storage.pref.get('theme-revision','')===this.revision;const theme=migrated?Storage.pref.get('theme','night'):'night';Storage.pref.set('theme-revision',this.revision);this.apply(theme);document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
+  revision:'executive-light-v2',
+  init(){const migrated=Storage.pref.get('theme-revision','')===this.revision;const theme=migrated?Storage.pref.get('theme','day'):'day';Storage.pref.set('theme-revision',this.revision);this.apply(theme);document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
   apply(t){if(t!=='day'&&t!=='night')t='night';document.documentElement.setAttribute('data-theme',t);Storage.pref.set('theme',t);const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0D0D0D':'#F5F5F4');},
   toggle(){this.apply(document.documentElement.getAttribute('data-theme')==='night'?'day':'night');}
 };

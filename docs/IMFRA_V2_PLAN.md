@@ -33,6 +33,7 @@ La migración será incremental. La versión actual seguirá disponible mientras
 - [x] Crear estados visuales compartidos de carga, error, vacío y sin acceso.
 - [x] Rediseñar catálogo y detalle interno de cursos.
 - [x] Añadir una vista local privada del panel administrativo para revisión sin publicar ni debilitar producción.
+- [x] Evolucionar la dirección visual a una interfaz ejecutiva clara con navegación carbón y accesos operativos en el inicio.
 - [ ] Migrar inicio de sesión y estructura del panel.
 
 ### Fase 2 — Experiencia académica
