@@ -15,6 +15,11 @@ export interface RewardItem {
   points: number;
   availability: string;
   accent: string;
+  brand?: string;
+  durationDays?: number;
+  accessUrl?: string;
+  featured?: boolean;
+  features?: string[];
 }
 
 export const rewardQuestions: RewardQuestion[] = [
@@ -85,13 +90,23 @@ export const rewardCatalog: RewardItem[] = [
     accent: "#f59d1a"
   },
   {
-    id: "software-control-30d",
-    name: "Software de control de obra",
-    description: "Acceso temporal durante 30 días para seguimiento y control de proyectos.",
+    id: "imdac-control-obra-30d",
+    name: "IMDAC · Control de Obra",
+    description: "Acceso profesional para centralizar el avance físico, financiero y documental de tus proyectos.",
     category: "Software",
-    points: 900,
-    availability: "Catálogo piloto",
-    accent: "#2563eb"
+    points: 600,
+    availability: "30 días de acceso",
+    accent: "#ee8d16",
+    brand: "TEC Capital × IMDAC",
+    durationDays: 30,
+    accessUrl: "https://imdac-control-obra-web.vercel.app/login",
+    featured: true,
+    features: [
+      "Seguimiento físico y financiero",
+      "Control documental de obra",
+      "Presupuestos, avances y estimaciones",
+      "Panel ejecutivo por proyecto"
+    ]
   },
   {
     id: "pack-plantillas-pro",
@@ -103,4 +118,3 @@ export const rewardCatalog: RewardItem[] = [
     accent: "#0f9d78"
   }
 ];
-
