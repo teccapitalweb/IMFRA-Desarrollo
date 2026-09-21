@@ -9585,7 +9585,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         banner.style.display = 'none';
       } else if (S.modo === 'invitado') {
         banner.style.display = '';
-        const msg = S.demo.visitas === 1
+        const isLocalReview = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+        const msg = isLocalReview
+          ? '<strong>Vista privada de revisión</strong> · Acceso local sin límite de tiempo.'
+          : S.demo.visitas === 1
           ? '<strong>Bienvenido al demo</strong> · 5 minutos para explorar IMFRA VIP.'
           : (S.demo.visitas === 2
             ? '<strong>Otra vez por aquí</strong> · ¿Te animas a crear tu cuenta?'
@@ -9655,6 +9658,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // ─── Timer del demo ───
   let demoInterval = null;
   function startDemoTimer(){
+    const timerEl = document.getElementById('fomo-banner-timer');
+    const isLocalReview = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
+    if (isLocalReview) {
+      sessionStorage.removeItem('imfra_demo_session_start');
+      if (timerEl) timerEl.textContent = 'REVISIÓN';
+      return;
+    }
     if (demoInterval) return;
     // Cada visita/pestaña recibe una sesión de demo limpia. Antes se guardaba
     // en localStorage durante diez minutos, por lo que una visita anterior
@@ -9669,7 +9679,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       demoStorage.setItem('imfra_demo_session_start', String(now));
     }
     let remaining = Math.max(0, 300 - elapsed);
-    const timerEl = document.getElementById('fomo-banner-timer');
     function tick(){
       if (remaining <= 0) {
         clearInterval(demoInterval); demoInterval = null;
