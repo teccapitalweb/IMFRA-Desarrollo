@@ -138,6 +138,20 @@ body::after { opacity: .2 !important; }
 .install-app-btn { color: var(--text) !important; }
 .avatar__circle { background: var(--primary) !important; box-shadow: none !important; }
 .avatar__plan { color: var(--primary) !important; }
+.topbar__context {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 1.35px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.topbar__context-brand { color: var(--text); font-weight: 800; }
+.topbar__context-separator { color: color-mix(in srgb,var(--primary) 74%,var(--text-3)); }
 
 /* Hero: arquitectura, contraste institucional y naranja usado con intención. */
 .banner {
@@ -226,6 +240,173 @@ body::after { opacity: .2 !important; }
 .tr-standard { background: #151515 !important; }
 .tr-standard>span,.tr-standard li b { color: #ffc35f !important; }
 
+/* Logros · la información se concentra como en Élite, con lenguaje IMFRA. */
+.achievements-page { display: grid; gap: 28px; width:100%; min-width:0; }
+.achievements-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 5px 2px 0;
+}
+.achievements-head__eyebrow,
+.rank-path__head span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--primary-deep);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+.achievements-head h1 {
+  font-family: 'Plus Jakarta Sans','Inter',sans-serif;
+  font-size: clamp(34px,4vw,50px);
+  line-height: 1;
+  letter-spacing: -1.8px;
+}
+.achievements-head p { max-width: 650px; margin-top: 11px; color: var(--text-2); font-size: 13.5px; line-height: 1.6; }
+.achievements-head>div { min-width:0; }
+.achievements-head__meta {
+  padding: 8px 11px;
+  border: 1px solid var(--border-2);
+  border-radius: 999px;
+  color: var(--text-2);
+  background: var(--surface);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .7px;
+  white-space: nowrap;
+}
+.achievements-page .logro-hero {
+  gap: 19px;
+  margin: 0;
+  padding: 32px 34px 26px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 88% 0%,rgba(245,157,26,.24),transparent 31%),
+    linear-gradient(135deg,#0d0d0d,#191919) !important;
+  box-shadow: 0 18px 48px rgba(13,13,13,.18);
+}
+.achievements-page .logro-hero::before {
+  inset: 0;
+  filter: none;
+  animation: none;
+  background:
+    linear-gradient(rgba(245,157,26,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(245,157,26,.055) 1px,transparent 1px);
+  background-size: 34px 34px;
+  -webkit-mask-image: linear-gradient(90deg,transparent,#000 45%);
+  mask-image: linear-gradient(90deg,transparent,#000 45%);
+}
+.achievements-page .logro-hero::after { display: none; }
+.logro-hero__main { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 28px; }
+.logro-hero__identity { display: flex; align-items: center; gap: 17px; min-width: 0; }
+.achievements-page .logro-hero__icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 17px;
+  color: #111;
+  background: linear-gradient(135deg,#ffb333,#f28c08);
+  box-shadow: 0 12px 30px rgba(245,157,26,.18);
+}
+.achievements-page .logro-hero__lbl { color: #aaa7a1; }
+.achievements-page .logro-hero__name { color: #fff; background: none; -webkit-text-fill-color: currentColor; }
+.logro-hero__identity p { margin-top: 6px; color: #aaa7a1; font-size: 12px; }
+.logro-hero__completion {
+  --completion: 0;
+  position: relative;
+  width: 78px;
+  height: 78px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--primary) calc(var(--completion) * 1%),rgba(255,255,255,.1) 0);
+}
+.logro-hero__completion::before { content:""; position:absolute; inset:6px; border-radius:50%; background:#171717; }
+.logro-hero__completion div { position:relative; display:grid; justify-items:center; line-height:1; }
+.logro-hero__completion strong { font-size:21px; }
+.logro-hero__completion span { margin-top:5px; color:#aaa7a1; font:600 8px/1 'JetBrains Mono',monospace; text-transform:uppercase; }
+.achievements-page .logro-hero__xp-bar { height: 8px; border: 0; background: rgba(255,255,255,.1); }
+.achievements-page .logro-hero__xp-fill { background: linear-gradient(90deg,#f59d1a,#ffc35f); box-shadow: none; }
+.achievements-page .logro-hero__xp-fill::after { display: none; }
+.achievements-page .logro-hero__xp-text { color: #918f89; font-size: 9px; letter-spacing: .4px; }
+.achievements-page .logro-hero__xp-text strong { color: #fff; }
+.logro-hero__stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  border-top: 1px solid rgba(255,255,255,.09);
+  padding-top: 18px;
+  min-width: 0;
+}
+.logro-hero__stats>div { display: grid; gap: 5px; min-width:0; padding: 0 19px; border-left: 1px solid rgba(255,255,255,.09); }
+.logro-hero__stats>div:first-child { padding-left: 0; border-left: 0; }
+.logro-hero__stats strong { font-family:'Plus Jakarta Sans','Inter',sans-serif; font-size: 22px; letter-spacing: -.5px; }
+.logro-hero__stats span { color:#918f89; font:650 8px/1.2 'JetBrains Mono',monospace; letter-spacing:1px; text-transform:uppercase; }
+.rank-path {
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: 0 8px 26px rgba(13,13,13,.045);
+}
+.rank-path__head { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:17px; }
+.rank-path__head span { margin-bottom:5px; color:var(--text-3); }
+.rank-path__head h2 { font-size:20px; letter-spacing:-.45px; }
+.rank-path__head>strong { color:var(--primary-deep); font-size:12px; }
+.rank-path__grid { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; }
+.rank-step {
+  position: relative;
+  min-width: 0;
+  padding: 16px 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+  text-align: center;
+}
+.rank-step__number { position:absolute; top:8px; left:9px; color:var(--text-3); font:650 8px/1 'JetBrains Mono',monospace; letter-spacing:.6px; }
+.rank-step__icon { display:block; margin:2px 0 8px; font-size:21px; filter:grayscale(1); opacity:.48; }
+.rank-step strong { display:block; overflow:hidden; color:var(--text-3); font-size:11.5px; text-overflow:ellipsis; white-space:nowrap; }
+.rank-step small { display:block; margin-top:4px; color:var(--text-3); font:600 8px/1.2 'JetBrains Mono',monospace; }
+.rank-step.is-done { border-color:color-mix(in srgb,var(--primary) 36%,var(--border)); }
+.rank-step.is-done .rank-step__icon { filter:none; opacity:.8; }
+.rank-step.is-done strong { color:var(--text); }
+.rank-step.is-current { border-color:var(--primary); background:var(--primary); box-shadow:0 8px 20px var(--primary-glow); }
+.rank-step.is-current .rank-step__number,.rank-step.is-current strong,.rank-step.is-current small { color:#17110a; }
+.rank-step.is-current .rank-step__icon { filter:none; opacity:1; }
+.achievements-page .logros-cat { margin: 0; }
+.achievements-page .logros-cat__header { margin-bottom: 12px; padding-top: 4px; }
+.achievements-page .logros-cat__icon { background:var(--primary-soft); color:var(--primary-deep); border-color:color-mix(in srgb,var(--primary) 24%,transparent); }
+.achievements-page .logros-grid { grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:11px; }
+.achievements-page .logro {
+  min-height: 156px;
+  display: grid;
+  grid-template-columns: 46px minmax(0,1fr);
+  grid-template-rows: 1fr auto;
+  align-items: start;
+  gap: 11px 13px;
+  padding: 17px;
+  border-radius: 16px;
+  text-align: left;
+}
+.achievements-page .logro:hover { transform:translateY(-2px); }
+.achievements-page .logro.is-locked { opacity:.7; filter:none; }
+.achievements-page .logro.is-locked:hover { opacity:1; }
+.achievements-page .logro__icon { width:46px; height:46px; border-radius:13px; background:var(--primary-soft); color:var(--primary-deep); border-color:color-mix(in srgb,var(--primary) 22%,transparent); }
+.achievements-page .logro.is-unlocked .logro__icon { background:var(--primary); color:#111; box-shadow:none; }
+.logro__body { min-width:0; }
+.achievements-page .logro__name { margin-top:2px; color:var(--text); font-size:12.5px; line-height:1.25; }
+.logro__body p { margin-top:6px; color:var(--text-3); font-size:10.5px; line-height:1.4; }
+.logro__foot { grid-column:1/-1; display:flex; align-items:center; justify-content:space-between; gap:8px; padding-top:10px; border-top:1px solid var(--border); }
+.logro__foot span { color:var(--text-3); font:650 8px/1 'JetBrains Mono',monospace; letter-spacing:.8px; text-transform:uppercase; }
+.logro__foot strong { color:var(--primary-deep); font:700 9px/1 'JetBrains Mono',monospace; }
+
 @media (max-width:1280px) {
   .app { grid-template-columns: 242px minmax(0,1fr) !important; }
   .main { padding-inline: 26px !important; }
@@ -237,15 +418,43 @@ body::after { opacity: .2 !important; }
   .topbar { min-height: 64px; padding: 10px 2px !important; }
   .banner { padding: 29px 23px !important; border-radius: 20px !important; }
   .mobile-nav { background: color-mix(in srgb,var(--surface) 96%,transparent) !important; border-color: var(--border) !important; }
+  .achievements-head { align-items:start; flex-direction:column; gap:13px; }
+  .achievements-head>div { width:100%; }
+  .logro-hero__stats { grid-template-columns:repeat(2,1fr); gap:16px 0; }
+  .logro-hero__stats>div:nth-child(3) { padding-left:0; border-left:0; }
+  .rank-path__grid { display:flex; overflow-x:auto; padding-bottom:3px; }
+  .rank-path__grid { scrollbar-width:none; scroll-snap-type:x proximity; }
+  .rank-path__grid::-webkit-scrollbar { display:none; }
+  .rank-step { min-width:132px; }
+  .rank-step { scroll-snap-align:start; }
 }
 
 @media (max-width:560px) {
-  .topbar__left { max-width: 96px; }
-  .pill { min-height: 28px; padding-inline: 8px !important; font-size: 8px !important; }
-  #topbar-pill-text { font-size: 0; }
-  #topbar-pill-text::after { content: "REVISIÓN"; font-size: 8px; }
+  .topbar__left { max-width: 112px; }
+  .topbar__context { gap:6px; font-size:7.5px; letter-spacing:.8px; }
+  .topbar__context-brand,.topbar__context-separator { display:none; }
   .topbar__right { gap: 5px; }
   .topbar__right>.icon-btn,.topbar__right>.theme-toggle,.topbar__right>.install-app-btn { width: 40px; min-width: 40px; height: 40px; min-height: 40px; }
   .banner { padding: 27px 20px !important; }
   .banner__title { font-size: 34px !important; }
+  .achievements-page { gap:20px; }
+  .achievements-page,.achievements-head,.achievements-page .logro-hero,.rank-path,.achievements-page .logros-cat { width:100%; max-width:100%; min-width:0; box-sizing:border-box; }
+  .achievements-head h1 { font-size:34px; }
+  .achievements-head p { width:100%; max-width:100%; white-space:normal!important; overflow-wrap:anywhere; }
+  .achievements-head__meta { display:none; }
+  .achievements-page .logro-hero { padding:24px 20px 21px; border-radius:20px; }
+  .logro-hero__main { align-items:flex-start; min-width:0; }
+  .logro-hero__identity { width:100%; min-width:0; }
+  .achievements-page .logro-hero__icon { width:52px; height:52px; border-radius:14px; }
+  .achievements-page .logro-hero__name { font-size:25px; }
+  .logro-hero__completion { display:none; }
+  .achievements-page .logro-hero__xp-text span:nth-child(2) { display:none; }
+  .logro-hero__stats { display:flex; flex-wrap:wrap; width:100%; }
+  .logro-hero__stats>div { flex:0 0 50%; width:50%; padding:10px 14px; box-sizing:border-box; }
+  .logro-hero__stats>div:nth-child(1),.logro-hero__stats>div:nth-child(2) { padding-top:0; }
+  .logro-hero__stats>div:nth-child(3),.logro-hero__stats>div:nth-child(4) { padding-bottom:0; }
+  .logro-hero__stats>div:nth-child(2),.logro-hero__stats>div:nth-child(4) { padding-right:0; }
+  .rank-path { padding:19px 16px; }
+  .achievements-page .logros-grid { grid-template-columns:1fr; }
+  .achievements-page .logro { min-height:0; }
 }

@@ -3648,7 +3648,11 @@ window.__setDisplayName = async (nombre) => {
   <main class="main">
     <header class="topbar">
       <div class="topbar__left">
-        <span class="pill" id="topbar-pill"><svg class="ic"><use href="#i-user"/></svg><span id="topbar-pill-text">Ingeniero</span></span>
+        <div class="topbar__context" id="topbar-pill" aria-label="Área actual">
+          <span class="topbar__context-brand">IMFRA</span>
+          <span class="topbar__context-separator">/</span>
+          <span id="topbar-pill-text">Área de miembro</span>
+        </div>
       </div>
       <div class="topbar__right">
         <button class="install-app-btn" id="install-app-btn" type="button" aria-label="Instalar IMFRA en este dispositivo" hidden>
@@ -4240,10 +4244,10 @@ const Sections = (function(){
   };
   const COLOR_CAT = {
     'Obra':'#F59D1A',
-    'Proyectos':'#3B82F6',
-    'Calidad':'#10B981',
-    'Comunidad':'#A855F7',
-    'Maestría':'#FFCF7A'
+    'Proyectos':'#F59D1A',
+    'Calidad':'#F59D1A',
+    'Comunidad':'#F59D1A',
+    'Maestría':'#F59D1A'
   };
   const ICON_CAT = {
     'Obra':'i-helmet',
@@ -6274,55 +6278,56 @@ const Sections = (function(){
     const totalXp=logros.filter(l=>l.unlock).reduce((s,l)=>s+l.xp,0);
     const cats=['Obra','Proyectos','Calidad','Comunidad','Maestría'];
     container.innerHTML=`
-      <div class="fade-up">
-        <div class="sec-hero">
-          <span class="sec-hero__eyebrow">Tu progreso</span>
-          <h1 class="sec-hero__title">Mis logros</h1>
-          <p class="sec-hero__sub">Cada curso, herramienta y participación te suma XP. Sube de nivel y desbloquea medallas. Llega a <em style="color:var(--primary);">Director de Obra</em>.</p>
-        </div>
-        <div class="logro-hero">
-          <div class="logro-hero__row">
-            <div class="logro-hero__icon"><svg class="ic ic--xl"><use href="#i-helmet"/></svg></div>
-            <div>
-              <div class="logro-hero__lbl">Nivel ${nivelActual.id} de 5</div>
-              <div class="logro-hero__name">${nivelActual.nombre}</div>
+      <div class="fade-up achievements-page">
+        <header class="achievements-head">
+          <div>
+            <span class="achievements-head__eyebrow">Progreso profesional</span>
+            <h1>Mis logros</h1>
+            <p>Cada curso, reto y participación fortalece tu trayectoria técnica dentro de IMFRA.</p>
+          </div>
+          <span class="achievements-head__meta">${ganados} de ${logros.length} obtenidos</span>
+        </header>
+
+        <section class="logro-hero" aria-label="Resumen de progreso">
+          <div class="logro-hero__main">
+            <div class="logro-hero__identity">
+              <div class="logro-hero__icon"><svg class="ic ic--xl"><use href="#i-helmet"/></svg></div>
+              <div>
+                <div class="logro-hero__lbl">Nivel ${nivelActual.id} de 5</div>
+                <div class="logro-hero__name">${nivelActual.nombre}</div>
+                <p>${xpRest>0?xpRest+' XP para alcanzar '+proxNivel:'Has alcanzado el nivel máximo'}</p>
+              </div>
             </div>
-            <div class="logro-hero__racha">
-              <svg class="ic" style="width:14px;height:14px;color:var(--primary);"><use href="#i-bolt"/></svg>
-              <span class="logro-hero__racha-num">${usuario.racha}</span>
-              <span class="logro-hero__racha-lbl">días</span>
+            <div class="logro-hero__completion" style="--completion:${Math.round((ganados/logros.length)*100)}">
+              <div><strong>${ganados}</strong><span>de ${logros.length}</span></div>
             </div>
           </div>
           <div class="logro-hero__xp-bar"><div class="logro-hero__xp-fill" style="width:${pct}%"></div></div>
-          <div class="logro-hero__xp-text"><span><strong>${usuario.xp}</strong> XP</span><span>${xpRest>0?xpRest+' XP para '+proxNivel:'¡Nivel máximo!'}</span><span><strong>${nivelActual.hasta===99999?'∞':nivelActual.hasta}</strong> XP</span></div>
-        </div>
+          <div class="logro-hero__xp-text"><span><strong>${usuario.xp}</strong> XP acumulados</span><span>${xpRest>0?xpRest+' XP para '+proxNivel:'Nivel máximo'}</span><span><strong>${nivelActual.hasta===99999?'∞':nivelActual.hasta}</strong> XP</span></div>
+          <div class="logro-hero__stats">
+            <div><strong>${ganados}</strong><span>Logros</span></div>
+            <div><strong>${totalXp}</strong><span>XP de logros</span></div>
+            <div><strong>${usuario.diasActivos}</strong><span>Días activos</span></div>
+            <div><strong>${usuario.racha}</strong><span>Racha actual</span></div>
+          </div>
+        </section>
 
-        <section class="imfra-rango" style="margin:24px 0 28px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text-3);font-weight:600;margin-bottom:16px;">Tu rango en obra</div>
-          <div style="display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding-bottom:4px;">
+        <section class="rank-path">
+          <div class="rank-path__head"><div><span>Ruta profesional</span><h2>Tu rango en obra</h2></div><strong>${nivelActual.nombre}</strong></div>
+          <div class="rank-path__grid">
             ${niveles.map((n,idx)=>{
               const iconos=['🧱','🔩','📋','🏗️','🏛️'];
               const isCurrent=n.id===nivelActual.id;
               const isDone=n.id<nivelActual.id;
-              const bg=isCurrent?'linear-gradient(135deg,var(--primary),#D9850E)':isDone?'var(--surface-2)':'var(--surface-2)';
-              const border=isCurrent?'none':isDone?'1px solid var(--primary)':'1px solid var(--border-2)';
-              const color=isCurrent?'#fff':isDone?'var(--text)':'var(--text-3)';
-              const opacity=(!isCurrent&&!isDone)?'0.5':'1';
-              return `<div style="flex:1;min-width:90px;background:${bg};border:${border};border-radius:12px;padding:14px 10px;text-align:center;opacity:${opacity};transition:all .3s;">
-                <div style="font-size:22px;line-height:1;margin-bottom:6px;">${iconos[idx]}</div>
-                <div style="font-size:12px;font-weight:700;color:${color};white-space:nowrap;">${n.nombre}</div>
-                <div style="font-size:10px;color:${isCurrent?'rgba(255,255,255,.8)':'var(--text-3)'};margin-top:3px;">${isCurrent?'Rango actual':isDone?'✓ Completado':n.desde+' XP'}</div>
-              </div>`;
+              return `<article class="rank-step ${isCurrent?'is-current':isDone?'is-done':'is-pending'}">
+                <span class="rank-step__number">0${idx+1}</span>
+                <span class="rank-step__icon">${iconos[idx]}</span>
+                <strong>${n.nombre}</strong>
+                <small>${isCurrent?'Rango actual':isDone?'Completado':n.desde+' XP'}</small>
+              </article>`;
             }).join('')}
           </div>
         </section>
-
-        <div class="kpi-grid">
-          <div class="kpi-card"><div class="kpi-card__label">Logros ganados</div><div class="kpi-card__value">${ganados}<span class="kpi-card__value-sub">/${logros.length}</span></div></div>
-          <div class="kpi-card"><div class="kpi-card__label">XP de logros</div><div class="kpi-card__value">${totalXp}</div></div>
-          <div class="kpi-card"><div class="kpi-card__label">Días activos</div><div class="kpi-card__value">${usuario.diasActivos}</div></div>
-          <div class="kpi-card"><div class="kpi-card__label">Racha</div><div class="kpi-card__value">${usuario.racha}</div></div>
-        </div>
         ${cats.map(cat=>`
           <section class="logros-cat" style="--cat-color:${COLOR_CAT[cat]};">
             <div class="logros-cat__header">
@@ -6334,8 +6339,8 @@ const Sections = (function(){
               ${logros.filter(l=>l.cat===cat).map(l=>`
                 <div class="logro ${l.unlock?'is-unlocked':'is-locked'}" data-lid="${l.id}" tabindex="0" style="--cat-color:${COLOR_CAT[cat]};">
                   <div class="logro__icon">${l.unlock?`<svg class="ic"><use href="#${ICON_CAT[cat]}"/></svg>`:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'}</div>
-                  <div class="logro__name">${l.nombre}</div>
-                  <div class="logro__xp">+${l.xp} XP</div>
+                  <div class="logro__body"><div class="logro__name">${l.nombre}</div><p>${l.desc}</p></div>
+                  <div class="logro__foot"><span>${l.unlock?'Logrado':'Pendiente'}</span><strong>+${l.xp} XP</strong></div>
                 </div>
               `).join('')}
             </div>
@@ -9550,25 +9555,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       }
     });
 
-    // ─── Pill del topbar (icono coronita arriba) · muestra NOMBRE del usuario ───
-    // (el estado de membresía ya se comunica en el banner naranja superior + drawer)
+    // La cabecera se mantiene silenciosa, como en Élite: contexto a la izquierda
+    // y controles personales a la derecha. El modo demo ya aparece en el perfil.
     const topbarPill = document.getElementById('topbar-pill');
     const topbarPillText = document.getElementById('topbar-pill-text');
     if (topbarPill && topbarPillText) {
-      if (S.modo === 'invitado') {
-        const isLocalReview = location.hostname === '127.0.0.1' || location.hostname === 'localhost';
-        topbarPillText.textContent = isLocalReview ? 'Revisión privada' : 'Modo demo';
-        topbarPill.style.background = 'color-mix(in srgb, #FFCF7A 14%, transparent)';
-        topbarPill.style.color = '#FFCF7A';
-        topbarPill.style.borderColor = 'color-mix(in srgb, #FFCF7A 30%, transparent)';
-      } else {
-        // Para VIP y sin-membresía: mostrar el nombre del usuario
-        const firstName = (S.displayName || S.email?.split('@')[0] || 'Ingeniero').split(' ')[0];
-        topbarPillText.textContent = firstName;
-        topbarPill.style.background = '';
-        topbarPill.style.color = '';
-        topbarPill.style.borderColor = '';
-      }
+      topbarPillText.textContent = 'Área de miembro';
       topbarPill.style.display = 'inline-flex';
     }
 
