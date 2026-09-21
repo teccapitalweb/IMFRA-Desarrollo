@@ -50,6 +50,10 @@ La migración será incremental. La versión actual seguirá disponible mientras
 
 ### Fase 4 — Diferenciación IMFRA
 
+- [x] Crear prototipo privado de Recompensas con quiz, Puntos IMFRA y canjes simulados.
+- [x] Mantener Herramientas pro como producto independiente de Recompensas.
+- [ ] Conectar los Puntos IMFRA a actividad verificada en backend.
+- [ ] Definir catálogo real, inventario, vigencia y entrega de licencias de software.
 - [ ] Guardar proyectos de las herramientas en la cuenta.
 - [ ] Añadir referencias, supuestos y versiones a cálculos técnicos.
 - [ ] Crear portafolio profesional verificable.

@@ -3547,6 +3547,7 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-broadcast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><path d="M16.243 16.243a6 6 0 1 0 -8.486 0"/><path d="M19.071 19.071a10 10 0 1 0 -14.142 0"/></symbol>
 <symbol id="i-news" viewBox="0 0 24 24"><path d="M16 6h3a1 1 0 0 1 1 1v11a2 2 0 0 1 -4 0v-13a1 1 0 0 0 -1 -1h-11a1 1 0 0 0 -1 1v12a3 3 0 0 0 3 3h14"/><path d="M8 8h4"/><path d="M8 12h4"/><path d="M8 16h4"/></symbol>
 <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10v8a5 5 0 0 1 -10 0z"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M7.5 9c-1.7 0-3-1-3-2.5S5.6 4 7 4c2.5 0 5 5 5 5s2.5-5 5-5c1.4 0 2.5 1 2.5 2.5S18.2 9 16.5 9"/></symbol>
 <symbol id="i-certificate" viewBox="0 0 24 24"><circle cx="15" cy="15" r="3"/><path d="M13 17.5v4.5l2 -1.5l2 1.5v-4.5"/><path d="M10 19h-5a2 2 0 0 1 -2 -2v-10c0 -1.1 .9 -2 2 -2h14a2 2 0 0 1 2 2v6"/><path d="M6 9h12"/></symbol>
 <symbol id="i-shield-check" viewBox="0 0 24 24"><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/><path d="M9 12l2 2l4 -4"/></symbol>
 <symbol id="i-gauge" viewBox="0 0 24 24"><circle cx="12" cy="13" r="9"/><path d="M12 13l3 -3"/><path d="M5.2 8.8a8.5 8.5 0 0 1 13.6 0"/></symbol>
@@ -3610,6 +3611,7 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
       <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
       <a class="nav-item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
+      <a class="nav-item" data-section="recompensas"><svg class="ic"><use href="#i-gift"/></svg>Recompensas<span class="nav-item__badge">NUEVO</span></a>
       <a class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
     </div>
 
@@ -3799,6 +3801,7 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
         <a class="mobile-drawer__item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
         <a class="mobile-drawer__item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
+        <a class="mobile-drawer__item" data-section="recompensas"><svg class="ic"><use href="#i-gift"/></svg>Recompensas</a>
         <a class="mobile-drawer__item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
       </div>
 
@@ -8484,6 +8487,7 @@ const Sections = (function(){
       cursos:renderCursos,
       certificados:renderCertificados,
       logros:renderLogros,
+      recompensas:(c)=>window.IMFRARewards.mount(c),
       webinars:renderWebinars,
       pdfs:renderPDFs,
       libros:renderLibros,
@@ -10643,5 +10647,6 @@ body{letter-spacing:-.05px}
 </style>
 <script src="onboarding-tour.js?v=1" defer></script>
 <script src="assets/imfra-tools.js?v=1"></script>
+<script type="module" src="./src/features/rewards/rewards.ts"></script>
 </body>
 </html>
