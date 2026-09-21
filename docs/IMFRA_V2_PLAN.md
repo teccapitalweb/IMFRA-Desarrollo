@@ -27,6 +27,7 @@ La migración será incremental. La versión actual seguirá disponible mientras
 ### Fase 1 — Sistema visual y shell
 
 - [x] Crear la primera capa compartida de tokens de marca, espaciado, radios, sombras y accesibilidad.
+- [x] Aplicar al panel la dirección visual “Centro de control de obra”.
 - [ ] Unificar tipografías, colores, espacios, botones y formularios.
 - [ ] Crear navegación compartida para escritorio y móvil.
 - [ ] Crear estados de carga, error, vacío y sin acceso.

@@ -1,0 +1,418 @@
+/* IMFRA v2 · Dirección visual "Centro de control de obra" */
+
+:root[data-theme="night"] {
+  --bg: #0b0d0f;
+  --bg-deep: #070809;
+  --surface: #111417;
+  --surface-2: #171b1f;
+  --surface-3: #1e2429;
+  --border: rgba(224, 231, 239, .08);
+  --border-2: rgba(224, 231, 239, .14);
+  --border-strong: rgba(245, 157, 26, .46);
+  --text: #f2f4f5;
+  --text-2: #a3abb2;
+  --text-3: #69727a;
+  --primary-glow: rgba(245, 157, 26, .14);
+}
+
+:root[data-theme="day"] {
+  --bg: #edf0f1;
+  --bg-deep: #e3e7e8;
+  --surface: #f9faf9;
+  --surface-2: #f0f2f1;
+  --surface-3: #e4e8e8;
+  --border: rgba(17, 24, 29, .09);
+  --border-2: rgba(17, 24, 29, .16);
+  --border-strong: rgba(217, 127, 6, .48);
+  --text: #121619;
+  --text-2: #495158;
+  --text-3: #788087;
+}
+
+body {
+  background: var(--bg) !important;
+  font-family: var(--font-body) !important;
+}
+
+body::before { display: none !important; }
+body::after {
+  z-index: 0 !important;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--text) 3.2%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--text) 3.2%, transparent) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+.app {
+  grid-template-columns: 232px minmax(0, 1fr) 296px !important;
+}
+
+/* Navegación: panel de control, no tarjeta flotante */
+.sidebar {
+  background: color-mix(in srgb, var(--bg-deep) 96%, var(--primary) 4%) !important;
+  border-right: 1px solid var(--border-2) !important;
+  padding: 20px 12px 30px !important;
+  gap: 1px !important;
+}
+
+.brand {
+  min-height: 58px;
+  margin: -2px 2px 17px !important;
+  padding: 0 6px 17px !important;
+  border-bottom: 1px solid var(--border-2) !important;
+}
+
+.brand__logo {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 4px !important;
+  border: 1px solid color-mix(in srgb, var(--primary) 42%, var(--border)) !important;
+  background: #0a0c0d !important;
+  position: relative;
+}
+
+.brand__logo::after {
+  content: "";
+  position: absolute;
+  inset: -4px 5px 5px -4px;
+  border-top: 1px solid var(--primary);
+  border-left: 1px solid var(--primary);
+  pointer-events: none;
+}
+
+.brand__name {
+  font: 800 14px/1 var(--font-display) !important;
+  letter-spacing: .04em !important;
+}
+
+.brand__plan,
+.pill {
+  padding: 3px 6px !important;
+  border: 0 !important;
+  border-radius: 2px !important;
+  background: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+  color: var(--primary) !important;
+  font: 700 8px/1.2 var(--font-mono) !important;
+  letter-spacing: .12em !important;
+}
+
+.nav-section { margin-top: 11px !important; padding: 0 !important; }
+.nav-label {
+  padding: 7px 9px !important;
+  color: var(--text-3) !important;
+  font: 700 8px/1.2 var(--font-mono) !important;
+  letter-spacing: .17em !important;
+}
+
+.nav-item {
+  min-height: 36px;
+  margin: 1px 0;
+  padding: 8px 9px !important;
+  border: 1px solid transparent;
+  border-radius: 3px !important;
+  color: var(--text-2) !important;
+  font-size: 11.5px !important;
+}
+
+.nav-item:hover {
+  background: var(--surface-2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.nav-item.is-active {
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface)) !important;
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border)) !important;
+  color: var(--text) !important;
+  box-shadow: inset 3px 0 0 var(--primary) !important;
+}
+
+.nav-item__badge {
+  padding: 2px 5px !important;
+  border-radius: 2px !important;
+  background: var(--surface-3) !important;
+  font: 700 8px/1 var(--font-mono) !important;
+}
+
+/* Área de trabajo */
+.main {
+  padding: calc(18px + env(safe-area-inset-top)) 28px 54px !important;
+  gap: 20px !important;
+}
+
+.topbar {
+  min-height: 46px;
+  padding: 0 0 13px !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.icon-btn,
+.theme-toggle,
+.install-app-btn,
+.avatar {
+  min-height: 34px;
+  border-radius: 3px !important;
+  background: var(--surface) !important;
+}
+
+.avatar__circle { border-radius: 2px !important; }
+
+.banner {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  min-height: 210px;
+  padding: 34px 34px 30px !important;
+  border: 1px solid var(--border-2) !important;
+  border-left: 4px solid var(--primary) !important;
+  border-radius: 4px !important;
+  background: var(--surface) !important;
+  overflow: hidden;
+}
+
+.banner::before {
+  display: block !important;
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--text) 4%, transparent) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  mask-image: linear-gradient(90deg, transparent 12%, #000 100%) !important;
+  -webkit-mask-image: linear-gradient(90deg, transparent 12%, #000 100%) !important;
+  opacity: .55;
+}
+
+.banner::after {
+  content: "IMFRA / CONTROL 01" !important;
+  position: absolute !important;
+  top: 14px !important;
+  right: 16px !important;
+  width: auto !important;
+  height: auto !important;
+  background: none !important;
+  color: var(--text-3) !important;
+  font: 700 8px/1 var(--font-mono) !important;
+  letter-spacing: .16em !important;
+  animation: none !important;
+}
+
+.banner__info,
+.banner__stats { position: relative; z-index: 1; }
+.banner__eyebrow {
+  width: max-content;
+  padding: 5px 7px !important;
+  border-radius: 2px !important;
+  font: 700 8px/1 var(--font-mono) !important;
+  letter-spacing: .13em !important;
+}
+.banner__eyebrow__dot { border-radius: 0 !important; }
+.banner__title {
+  max-width: 720px;
+  margin-top: 17px !important;
+  font: 750 clamp(31px, 4vw, 51px)/.98 var(--font-display) !important;
+  letter-spacing: -.052em !important;
+}
+.banner__sub {
+  max-width: 620px !important;
+  margin-top: 15px !important;
+  color: var(--text-2) !important;
+  font-size: 13px !important;
+  line-height: 1.65 !important;
+}
+.banner__stats {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(78px, 1fr)) !important;
+  align-self: end !important;
+  gap: 0 !important;
+  border-top: 1px solid var(--border-2);
+  border-left: 1px solid var(--border-2);
+}
+.banner__stat {
+  min-width: 92px !important;
+  padding: 13px 14px !important;
+  border: 0 !important;
+  border-right: 1px solid var(--border-2) !important;
+  border-bottom: 1px solid var(--border-2) !important;
+  border-radius: 0 !important;
+  background: color-mix(in srgb, var(--surface-2) 78%, transparent) !important;
+}
+.banner__stat-lbl {
+  font: 700 8px/1 var(--font-mono) !important;
+  letter-spacing: .14em !important;
+}
+.banner__stat-val {
+  margin-top: 8px !important;
+  font: 700 23px/1 var(--font-mono) !important;
+  letter-spacing: -.04em !important;
+}
+
+.section-header {
+  min-height: 35px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-2);
+}
+.section-header__title {
+  font: 700 16px/1.2 var(--font-display) !important;
+  letter-spacing: -.02em !important;
+}
+.section-header__badge,
+.tag {
+  border-radius: 2px !important;
+  font-family: var(--font-mono) !important;
+}
+
+.foro-empty {
+  border: 1px dashed var(--border-2);
+  background: color-mix(in srgb, var(--surface) 74%, transparent);
+  color: var(--text-3) !important;
+  font-family: var(--font-mono);
+  font-size: 11px !important;
+}
+
+/* Panel contextual derecho */
+.aside {
+  padding: 19px 15px 30px !important;
+  border-left: 1px solid var(--border-2) !important;
+  background: color-mix(in srgb, var(--bg-deep) 76%, transparent) !important;
+}
+.widget {
+  gap: 11px !important;
+  padding: 15px 15px 16px !important;
+  border: 1px solid var(--border) !important;
+  border-left: 2px solid var(--border-2) !important;
+  border-radius: 3px !important;
+}
+.widget:hover { border-left-color: var(--primary) !important; }
+.widget__label {
+  color: var(--text-3) !important;
+  font: 700 8px/1.3 var(--font-mono) !important;
+  letter-spacing: .14em !important;
+}
+.widget__title { font-family: var(--font-display) !important; }
+.widget__count,
+.widget__pct { font-family: var(--font-mono) !important; }
+
+/* Componentes: menos cápsulas, más documentación técnica */
+.btn,
+.row-btn,
+.tab,
+.searchbar input,
+.dd-fancy__trigger,
+.modal__icon,
+.modal__close {
+  border-radius: 3px !important;
+}
+.btn { font-weight: 700 !important; letter-spacing: .025em !important; }
+.btn--accent,
+.row-btn { color: #15100a !important; }
+.kpi-card,
+.curso-card,
+.cert-card,
+.webinar-card,
+.news-card,
+.plan-card,
+.perfil-card,
+.perfil-hero,
+.modal,
+.content-row,
+.post {
+  border-radius: 4px !important;
+}
+.kpi-card,
+.curso-card,
+.cert-card,
+.webinar-card,
+.news-card,
+.content-row { border-left-width: 2px !important; }
+.sec-hero__eyebrow {
+  border-radius: 2px !important;
+  font-family: var(--font-mono) !important;
+}
+.sec-hero__title { font-family: var(--font-display) !important; }
+
+/* Recompensas dentro del mismo lenguaje visual */
+.rw-page { max-width: var(--content-max); }
+.rw-hero {
+  min-height: 230px;
+  padding: 35px !important;
+  border: 1px solid var(--border-2) !important;
+  border-left: 4px solid var(--primary) !important;
+  border-radius: 4px !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+.rw-hero::after {
+  content: "PUNTOS / BENEFICIOS";
+  position: absolute;
+  top: 15px;
+  right: 16px;
+  color: var(--text-3);
+  font: 700 8px/1 var(--font-mono);
+  letter-spacing: .16em;
+}
+.rw-hero h1 { font-family: var(--font-display) !important; }
+.rw-balance {
+  border-radius: 3px !important;
+  background: var(--surface-2) !important;
+  backdrop-filter: none !important;
+}
+.rw-private-note,
+.rw-level-card,
+.rw-quiz,
+.rw-how,
+.rw-catalog,
+.rw-history,
+.rw-reward,
+.rw-option,
+.rw-feedback {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+.rw-level-card { border-left: 3px solid var(--primary) !important; }
+.rw-section-head { padding-bottom: 11px; border-bottom: 1px solid var(--border); }
+.rw-eyebrow,
+.rw-area,
+.rw-catalog__count,
+.rw-reward__type { font-family: var(--font-mono) !important; }
+.rw-option span,
+.rw-reward__icon { border-radius: 2px !important; }
+.rw-reward { background: var(--surface) !important; border-top: 2px solid var(--reward-accent) !important; }
+
+/* Barra demo: utilidad, no publicidad flotante */
+.fomo-banner {
+  min-height: 42px;
+  background: var(--bg-deep) !important;
+  border-bottom: 1px solid var(--border-2) !important;
+}
+.fomo-banner__icon { display: none !important; }
+.fomo-banner__timer,
+.fomo-banner__cta { border-radius: 2px !important; font-family: var(--font-mono) !important; }
+.fomo-banner__cta { color: #15100a !important; }
+
+@media (max-width: 1280px) {
+  .app { grid-template-columns: 232px minmax(0, 1fr) !important; }
+}
+
+@media (max-width: 880px) {
+  .app { grid-template-columns: minmax(0, 1fr) !important; }
+  .main { padding: calc(14px + env(safe-area-inset-top)) 16px 92px !important; }
+  .banner { grid-template-columns: 1fr !important; min-height: 0; padding: 24px 20px !important; }
+  .banner::after { display: none; }
+  .banner__stats { width: 100%; }
+  .mobile-nav,
+  .mobile-drawer__panel { border-radius: 0 !important; }
+}
+
+@media (max-width: 560px) {
+  .banner__title { font-size: 31px !important; }
+  .banner__stat { min-width: 0 !important; }
+  .rw-hero { min-height: 0; padding: 25px 20px !important; }
+  .rw-hero::after { display: none; }
+}
+

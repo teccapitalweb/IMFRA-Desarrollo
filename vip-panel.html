@@ -3677,7 +3677,7 @@ window.__setDisplayName = async (nombre) => {
         <div class="banner__info">
           <span class="banner__eyebrow"><span class="banner__eyebrow__dot"></span><span id="greeting-label">En vivo</span><span class="banner__version">v.2026.05</span></span>
           <h1 class="banner__title" id="hero-title">Buenas tardes, ingeniero</h1>
-          <p class="banner__sub">Tu acceso a cursos premium, 8 herramientas pro para obra y la comunidad de construcción más activa de México.</p>
+          <p class="banner__sub">Cursos, herramientas de cálculo y documentación técnica para tomar mejores decisiones en obra.</p>
         </div>
         <div class="banner__stats">
           <div class="banner__stat" data-section="cursos" style="cursor:pointer"><div class="banner__stat-lbl">Cursos</div><div class="banner__stat-val">12</div></div>
@@ -3707,7 +3707,7 @@ window.__setDisplayName = async (nombre) => {
   <aside class="aside">
 
     <div class="widget widget--next">
-      <div class="widget__label">⏱ Próxima clase en vivo</div>
+      <div class="widget__label"><svg class="ic"><use href="#i-clock"/></svg>Próxima clase en vivo</div>
       <div style="padding:18px 0;text-align:center;color:var(--text-3);font-size:12px;">
         <div style="width:18px;height:18px;border:2px solid var(--text-3);border-top-color:transparent;border-radius:50%;display:inline-block;animation:spin 0.8s linear infinite;margin-bottom:8px;"></div>
         <div>Cargando…</div>
@@ -3722,14 +3722,14 @@ window.__setDisplayName = async (nombre) => {
     </div>
 
     <div class="widget widget--disc" id="widget-disc">
-      <div class="widget__label">⭐ Tu descuento VIP</div>
+      <div class="widget__label"><svg class="ic"><use href="#i-bolt"/></svg>Beneficio de membresía</div>
       <div class="widget__pct">20%</div>
       <div class="widget__count-sub">En cursos de certificación con folio oficial IMFRA</div>
       <button class="btn btn--primary btn--block btn--sm" id="btn-disc-wa"><svg class="ic"><use href="#i-whatsapp"/></svg>Solicitar mi 20% por WhatsApp</button>
     </div>
 
     <div class="widget">
-      <div class="widget__label">📊 Tu actividad</div>
+      <div class="widget__label"><svg class="ic"><use href="#i-chart-bar"/></svg>Actividad verificada</div>
       <div class="activity-row">
         <span class="activity-row__lbl">Cursos</span>
         <div class="activity-row__bar"><div class="activity-row__bar-fill activity-row__bar-fill--orange" id="act-cursos-bar" style="width:0%"></div></div>
@@ -3892,7 +3892,7 @@ async function initCountdown(){
   // Si NO hay próximo webinar, mostrar empty state limpio en el widget
   if (!proximo) {
     widget.innerHTML = `
-      <div class="widget__label">⏱ Próxima clase en vivo</div>
+      <div class="widget__label"><svg class="ic"><use href="#i-clock"/></svg>Próxima clase en vivo</div>
       <div style="padding:18px 0 4px;text-align:center;">
         <div style="width:42px;height:42px;border-radius:50%;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/></svg>
@@ -3912,7 +3912,7 @@ async function initCountdown(){
   const instructorEsc = (proximo.instructor || 'IMFRA').replace(/</g,'&lt;');
 
   widget.innerHTML = `
-    <div class="widget__label">⏱ Próxima clase en vivo</div>
+    <div class="widget__label"><svg class="ic"><use href="#i-clock"/></svg>Próxima clase en vivo</div>
     <div class="widget__title">${tituloEsc}</div>
     <div class="widget__meta"><svg class="ic"><use href="#i-user"/></svg>${instructorEsc}</div>
     <div class="widget__meta"><svg class="ic"><use href="#i-calendar"/></svg>${fechaFmt.charAt(0).toUpperCase() + fechaFmt.slice(1)} · ${horaFmt} hrs</div>
@@ -9533,7 +9533,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const h = new Date().getHours();
       const part = h<12 ? 'Buenos días' : (h<19 ? 'Buenas tardes' : 'Buenas noches');
       if (S.modo === 'invitado') {
-        heroTitle.textContent = 'Estás explorando IMFRA VIP';
+        heroTitle.textContent = 'Centro de control profesional';
       } else if (S.modo === 'sin-membresia') {
         heroTitle.textContent = `${part}, ${S.displayName?.split(' ')[0]||'ingeniero'}`;
       } else {
@@ -10652,6 +10652,7 @@ body{letter-spacing:-.05px}
   #dynamic-section .tabs .tab{padding:7px 4px!important;border-radius:7px!important}
 }
 </style>
+<link rel="stylesheet" href="./src/styles/v2-shell.css">
 <script src="onboarding-tour.js?v=1" defer></script>
 <script src="assets/imfra-tools.js?v=1"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>

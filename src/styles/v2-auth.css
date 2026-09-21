@@ -1,0 +1,264 @@
+/* IMFRA V2 · acceso técnico/editorial
+   Capa visual únicamente: no modifica autenticación ni pagos. */
+
+:root {
+  --auth-grid: rgba(255, 255, 255, .035);
+  --auth-line: rgba(255, 255, 255, .11);
+}
+
+:root[data-theme="day"] {
+  --auth-grid: rgba(16, 19, 22, .045);
+  --auth-line: rgba(16, 19, 22, .14);
+}
+
+body {
+  background-color: var(--bg) !important;
+  background-image:
+    linear-gradient(var(--auth-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--auth-grid) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+}
+
+body::before,
+body::after {
+  display: none !important;
+}
+
+.auth-shell {
+  grid-template-columns: minmax(0, 1.08fr) minmax(440px, .92fr) !important;
+}
+
+.auth-hero {
+  padding: 44px clamp(32px, 4vw, 64px) !important;
+  border-right: 1px solid var(--auth-line) !important;
+  background: rgba(8, 10, 12, .78) !important;
+}
+
+:root[data-theme="day"] .auth-hero {
+  background: rgba(243, 242, 238, .86) !important;
+}
+
+.auth-hero::before {
+  inset: 20px auto 20px 0 !important;
+  width: 3px !important;
+  height: auto !important;
+  background: var(--primary) !important;
+  filter: none !important;
+}
+
+.auth-hero::after {
+  background-image:
+    linear-gradient(var(--auth-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--auth-grid) 1px, transparent 1px) !important;
+  background-size: 32px 32px !important;
+  -webkit-mask-image: none !important;
+  mask-image: none !important;
+  opacity: .8;
+}
+
+.brand--hero .brand__logo,
+.brand .brand__logo {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+.brand__sub,
+.hero-mcaption,
+.hero-refs-title,
+.hero-trust,
+.auth-stat__lbl,
+.label {
+  font-family: 'JetBrains Mono', monospace !important;
+  letter-spacing: .14em !important;
+}
+
+.auth-hero__title {
+  max-width: 13ch !important;
+  letter-spacing: -.045em !important;
+}
+
+.auth-hero__title em {
+  color: var(--primary) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+
+.hero-marquee {
+  border-block: 1px solid var(--auth-line);
+  padding-block: 12px;
+}
+
+.hero-marquee img {
+  border-radius: 2px !important;
+  filter: saturate(.72) contrast(1.04);
+}
+
+.hero-benefits svg {
+  border-radius: 2px !important;
+}
+
+.hero-price .opt,
+.hero-ref .bub,
+.hero-ref .avi {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+.hero-price .opt--star {
+  background: rgba(245, 157, 26, .06) !important;
+}
+
+.hero-price .opt--star .badge {
+  border-radius: 2px !important;
+}
+
+.auth-hero__stats {
+  gap: 0 !important;
+  border: 1px solid var(--auth-line);
+  width: fit-content;
+}
+
+.auth-stat {
+  min-width: 116px;
+  padding: 14px 18px;
+  border-right: 1px solid var(--auth-line);
+}
+
+.auth-stat:last-child {
+  border-right: 0;
+}
+
+.auth-stat__num {
+  font-size: 24px !important;
+}
+
+.auth-main {
+  position: relative;
+  padding: 52px clamp(28px, 5vw, 72px) !important;
+  background: rgba(10, 12, 14, .5);
+}
+
+:root[data-theme="day"] .auth-main {
+  background: rgba(250, 249, 246, .66);
+}
+
+.auth-main::before {
+  content: 'ACCESO / IMFRA 02';
+  position: absolute;
+  top: 22px;
+  left: 28px;
+  color: var(--text-3);
+  font: 600 9px/1 'JetBrains Mono', monospace;
+  letter-spacing: .18em;
+}
+
+.auth-main .wrap {
+  width: min(100%, 460px) !important;
+}
+
+.auth-main .brand {
+  margin-bottom: 22px !important;
+}
+
+.card {
+  position: relative;
+  border: 1px solid var(--auth-line) !important;
+  border-top: 3px solid var(--primary) !important;
+  border-radius: 3px !important;
+  background: rgba(17, 20, 23, .92) !important;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, .22) !important;
+}
+
+:root[data-theme="day"] .card {
+  background: rgba(255, 255, 255, .94) !important;
+  box-shadow: 0 22px 60px rgba(33, 28, 20, .09) !important;
+}
+
+.auth-free {
+  border-radius: 2px !important;
+  background: transparent !important;
+  border-bottom: 1px solid var(--auth-line);
+  padding-bottom: 14px !important;
+}
+
+.auth-free svg {
+  border-radius: 2px !important;
+}
+
+.tabs {
+  border-radius: 2px !important;
+  background: transparent !important;
+  border: 1px solid var(--auth-line);
+  padding: 3px !important;
+}
+
+.tab {
+  border-radius: 1px !important;
+}
+
+.tab.is-active {
+  box-shadow: none !important;
+}
+
+.input,
+.btn,
+.btn-google {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+.input {
+  background: transparent !important;
+}
+
+.input:focus {
+  box-shadow: 0 0 0 1px var(--primary) !important;
+}
+
+.btn {
+  background: var(--primary) !important;
+  color: #17110a !important;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 18px rgba(245, 157, 26, .16) !important;
+}
+
+.btn-google:hover {
+  transform: translateY(-1px) !important;
+}
+
+.theme-toggle {
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-marquee .track {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .auth-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-hero {
+    padding: 28px 18px !important;
+  }
+
+  .auth-main {
+    padding: 48px 16px 32px !important;
+  }
+
+  .auth-main::before {
+    top: 20px;
+    left: 18px;
+  }
+
+  .card {
+    border-inline: 1px solid var(--auth-line) !important;
+  }
+}
