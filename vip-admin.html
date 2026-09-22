@@ -2039,7 +2039,7 @@ const Pages={
 
     p.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="cursos">
           <span class="sec-hero__eyebrow">Catálogo de cursos</span>
           <h1 class="sec-hero__title">Cursos</h1>
           <p class="sec-hero__sub">Crea, edita y publica cursos.</p>
@@ -3028,7 +3028,7 @@ const Pages={
   webinars(p) {
     p.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="webinars">
           <span class="sec-hero__eyebrow">Programación en vivo</span>
           <h1 class="sec-hero__title">Clases en vivo</h1>
           <p class="sec-hero__sub">Programa y administra las clases en vivo.</p>
@@ -3451,7 +3451,7 @@ const Pages={
   pdfs(p) {
     p.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="pdfs">
           <span class="sec-hero__eyebrow">Material descargable</span>
           <h1 class="sec-hero__title">PDFs y material</h1>
           <p class="sec-hero__sub">Sube y organiza los materiales de cada curso.</p>
@@ -3912,7 +3912,7 @@ const Pages={
   certificados(p){
     p.innerHTML=`
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="certificados">
           <span class="sec-hero__eyebrow">Emisión</span>
           <h1 class="sec-hero__title">Certificados</h1>
           <p class="sec-hero__sub">Emite y consulta certificados IMFRA.</p>
@@ -5822,6 +5822,7 @@ if (window.__currentAdmin) {
 <link rel="stylesheet" href="./src/styles/v2-admin.css">
 <link rel="stylesheet" href="./src/styles/v3-admin-premium.css">
 <link rel="stylesheet" href="./src/styles/v4-admin-editorial.css">
+<link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <script type="module" src="./src/features/training/admin.ts"></script>
 
 </body>

@@ -5309,7 +5309,7 @@ const Sections = (function(){
     const c=counts();
     container.innerHTML=`
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="cursos">
           <span class="sec-hero__eyebrow">Tu camino</span>
           <h1 class="sec-hero__title">Mis cursos</h1>
           <p class="sec-hero__sub">Continúa donde lo dejaste, repasa lo que ya dominas o descubre nuevas áreas de especialización.</p>
@@ -5833,7 +5833,7 @@ const Sections = (function(){
     if (certs.length === 0) {
       container.innerHTML = `
         <div class="fade-up">
-          <div class="sec-hero">
+          <div class="sec-hero" data-illus="certificados">
             <span class="sec-hero__eyebrow">Tu trayectoria</span>
             <h1 class="sec-hero__title">Mis certificados</h1>
             <p class="sec-hero__sub">Cada certificado IMFRA incluye <strong style="color:var(--primary);">folio único, código QR verificable y firma del instructor</strong>. Se otorgan al completar el 100% de las clases de un curso VIP.</p>
@@ -5871,7 +5871,7 @@ const Sections = (function(){
     // Render real cuando SÍ hay certificados
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="certificados">
           <span class="sec-hero__eyebrow">Tu trayectoria</span>
           <h1 class="sec-hero__title">Mis certificados</h1>
           <p class="sec-hero__sub">Cada certificado tiene un folio único <strong style="color:var(--primary);font-family:'JetBrains Mono',monospace;">IMFRA-2026-XXXXXX</strong> y código QR verificable. Compártelos en LinkedIn o descárgalos en PDF.</p>
@@ -6383,7 +6383,7 @@ const Sections = (function(){
     if (!_webinarsLoaded && !_webinarsLoading) {
       container.innerHTML = `
         <div class="fade-up">
-          <div class="sec-hero">
+          <div class="sec-hero" data-illus="webinars">
             <span class="sec-hero__eyebrow">Aprende en directo</span>
             <h1 class="sec-hero__title">Clases en vivo</h1>
             <p class="sec-hero__sub">Cargando próximas clases…</p>
@@ -6396,7 +6396,7 @@ const Sections = (function(){
     if (webinars.length === 0) {
       container.innerHTML = `
         <div class="fade-up">
-          <div class="sec-hero">
+          <div class="sec-hero" data-illus="webinars">
             <span class="sec-hero__eyebrow">Aprende en directo</span>
             <h1 class="sec-hero__title">Clases en vivo</h1>
             <p class="sec-hero__sub">Sesiones en directo con ingenieros, arquitectos y especialistas del sector construcción. Pregunta en vivo, las grabaciones quedan disponibles.</p>
@@ -6420,7 +6420,7 @@ const Sections = (function(){
     const prox=proximas[0];
     container.innerHTML=`
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="webinars">
           <span class="sec-hero__eyebrow">Aprende en directo</span>
           <h1 class="sec-hero__title">Clases en vivo</h1>
           <p class="sec-hero__sub">Sesiones en directo con ingenieros, arquitectos y especialistas del sector construcción. Pregunta en vivo, las grabaciones quedan disponibles.</p>
@@ -6689,7 +6689,7 @@ const Sections = (function(){
     if (!_cursosLoaded && !_cursosLoading) {
       container.innerHTML = `
         <div class="fade-up">
-          <div class="sec-hero">
+          <div class="sec-hero" data-illus="pdfs">
             <span class="sec-hero__eyebrow">Descargables</span>
             <h1 class="sec-hero__title">PDFs y material</h1>
             <p class="sec-hero__sub">Cargando materiales desde Firestore…</p>
@@ -6711,7 +6711,7 @@ const Sections = (function(){
 
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="pdfs">
           <span class="sec-hero__eyebrow">Descargables</span>
           <h1 class="sec-hero__title">PDFs y material</h1>
           <p class="sec-hero__sub">Plantillas en Excel, checklists, procedimientos y formatos oficiales listos para tu planta. <strong style="color:var(--primary);">El primer material es gratis</strong>; los demás se habilitan junto con su curso.</p>
@@ -6892,7 +6892,7 @@ const Sections = (function(){
   function renderLibros(container) {
     if (_libroDetalle) { _renderLibroDetalle(container, _libroDetalle); return; }
     var esVip = window.UserState?.modo === 'vip' || esAdminReal();
-    container.innerHTML = '<div class="fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Biblioteca</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">'+IMFRA_LIBROS.length+' libros de referencia para tu formación. <strong style="color:var(--primary);">El primero es gratis</strong>; el resto es exclusivo para miembros VIP.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){var acc=libro.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+(libro.gratis?'<span class="chip--free">Gratis</span>':'')+(!acc?'<span class="chip--lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' \u00b7 '+libro.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>';
+    container.innerHTML = '<div class="fade-up"><div class="sec-hero" data-illus="libros"><span class="sec-hero__eyebrow">Biblioteca</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">'+IMFRA_LIBROS.length+' libros de referencia para tu formación. <strong style="color:var(--primary);">El primero es gratis</strong>; el resto es exclusivo para miembros VIP.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){var acc=libro.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+(libro.gratis?'<span class="chip--free">Gratis</span>':'')+(!acc?'<span class="chip--lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' \u00b7 '+libro.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>';
     var intro=container.querySelector('.sec-hero__sub');if(intro)intro.textContent='Toca una portada para abrir el libro.';
     container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();var libro=IMFRA_LIBROS.find(function(item){return item.id===el.dataset.libroId;});var acceso=libro&&(libro.gratis||esVip);if(acceso){window.open(libro.url,'_blank','noopener');return;}_libroDetalle=el.dataset.libroId;renderLibros(container);});});
   }
@@ -7096,7 +7096,7 @@ const Sections = (function(){
     const esVip = window.UserState?.modo==='vip' || esAdminReal();
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="directorio">
           <span class="sec-hero__eyebrow">Networking profesional</span>
           <h1 class="sec-hero__title">Directorio VIP</h1>
           <p class="sec-hero__sub">Conecta con la comunidad IMFRA. Crea tu tarjeta profesional y descubre a otros ingenieros y especialistas del sector.</p>
@@ -7421,7 +7421,7 @@ const Sections = (function(){
 
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="foro">
           <span class="sec-hero__eyebrow">Comunidad activa</span>
           <h1 class="sec-hero__title">Foro VIP</h1>
           <p class="sec-hero__sub">Comparte casos de obra, haz preguntas y conecta con la comunidad IMFRA. Publica texto e imágenes, comenta y reacciona.</p>
@@ -7752,7 +7752,7 @@ const Sections = (function(){
   function renderCanal(container){
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="canal">
           <span class="sec-hero__eyebrow">Comunidad WhatsApp</span>
           <h1 class="sec-hero__title">Canal WhatsApp IMFRA</h1>
           <p class="sec-hero__sub">Únete a la comunidad IMFRA. Recibe alertas de nuevos cursos, noticias del sector construcción, casos de obra y networking.</p>
@@ -7825,7 +7825,7 @@ const Sections = (function(){
     const _ini = (S.iniciales || 'IN');
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="perfil">
           <span class="sec-hero__eyebrow">Tu cuenta</span>
           <h1 class="sec-hero__title">Mi perfil</h1>
           <p class="sec-hero__sub">Tus datos personales, configuración de la membresía y preferencias de notificaciones.</p>
@@ -7940,7 +7940,7 @@ const Sections = (function(){
 
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="suscripcion">
           <span class="sec-hero__eyebrow">Activa tu acceso</span>
           <h1 class="sec-hero__title">Suscripción</h1>
           <p class="sec-hero__sub">${isInvitado
@@ -8094,7 +8094,7 @@ const Sections = (function(){
   function renderSuscripcionAdmin(container, S){
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="suscripcion">
           <span class="sec-hero__eyebrow">Cuenta administrativa</span>
           <h1 class="sec-hero__title">Suscripción</h1>
           <p class="sec-hero__sub">Tu cuenta tiene acceso administrativo a IMFRA. No requiere suscripción de pago.</p>
@@ -8131,7 +8131,7 @@ const Sections = (function(){
 
     container.innerHTML = `
       <div class="fade-up">
-        <div class="sec-hero">
+        <div class="sec-hero" data-illus="suscripcion">
           <span class="sec-hero__eyebrow">Tu plan</span>
           <h1 class="sec-hero__title">Suscripción</h1>
           <p class="sec-hero__sub">Detalles de tu membresía, historial de pagos y próxima renovación.</p>
@@ -10703,6 +10703,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v2-shell.css">
 <link rel="stylesheet" href="./src/styles/v3-premium.css">
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
+<link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <script src="onboarding-tour.js?v=1" defer></script>
 <script src="assets/imfra-tools.js?v=1"></script>
 <script type="module" src="./src/features/training/training.ts"></script>

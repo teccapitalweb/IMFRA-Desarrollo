@@ -1,0 +1,79 @@
+/*
+ * Ilustraciones decorativas dentro de los headers negros (.sec-hero, .ta-hero, .tr-hero).
+ * Capa aparte vía ::before -> nunca pisa el gradiente/fondo que ya trae cada header.
+ * El texto sube a z-index:1 y se limita en ancho para que nunca choque con la imagen.
+ */
+.sec-hero[data-illus],
+.ta-hero[data-illus],
+.tr-hero[data-illus] {
+  position: relative;
+  overflow: hidden;
+}
+.sec-hero[data-illus]::before,
+.ta-hero[data-illus]::before,
+.tr-hero[data-illus]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 34%;
+  min-width: 150px;
+  max-width: 300px;
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  background-size: contain;
+  opacity: .95;
+  pointer-events: none;
+}
+.sec-hero[data-illus]::after { display: none !important; }
+
+.sec-hero[data-illus] > .sec-hero__eyebrow,
+.sec-hero[data-illus] > .sec-hero__title,
+.sec-hero[data-illus] > .sec-hero__sub,
+.sec-hero[data-illus] > .sec-hero__actions,
+.sec-hero[data-illus] > .kpi-grid {
+  position: relative;
+  z-index: 1;
+}
+.sec-hero[data-illus] > .sec-hero__title,
+.sec-hero[data-illus] > .sec-hero__sub {
+  max-width: 60%;
+}
+
+/* .ta-hero (admin de Retos) ya trae un botón abajo-derecha: ilustración arriba, sin tocarlo */
+.ta-hero[data-illus]::before { top: 14px; bottom: auto; right: 18px; height: 62%; width: 24%; max-width: 210px; opacity: .85; }
+.ta-hero[data-illus] > div:first-child { position: relative; z-index: 1; max-width: 56%; }
+.ta-hero[data-illus] > button { position: relative; z-index: 1; }
+
+/* .tr-hero (Retos VIP) ya trae la tarjeta de racha/XP abajo-derecha: ilustración arriba, sin tocarla */
+.tr-hero[data-illus]::before { top: 16px; bottom: auto; right: 22px; height: 56%; width: 22%; max-width: 190px; opacity: .88; }
+.tr-hero[data-illus] > div:first-child { position: relative; z-index: 1; max-width: 66%; }
+.tr-hero[data-illus] > .tr-hero__stats { position: relative; z-index: 1; }
+
+[data-illus="cursos"]::before { background-image: url(../../assets/headers/cursos.png); }
+[data-illus="webinars"]::before { background-image: url(../../assets/headers/webinars.png); }
+[data-illus="pdfs"]::before { background-image: url(../../assets/headers/pdfs.png); }
+[data-illus="libros"]::before { background-image: url(../../assets/headers/libros.png); }
+[data-illus="entrenamiento"]::before { background-image: url(../../assets/headers/entrenamiento.png); }
+[data-illus="certificados"]::before { background-image: url(../../assets/headers/certificados.png); }
+[data-illus="foro"]::before { background-image: url(../../assets/headers/foro.png); }
+[data-illus="directorio"]::before { background-image: url(../../assets/headers/directorio.png); }
+[data-illus="canal"]::before { background-image: url(../../assets/headers/canal.png); }
+[data-illus="suscripcion"]::before { background-image: url(../../assets/headers/suscripcion.png); }
+[data-illus="perfil"]::before { background-image: url(../../assets/headers/perfil.png); }
+
+@media (max-width: 900px) {
+  .sec-hero[data-illus]::before,
+  .ta-hero[data-illus]::before { opacity: .5; width: 30%; }
+  .sec-hero[data-illus] > .sec-hero__title,
+  .sec-hero[data-illus] > .sec-hero__sub { max-width: 68%; }
+}
+@media (max-width: 640px) {
+  .sec-hero[data-illus]::before,
+  .ta-hero[data-illus]::before,
+  .tr-hero[data-illus]::before { display: none; }
+  .sec-hero[data-illus] > .sec-hero__title,
+  .sec-hero[data-illus] > .sec-hero__sub,
+  .ta-hero[data-illus] > div:first-child { max-width: none; }
+}

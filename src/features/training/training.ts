@@ -129,7 +129,7 @@ function mount(container: HTMLElement) {
     const current = level(state.xp);
     const pct = current.next === current.start ? 100 : Math.min(100, Math.round((state.xp - current.start) / (current.next - current.start) * 100));
     container.innerHTML = `<div class="tr-page fade-up">
-      <header class="tr-hero">
+      <header class="tr-hero" data-illus="entrenamiento">
         <div><span class="tr-kicker">Retos IMFRA</span><h1>Practica para <em>la obra real.</em></h1><p>Quiz, casos, tarjetas y recompensas.</p></div>
         <div class="tr-hero__stats"><div><span>Racha</span><strong>${streak(state.days)} días</strong></div><div><span>XP formativo</span><strong>${state.xp}</strong></div></div>
       </header>
