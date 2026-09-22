@@ -81,9 +81,9 @@ function rewardsSnapshot() {
 }
 
 const tileArt = {
-  quiz: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="6" width="34" height="46" rx="6" fill="currentColor" fill-opacity=".07"/><path d="M20 6h14v6a2 2 0 0 1-2 2H22a2 2 0 0 1-2-2V6z" fill="currentColor" fill-opacity=".16" stroke-width="2"/><path d="M18 26h18M18 34h18M18 42h10"/><circle cx="46" cy="45" r="15" fill="currentColor" fill-opacity=".14" stroke="none"/><path d="M48 37l-6 9h5l-2 8 8-11h-5l0-6z" fill="currentColor" stroke="none"/></svg>`,
-  case: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20a4 4 0 0 1 4-4h10l4 5h22a4 4 0 0 1 4 4v22a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V20z" fill="currentColor" fill-opacity=".1"/><path d="M8 27h44" opacity=".7"/><path d="M22 35v13M30 31v17M38 37v11M46 33v15" opacity=".85"/></svg>`,
-  flash: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="9" width="30" height="20" rx="4" transform="rotate(-8 31 19)" fill="currentColor" fill-opacity=".08"/><rect x="12" y="17" width="30" height="20" rx="4" transform="rotate(-2 27 27)" fill="currentColor" fill-opacity=".13"/><rect x="10" y="28" width="34" height="24" rx="5" fill="currentColor" fill-opacity=".17"/><path d="M20 40h14M20 46h9"/></svg>`
+  quiz: `<img src="assets/retos/quiz-tecnico.png" alt="" loading="lazy">`,
+  case: `<img src="assets/retos/casos-obra.png" alt="" loading="lazy">`,
+  flash: `<img src="assets/retos/tarjetas.png" alt="" loading="lazy">`
 };
 
 function level(xp: number) {
@@ -163,7 +163,7 @@ function mount(container: HTMLElement) {
               <h3>Quiz Técnico</h3>
               <p>Responde y gana puntos</p>
               <span class="tr-tile__stat">12 desafíos · 3 rondas</span>
-              <button class="btn btn--accent" data-training-action="quiz">Ir al quiz ${icon("i-arrow-right")}</button>
+              <button class="btn tr-tile__cta" data-training-action="quiz">Ir al quiz ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.quiz}</div>
           </article>
@@ -173,7 +173,7 @@ function mount(container: HTMLElement) {
               <h3>Casos de Obra</h3>
               <p>Analiza situaciones reales</p>
               <span class="tr-tile__stat">${trainingCases.length} expedientes</span>
-              <button class="btn btn--accent" data-training-action="cases">Abrir casos ${icon("i-arrow-right")}</button>
+              <button class="btn tr-tile__cta" data-training-action="cases">Abrir casos ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.case}</div>
           </article>
@@ -183,7 +183,7 @@ function mount(container: HTMLElement) {
               <h3>Tarjetas</h3>
               <p>Repasa conceptos clave</p>
               <span class="tr-tile__stat">${flashcards.length} conceptos</span>
-              <button class="btn btn--accent" data-training-action="flashcards">Repasar ${icon("i-arrow-right")}</button>
+              <button class="btn tr-tile__cta" data-training-action="flashcards">Repasar ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.flash}</div>
           </article>
