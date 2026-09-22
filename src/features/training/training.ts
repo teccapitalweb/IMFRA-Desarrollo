@@ -205,7 +205,7 @@ function mount(container: HTMLElement) {
 
   function renderCases() {
     view = "cases";
-    shell(`<button class="tr-back" data-training-action="hub">${icon("i-arrow-left")} Centro de entrenamiento</button>
+    shell(`<button class="tr-back" data-training-action="hub"><span style="display:inline-flex;transform:rotate(180deg)">${icon("i-arrow-right")}</span> Centro de entrenamiento</button>
       <div class="tr-section-head tr-section-head--page"><div><span>Simulador profesional</span><h2>Casos de Obra</h2><p>Decisiones encadenadas, consecuencias y explicación técnica.</p></div><small>${Object.keys(state.cases).length}/${trainingCases.length} resueltos</small></div>
       <div class="tr-case-grid">${trainingCases.map((item, index) => { const result = state.cases[item.id]; return `<article class="tr-case-card ${result ? "is-complete" : ""}"><div class="tr-case-card__top"><b>${String(index + 1).padStart(2, "0")}</b><span>${item.area}</span>${result ? `<em>✓ ${result.score}/${item.steps.length}</em>` : ""}</div><h3>${esc(item.title)}</h3><p>${esc(item.scenario)}</p><div class="tr-case-card__meta"><span>${item.difficulty}</span><span>${item.duration}</span><span>${item.steps.length} decisiones</span></div><button class="btn btn--ghost" data-case-id="${item.id}">${result ? "Revisar nuevamente" : "Abrir expediente"} ${icon("i-arrow-right")}</button></article>`; }).join("")}</div>`);
   }
@@ -216,10 +216,10 @@ function mount(container: HTMLElement) {
     const step = selectedCase.steps[caseStep];
     if (caseFinished) {
       const pct = Math.round(caseScore / selectedCase.steps.length * 100);
-      shell(`<button class="tr-back" data-training-action="cases">${icon("i-arrow-left")} Casos de obra</button><section class="tr-case-result"><div class="tr-case-result__score"><strong>${pct}%</strong><span>${caseScore} de ${selectedCase.steps.length}</span></div><div><span class="tr-kicker">Expediente completado</span><h2>${esc(selectedCase.title)}</h2><p>${pct === 100 ? "Tomaste decisiones consistentes y trazables en todo el caso." : "El expediente quedó registrado. Revisa las explicaciones y vuelve a intentarlo para consolidar el criterio."}</p><div class="tr-case-result__actions"><button class="btn btn--accent" data-case-id="${selectedCase.id}">Repetir caso</button><button class="btn btn--ghost" data-training-action="cases">Elegir otro expediente</button></div></div></section>`);
+      shell(`<button class="tr-back" data-training-action="cases"><span style="display:inline-flex;transform:rotate(180deg)">${icon("i-arrow-right")}</span> Casos de obra</button><section class="tr-case-result"><div class="tr-case-result__score"><strong>${pct}%</strong><span>${caseScore} de ${selectedCase.steps.length}</span></div><div><span class="tr-kicker">Expediente completado</span><h2>${esc(selectedCase.title)}</h2><p>${pct === 100 ? "Tomaste decisiones consistentes y trazables en todo el caso." : "El expediente quedó registrado. Revisa las explicaciones y vuelve a intentarlo para consolidar el criterio."}</p><div class="tr-case-result__actions"><button class="btn btn--accent" data-case-id="${selectedCase.id}">Repetir caso</button><button class="btn btn--ghost" data-training-action="cases">Elegir otro expediente</button></div></div></section>`);
       return;
     }
-    shell(`<button class="tr-back" data-training-action="cases">${icon("i-arrow-left")} Expedientes</button>
+    shell(`<button class="tr-back" data-training-action="cases"><span style="display:inline-flex;transform:rotate(180deg)">${icon("i-arrow-right")}</span> Expedientes</button>
       <section class="tr-case-run"><header><div><span class="tr-kicker">${esc(selectedCase.area)} · ${selectedCase.difficulty}</span><h2>${esc(selectedCase.title)}</h2></div><b>${caseStep + 1}/${selectedCase.steps.length}</b></header><div class="tr-case-run__bar"><span style="width:${(caseStep + 1) / selectedCase.steps.length * 100}%"></span></div><div class="tr-case-run__scenario"><span>Situación</span><p>${esc(selectedCase.scenario)}</p><small><b>Objetivo:</b> ${esc(selectedCase.objective)}</small></div><h3>${esc(step.prompt)}</h3><div class="tr-case-options">${step.options.map((option, index) => { const status = caseAnswer === null ? "" : index === step.correct ? " is-correct" : index === caseAnswer ? " is-wrong" : ""; return `<button ${caseAnswer === null ? "" : "disabled"} class="${status}" data-case-answer="${index}"><b>${String.fromCharCode(65 + index)}</b><span>${esc(option)}</span></button>`; }).join("")}</div>${caseAnswer !== null ? `<div class="tr-case-feedback ${caseAnswer === step.correct ? "is-correct" : ""}"><strong>${caseAnswer === step.correct ? "Decisión correcta" : "Decisión por revisar"}</strong><p>${esc(step.explanation)}</p><button class="btn btn--accent" data-case-next>${caseStep === selectedCase.steps.length - 1 ? "Cerrar expediente" : "Siguiente decisión"} ${icon("i-arrow-right")}</button></div>` : ""}</section>`);
   }
 
@@ -249,7 +249,7 @@ function mount(container: HTMLElement) {
               <div class="tr-fc-top"><span class="tr-fc-cat">${esc(card.area)}</span><span class="tr-fc-progress">${cardIndex + 1} de ${deck.length}</span></div>
               <div class="tr-fc-main"><h3 class="tr-fc-term">${esc(card.front)}</h3><p class="tr-fc-hint">${hint}</p><button class="btn tr-fc-cta" data-card-flip>Mostrar respuesta ${icon("i-arrow-right")}</button></div>
             </div>
-            <div class="tr-fc-face tr-fc-back">
+            <div class="tr-fc-face tr-fc-back" style="background-image:linear-gradient(180deg,rgba(6,6,6,.2) 0%,rgba(6,6,6,.55) 30%,rgba(6,6,6,.97) 62%),url('assets/flashcards/${card.id}.jpg')">
               <span class="tr-fc-badge">Respuesta</span>
               <h4 class="tr-fc-back-term">${esc(card.front)}</h4>
               <p class="tr-fc-def">${esc(card.back)}</p>
