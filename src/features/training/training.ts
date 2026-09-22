@@ -148,10 +148,10 @@ function mount(container: HTMLElement) {
     const rewards = rewardsSnapshot();
     const rewardChips = [...rewardCatalog].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)).slice(0, 3);
     const achievements = [
-      { label: "Primera inspección", detail: "Completa un caso", done: completedCases >= 1, icon: "i-clipboard-check" },
-      { label: "Memoria activa", detail: "Repasa 8 tarjetas", done: reviewedCards >= 8, icon: "i-book" },
-      { label: "Constancia", detail: "Alcanza una racha de 3 días", done: streak(state.days) >= 3, icon: "i-bolt" },
-      { label: "Criterio integral", detail: "Resuelve los 6 casos", done: completedCases >= trainingCases.length, icon: "i-certificate" }
+      { label: "Primera inspección", detail: "Completa un caso", done: completedCases >= 1, icon: "assets/icons/badge-inspeccion.png" },
+      { label: "Memoria activa", detail: "Repasa 8 tarjetas", done: reviewedCards >= 8, icon: "assets/icons/badge-memoria.png" },
+      { label: "Constancia", detail: "Alcanza una racha de 3 días", done: streak(state.days) >= 3, icon: "assets/icons/badge-constancia.png" },
+      { label: "Criterio integral", detail: "Resuelve los 6 casos", done: completedCases >= trainingCases.length, icon: "assets/icons/badge-criterio.png" }
     ];
     shell(`<div class="tr-layout">
       <main class="tr-main">
@@ -194,7 +194,7 @@ function mount(container: HTMLElement) {
             <button class="tr-chip tr-chip--more" data-training-action="rewards"><span>${icon("i-gift")}</span><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
           </div>
         </section>
-        <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><div>${icon(item.icon)}</div><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
+        <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><img src="${item.icon}" alt="" loading="lazy"><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
       </main>
       <aside class="tr-side">
         <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}" data-training-action="${item.action}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong></span><button aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>

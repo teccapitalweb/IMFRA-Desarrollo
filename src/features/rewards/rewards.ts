@@ -93,7 +93,9 @@ function redemptionFor(state: RewardState, rewardId: string) {
 }
 
 function rewardIcon(reward: RewardItem) {
-  return reward.category === "Software" ? "#i-tools" : "#i-book";
+  if (reward.id === "software-presupuestos-7d") return "assets/icons/reward-presupuestos.png";
+  if (reward.id === "pack-plantillas-pro") return "assets/icons/reward-plantillas.png";
+  return "assets/icons/reward-plantillas.png";
 }
 
 function questionTypeLabel(type: RewardQuestion["type"]) {
@@ -194,7 +196,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         ${featuredReward ? `<section class="rw-featured ${featuredAccess && !featuredPending ? "is-active" : ""} ${featuredPending ? "is-pending" : ""}" style="--reward-accent:${featuredReward.accent}">
           <div class="rw-featured__main">
             <div class="rw-featured__topline">
-              <span class="rw-product-mark">IM<span>DAC</span></span>
+              <div class="rw-featured__brand"><img class="rw-featured__brand-icon" src="assets/icons/reward-imdac.png" alt="" loading="lazy"><span class="rw-product-mark">IM<span>DAC</span></span></div>
               <span class="rw-status"><i></i>${featuredPending ? "Solicitud en revisión" : featuredAccess ? "Acceso activo" : "Recompensa destacada"}</span>
             </div>
             <span class="rw-eyebrow">Software profesional para construcción</span>
@@ -304,10 +306,9 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
               const canRedeem = state.points >= reward.points;
               const redeemed = redemptionFor(state, reward.id);
               return `<article class="rw-reward" style="--reward-accent:${reward.accent}">
-                <div class="rw-reward__icon"><svg class="ic"><use href="${rewardIcon(reward)}"/></svg></div>
+                <img class="rw-reward__icon" src="${rewardIcon(reward)}" alt="" loading="lazy">
                 <span class="rw-reward__type">${reward.category}</span>
                 <h3>${escapeHtml(reward.name)}</h3>
-                <p>${escapeHtml(reward.description)}</p>
                 <div class="rw-reward__meta"><strong>${reward.points.toLocaleString("es-MX")} puntos</strong><span>${reward.availability}</span></div>
                 <button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? "Canjear beneficio" : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>
               </article>`;
@@ -324,7 +325,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
       ${pendingReward ? `<div class="rw-dialog-backdrop" data-close-dialog>
           <section class="rw-dialog" role="dialog" aria-modal="true" aria-labelledby="rw-dialog-title">
             <button type="button" class="rw-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
-            <span class="rw-dialog__icon"><svg class="ic"><use href="${rewardIcon(pendingReward)}"/></svg></span>
+            <span class="rw-dialog__icon"><img src="${rewardIcon(pendingReward)}" alt="" loading="lazy"></span>
             <span class="rw-eyebrow">Confirmar beneficio</span>
             <h2 id="rw-dialog-title">${escapeHtml(pendingReward.name)}</h2>
             <p>Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} puntos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}</p>
