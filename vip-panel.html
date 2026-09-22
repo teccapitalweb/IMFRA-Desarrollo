@@ -3612,8 +3612,7 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
       <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
       <a class="nav-item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
-      <a class="nav-item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Entrenamiento<span class="nav-item__badge">NUEVO</span></a>
-      <a class="nav-item" data-section="recompensas"><svg class="ic"><use href="#i-gift"/></svg>Recompensas<span class="nav-item__badge">NUEVO</span></a>
+      <a class="nav-item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Retos<span class="nav-item__badge">NUEVO</span></a>
       <a class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
     </div>
 
@@ -3718,10 +3717,10 @@ window.__setDisplayName = async (nombre) => {
             <small>Abrir herramienta <svg class="ic"><use href="#i-arrow-right"/></svg></small>
           </a>
           <a class="command-card" href="#entrenamiento">
-            <span class="command-card__index">03 / ENTRENAMIENTO</span>
+            <span class="command-card__index">03 / RETOS</span>
             <span class="command-card__icon"><svg class="ic"><use href="#i-bolt"/></svg></span>
-            <strong>Entrena con casos reales</strong>
-            <span>Resuelve expedientes, repasa conceptos y mantén tu racha.</span>
+            <strong>Entrena y canjea recompensas</strong>
+            <span>Resuelve expedientes, repasa conceptos y usa tus Puntos IMFRA.</span>
             <small>Abrir centro <svg class="ic"><use href="#i-arrow-right"/></svg></small>
           </a>
         </div>
@@ -3842,8 +3841,7 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
         <a class="mobile-drawer__item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
         <a class="mobile-drawer__item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
-        <a class="mobile-drawer__item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Entrenamiento</a>
-        <a class="mobile-drawer__item" data-section="recompensas"><svg class="ic"><use href="#i-gift"/></svg>Recompensas</a>
+        <a class="mobile-drawer__item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Retos</a>
         <a class="mobile-drawer__item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
       </div>
 
@@ -8535,16 +8533,16 @@ const Sections = (function(){
       logros:renderLogros,
       entrenamiento:(c)=>{
         if(window.IMFRATraining){ window.IMFRATraining.mount(c); return; }
-        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Entrenamiento…</div>';
+        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Retos…</div>';
         window.addEventListener('imfra:training-ready',()=>{
           if(location.hash==='#entrenamiento' && c.isConnected) window.IMFRATraining?.mount(c);
         },{once:true});
       },
       recompensas:(c)=>{
-        if(window.IMFRARewards){ window.IMFRARewards.mount(c); return; }
-        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Recompensas…</div>';
-        window.addEventListener('imfra:rewards-ready',()=>{
-          if(location.hash==='#recompensas' && c.isConnected) window.IMFRARewards?.mount(c);
+        if(window.IMFRATraining){ window.IMFRATraining.mount(c); return; }
+        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Retos…</div>';
+        window.addEventListener('imfra:training-ready',()=>{
+          if(location.hash==='#recompensas' && c.isConnected) window.IMFRATraining?.mount(c);
         },{once:true});
       },
       webinars:renderWebinars,

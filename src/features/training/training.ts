@@ -1,6 +1,6 @@
 import "./training.css";
 import { flashcards, trainingCases, type TrainingCase } from "./catalog";
-import { rewardQuestions } from "../rewards/catalog";
+import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 
 interface CaseResult { score: number; completedAt: string }
@@ -71,6 +71,21 @@ function quizProgressToday() {
   } catch { return 0; }
 }
 
+function rewardsSnapshot() {
+  const demo = window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
+  const account = demo ? "demo-preview-v7" : (window.UserState?.uid || window.UserState?.email || "guest");
+  try {
+    const state = JSON.parse(localStorage.getItem(`imfra:v2:rewards:${account}`) || "null");
+    return { points: Number(state?.points) || 0 };
+  } catch { return { points: 0 }; }
+}
+
+const tileArt = {
+  quiz: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="10" y="6" width="34" height="46" rx="6" fill="currentColor" fill-opacity=".07"/><path d="M20 6h14v6a2 2 0 0 1-2 2H22a2 2 0 0 1-2-2V6z" fill="currentColor" fill-opacity=".16" stroke-width="2"/><path d="M18 26h18M18 34h18M18 42h10"/><circle cx="46" cy="45" r="15" fill="currentColor" fill-opacity=".14" stroke="none"/><path d="M48 37l-6 9h5l-2 8 8-11h-5l0-6z" fill="currentColor" stroke="none"/></svg>`,
+  case: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 20a4 4 0 0 1 4-4h10l4 5h22a4 4 0 0 1 4 4v22a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V20z" fill="currentColor" fill-opacity=".1"/><path d="M8 27h44" opacity=".7"/><path d="M22 35v13M30 31v17M38 37v11M46 33v15" opacity=".85"/></svg>`,
+  flash: `<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="16" y="9" width="30" height="20" rx="4" transform="rotate(-8 31 19)" fill="currentColor" fill-opacity=".08"/><rect x="12" y="17" width="30" height="20" rx="4" transform="rotate(-2 27 27)" fill="currentColor" fill-opacity=".13"/><rect x="10" y="28" width="34" height="24" rx="5" fill="currentColor" fill-opacity=".17"/><path d="M20 40h14M20 46h9"/></svg>`
+};
+
 function level(xp: number) {
   const levels = [
     { name: "Auxiliar técnico", start: 0, next: 120 },
@@ -115,7 +130,7 @@ function mount(container: HTMLElement) {
     const pct = current.next === current.start ? 100 : Math.min(100, Math.round((state.xp - current.start) / (current.next - current.start) * 100));
     container.innerHTML = `<div class="tr-page fade-up">
       <header class="tr-hero">
-        <div><span class="tr-kicker">Entrenamiento IMFRA</span><h1>Practica para <em>la obra real.</em></h1><p>Quiz, casos y tarjetas técnicas.</p></div>
+        <div><span class="tr-kicker">Retos IMFRA</span><h1>Practica para <em>la obra real.</em></h1><p>Quiz, casos, tarjetas y recompensas.</p></div>
         <div class="tr-hero__stats"><div><span>Racha</span><strong>${streak(state.days)} días</strong></div><div><span>XP formativo</span><strong>${state.xp}</strong></div></div>
       </header>
       <section class="tr-level"><div><span>Nivel profesional</span><strong>${current.name}</strong></div><div class="tr-level__bar"><span style="width:${pct}%"></span></div><b>${pct}%</b></section>
@@ -130,6 +145,8 @@ function mount(container: HTMLElement) {
     const missionDone = missions.filter((item) => item.value >= item.goal).length;
     const completedCases = Object.keys(state.cases).length;
     const reviewedCards = Object.keys(state.cards).length;
+    const rewards = rewardsSnapshot();
+    const rewardChips = [...rewardCatalog].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)).slice(0, 3);
     const achievements = [
       { label: "Primera inspección", detail: "Completa un caso", done: completedCases >= 1, icon: "i-clipboard-check" },
       { label: "Memoria activa", detail: "Repasa 8 tarjetas", done: reviewedCards >= 8, icon: "i-book" },
@@ -140,10 +157,43 @@ function mount(container: HTMLElement) {
       <main class="tr-main">
         <div class="tr-section-head"><div><span>Entrenamiento aplicado</span><h2>Elige una modalidad</h2></div><small>${completedCases} casos · ${reviewedCards} tarjetas estudiadas</small></div>
         <div class="tr-modes">
-          <article class="tr-mode tr-mode--quiz"><span class="tr-mode__index">01</span><div class="tr-mode__icon">${icon("i-bolt")}</div><span class="tr-tag">12 desafíos · 3 rondas</span><h3>Quiz Técnico</h3><p>Responde preguntas y gana puntos.</p><button class="btn btn--accent" data-training-action="quiz">Ir al quiz ${icon("i-arrow-right")}</button></article>
-          <article class="tr-mode tr-mode--case"><span class="tr-mode__index">02</span><div class="tr-mode__icon">${icon("i-briefcase")}</div><span class="tr-tag">${trainingCases.length} expedientes</span><h3>Casos de Obra</h3><p>Elige qué harías en una situación real.</p><button class="btn btn--accent" data-training-action="cases">Abrir casos ${icon("i-arrow-right")}</button></article>
-          <article class="tr-mode tr-mode--flash"><span class="tr-mode__index">03</span><div class="tr-mode__icon">${icon("i-book")}</div><span class="tr-tag">${flashcards.length} conceptos</span><h3>Tarjetas</h3><p>Recuerda conceptos importantes de obra.</p><button class="btn btn--accent" data-training-action="flashcards">Repasar ${icon("i-arrow-right")}</button></article>
+          <article class="tr-tile tr-tile--quiz">
+            <div class="tr-tile__body">
+              <span class="tr-tile__icon">${icon("i-bolt")}</span>
+              <h3>Quiz Técnico</h3>
+              <p>Responde y gana puntos</p>
+              <span class="tr-tile__stat">12 desafíos · 3 rondas</span>
+              <button class="btn btn--accent" data-training-action="quiz">Ir al quiz ${icon("i-arrow-right")}</button>
+            </div>
+            <div class="tr-tile__art">${tileArt.quiz}</div>
+          </article>
+          <article class="tr-tile tr-tile--case">
+            <div class="tr-tile__body">
+              <span class="tr-tile__icon">${icon("i-briefcase")}</span>
+              <h3>Casos de Obra</h3>
+              <p>Analiza situaciones reales</p>
+              <span class="tr-tile__stat">${trainingCases.length} expedientes</span>
+              <button class="btn btn--accent" data-training-action="cases">Abrir casos ${icon("i-arrow-right")}</button>
+            </div>
+            <div class="tr-tile__art">${tileArt.case}</div>
+          </article>
+          <article class="tr-tile tr-tile--flash">
+            <div class="tr-tile__body">
+              <span class="tr-tile__icon">${icon("i-book")}</span>
+              <h3>Tarjetas</h3>
+              <p>Repasa conceptos clave</p>
+              <span class="tr-tile__stat">${flashcards.length} conceptos</span>
+              <button class="btn btn--accent" data-training-action="flashcards">Repasar ${icon("i-arrow-right")}</button>
+            </div>
+            <div class="tr-tile__art">${tileArt.flash}</div>
+          </article>
         </div>
+        <section class="tr-rewards">
+          <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Cambia tus puntos por herramientas reales</h2></div><div class="tr-rewards__balance"><span>Tu saldo</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
+          <div class="tr-rewards__row">${rewardChips.map((reward) => `<article class="tr-chip" style="--mode:${reward.accent}"><span>${icon(reward.category === "Software" ? "i-tools" : "i-book")}</span><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} pts</small></div></article>`).join("")}
+            <button class="tr-chip tr-chip--more" data-training-action="rewards"><span>${icon("i-gift")}</span><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
+          </div>
+        </section>
         <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><div>${icon(item.icon)}</div><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong><small>${item.detail}</small></article>`).join("")}</div></section>
       </main>
       <aside class="tr-side">
@@ -207,6 +257,11 @@ function mount(container: HTMLElement) {
       if (action === "quiz") {
         if (window.IMFRARewards) window.IMFRARewards.mountQuiz(container);
         else window.addEventListener("imfra:rewards-ready", () => window.IMFRARewards?.mountQuiz(container), { once: true });
+        return;
+      }
+      if (action === "rewards") {
+        if (window.IMFRARewards) window.IMFRARewards.mount(container);
+        else window.addEventListener("imfra:rewards-ready", () => window.IMFRARewards?.mount(container), { once: true });
         return;
       }
       if (action === "hub") { renderHub(); goTo(); }

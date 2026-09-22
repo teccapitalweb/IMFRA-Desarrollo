@@ -175,10 +175,9 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
       <div class="rw-page rw-page--${mode} fade-up">
         <section class="rw-hero">
           <div class="rw-hero__copy">
-            <span class="rw-eyebrow">${mode === "quiz" ? "Entrenamiento · Quiz técnico" : "Recompensas IMFRA"}</span>
+            <span class="rw-eyebrow">${mode === "quiz" ? "Retos · Quiz técnico" : "Retos · Recompensas"}</span>
             <h1>${mode === "quiz" ? (demoMode ? "Responde y <em>gana puntos.</em>" : "Pon a prueba tu <em>criterio técnico.</em>") : "Tus puntos, tus <em>recompensas.</em>"}</h1>
-            <p>${mode === "quiz" ? "12 desafíos en 3 rondas." : (demoMode ? "Canjea los puntos que ganas en Entrenamiento." : "Consulta tu saldo y los beneficios disponibles.")}</p>
-            ${mode === "rewards" ? `<a class="btn btn--ghost rw-hero__link" href="#entrenamiento">Ganar puntos <span aria-hidden="true">→</span></a>` : ""}
+            <p>${mode === "quiz" ? "12 desafíos en 3 rondas." : (demoMode ? "Canjea los puntos que ganas en Retos." : "Consulta tu saldo y los beneficios disponibles.")}</p>
           </div>
           <div class="rw-balance" aria-label="Saldo de Puntos IMFRA">
             <span>Tu saldo</span>
@@ -239,8 +238,8 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
           <small>${currentLevel.next > state.points ? `${currentLevel.next - state.points} puntos para el siguiente nivel` : "Nivel máximo alcanzado"}</small>
         </section>
 
-        ${mode === "quiz" ? `<button type="button" class="rw-quiz-back" data-quiz-back><span aria-hidden="true">←</span> Entrenamiento</button>` : ""}
-        <div class="rw-grid">
+        <button type="button" class="rw-quiz-back" data-hub-back><span aria-hidden="true">←</span> Retos</button>
+        ${mode === "quiz" ? `<div class="rw-grid">
           <section class="rw-quiz rw-quiz--pro">
             <div class="rw-quiz__masthead">
               <div><span class="rw-eyebrow">Quiz Técnico IMFRA · 3 rondas</span><h2>Decisiones que ocurren en obra</h2></div>
@@ -296,7 +295,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             <div class="rw-how__points"><span>Programa diario</span><strong>${demoMode ? "12 desafíos · hasta 300 pts" : "12 desafíos · 3 rondas"}</strong><small>${demoMode ? "25 por acierto · 5 por participación" : "Casos, imágenes, medidas y decisiones"}</small></div>
             <p>${demoMode ? "Vista de prueba: el saldo es una simulación." : "Tus respuestas se guardan en tu cuenta."}</p>
           </aside>
-        </div>
+        </div>` : ""}
 
         <section class="rw-catalog">
           <div class="rw-section-head"><div><span class="rw-eyebrow">Catálogo piloto</span><h2>Más recompensas</h2></div><span class="rw-catalog__count">${rewardCatalog.filter((reward) => !reward.featured).length} beneficios adicionales</span></div>
@@ -336,7 +335,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
           </section>
         </div>` : ""}`;
 
-    container.querySelector<HTMLButtonElement>("[data-quiz-back]")?.addEventListener("click", () => {
+    container.querySelector<HTMLButtonElement>("[data-hub-back]")?.addEventListener("click", () => {
       window.IMFRATraining?.mount(container);
     });
 
