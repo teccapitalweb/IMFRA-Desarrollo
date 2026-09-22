@@ -4696,6 +4696,44 @@ const Sections = (function(){
               .replace(/\/edit$/, '/preview');
   }
 
+  function nombreArchivoMaterial(titulo, url) {
+    const desdeTitulo = String(titulo || '').trim();
+    if (/\.[a-z0-9]{2,5}$/i.test(desdeTitulo)) return desdeTitulo;
+    try {
+      const desdeUrl = decodeURIComponent(new URL(url).pathname.split('/').pop() || '');
+      if (desdeUrl) return desdeUrl;
+    } catch (error) {}
+    return `${desdeTitulo || 'material-imfra'}.pdf`;
+  }
+
+  function urlDescargaMaterial(url) {
+    if (!url) return '';
+    try {
+      const parsed = new URL(url);
+      const driveFile = parsed.hostname === 'drive.google.com' && parsed.pathname.match(/\/file\/d\/([^/]+)/);
+      const driveOpen = parsed.hostname === 'drive.google.com' && parsed.searchParams.get('id');
+      const driveId = driveFile?.[1] || driveOpen;
+      if (driveId) return `https://drive.google.com/uc?export=download&id=${encodeURIComponent(driveId)}`;
+    } catch (error) {}
+    return url;
+  }
+
+  window.descargarMaterialIMFRA = function(url, titulo) {
+    if (!url) {
+      Toast.info('Material pendiente', 'Este archivo todavía no tiene un enlace asignado');
+      return;
+    }
+    const enlace = document.createElement('a');
+    enlace.href = urlDescargaMaterial(url);
+    enlace.download = nombreArchivoMaterial(titulo, url);
+    enlace.target = '_blank';
+    enlace.rel = 'noopener noreferrer';
+    enlace.style.display = 'none';
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+  };
+
   window.abrirVisor = function(url, titulo, cursoId, numClase) {
     if (!url) return;
     const overlay = document.getElementById('visorOverlay');
@@ -4707,7 +4745,12 @@ const Sections = (function(){
 
     frame.src = convertirUrlDrive(url);
     titleEl.textContent = titulo || 'Visor';
-    if (dlEl) dlEl.href = url;
+    if (dlEl) {
+      dlEl.href = urlDescargaMaterial(url);
+      dlEl.download = nombreArchivoMaterial(titulo, url);
+      dlEl.style.display = 'inline-flex';
+      dlEl.title = 'Descargar archivo';
+    }
 
     // Botón "Marcar como vista" solo si es clase con cursoId+numClase
     if (markBtn) {
@@ -4842,7 +4885,7 @@ const Sections = (function(){
       Toast.info('Material pendiente', 'Este archivo todavía no tiene un enlace asignado');
       return;
     }
-    window.abrirVisor(material.url, material.titulo || 'Material del curso');
+    window.descargarMaterialIMFRA(material.url, material.titulo || 'Material del curso');
   };
 
   window.cerrarVisor = function() {
@@ -5581,15 +5624,15 @@ const Sections = (function(){
                   <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:${t.color};">${t.lbl}</span>
                   <span style="font-size:11px;color:var(--text-3);">·</span>
                   <span style="font-size:11px;color:${gratis?'var(--success)':'var(--text-3)'};">${gratis
-                    ? 'GRATIS · Click para ver'
+                    ? 'GRATIS · Click para descargar'
                     : (disponible
-                      ? 'Click para ver'
+                      ? 'Click para descargar'
                       : (window.UserState?.modo === 'vip' && diasMaterial > 0
                         ? `Disponible en ${diasMaterial} día${diasMaterial!==1?'s':''}`
                         : 'Activa tu membresía para abrir'))}</span>
                 </div>
               </div>
-              ${disponible ? `<svg class="ic" style="color:${gratis?'var(--success)':t.color};opacity:.7;flex-shrink:0;width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>` : ''}
+              ${disponible ? `<svg class="ic" style="color:${gratis?'var(--success)':t.color};opacity:.85;flex-shrink:0;width:16px;height:16px;"><use href="#i-download"/></svg>` : ''}
             </div>
           `;
         };
@@ -6870,7 +6913,7 @@ const Sections = (function(){
           </div>
           <div class="pdf-card__tags">
             ${disponible
-              ? `<span class="tag tag--soon" style="color:#0D0D0D;border-color:#34D399;background:#34D399;font-weight:700;">${gratis?'Gratis':'Disponible'}</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;background:linear-gradient(135deg, var(--primary), var(--highlight));color:#0D0D0D;cursor:pointer;" onclick="event.stopPropagation();if(typeof window.abrirVisor==='function'){window.abrirVisor('${(m.url||'').replace(/'/g,'%27')}','${tituloEsc.replace(/'/g,'&apos;')}');}"><svg class="ic"><use href="#i-download"/></svg>Abrir</button>`
+              ? `<span class="tag tag--soon" style="color:#0D0D0D;border-color:#34D399;background:#34D399;font-weight:700;">${gratis?'Gratis':'Disponible'}</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;background:linear-gradient(135deg, var(--primary), var(--highlight));color:#0D0D0D;cursor:pointer;" onclick="event.stopPropagation();if(typeof window.descargarMaterialIMFRA==='function'){window.descargarMaterialIMFRA('${(m.url||'').replace(/'/g,'%27')}','${tituloEsc.replace(/'/g,'&apos;')}');}"><svg class="ic"><use href="#i-download"/></svg>Descargar</button>`
               : `<span class="tag tag--soon">${window.UserState?.modo === 'vip' ? (diasFaltan === 1 ? 'Mañana' : 'En '+diasFaltan+' días') : 'Solo VIP'}</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;opacity:.55;cursor:not-allowed;" disabled><svg class="ic"><use href="#${window.UserState?.modo === 'vip'?'i-clock':'i-crown'}"/></svg>${window.UserState?.modo === 'vip'?'Disponible pronto':'Suscríbete'}</button>`
             }
           </div>
@@ -9874,8 +9917,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
           Marcar como vista
         </button>
-        <a id="visorDownload" class="visor-btn visor-btn--ghost" href="#" target="_blank" rel="noopener" title="Abrir en pestaña nueva">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+        <a id="visorDownload" class="visor-btn visor-btn--ghost" href="#" target="_blank" rel="noopener" title="Descargar archivo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4v12"/></svg>
         </a>
         <button id="visorClose" class="visor-btn visor-btn--close" title="Cerrar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

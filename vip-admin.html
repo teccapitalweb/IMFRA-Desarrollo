@@ -2849,7 +2849,7 @@ const Pages={
         <span style="background:color-mix(in srgb,#3B82F6 14%,transparent);color:#3B82F6;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;letter-spacing:.6px;padding:5px 8px;border-radius:6px;flex-shrink:0;margin-top:4px;white-space:nowrap;">MAT ${idx + 1}</span>
         <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;">
           <input type="text" class="input" placeholder="Título (ej. Manual de Obra.pdf)" value="${(m.titulo || '').replace(/"/g,'&quot;')}" data-mat-idx="${idx}" data-mat-campo="titulo" style="font-size:13px;padding:8px 11px;">
-          <input type="url" class="input" placeholder="URL de descarga (Google Drive, etc.)" value="${(m.url || '').replace(/"/g,'&quot;')}" data-mat-idx="${idx}" data-mat-campo="url" style="font-size:13px;padding:8px 11px;">
+          <input type="url" class="input" placeholder="URL pública de descarga (Bunny CDN, etc.)" value="${(m.url || '').replace(/"/g,'&quot;')}" data-mat-idx="${idx}" data-mat-campo="url" style="font-size:13px;padding:8px 11px;">
           <label style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-2);cursor:pointer;margin-top:2px;">
             <input type="checkbox" data-mat-idx="${idx}" data-mat-siempre="1" ${m.disponibleSiempre ? 'checked' : ''} style="cursor:pointer;">
             Disponible siempre (sin esperar desbloqueo)
@@ -3785,8 +3785,8 @@ const Pages={
 
         <div class="form-field form-field--full">
           <label class="label" for="mf-url">URL del archivo *</label>
-          <input type="url" class="input" id="mf-url" value="${(mat.url || '').replace(/"/g,'&quot;')}" placeholder="https://drive.google.com/file/d/…/view" required>
-          <div style="font-size:11px;color:var(--text-3);margin-top:5px;">Enlace público de Google Drive (compartir → "Cualquiera con el enlace")</div>
+          <input type="url" class="input" id="mf-url" value="${(mat.url || '').replace(/"/g,'&quot;')}" placeholder="https://tu-pull-zone.b-cdn.net/materiales/archivo.pdf" required>
+          <div style="font-size:11px;color:var(--text-3);margin-top:5px;">Usa la URL pública de Bunny CDN (Pull Zone) o cualquier enlace HTTPS descargable.</div>
         </div>
 
         <div class="form-field form-field--full">
