@@ -129,7 +129,7 @@ function mount(container: HTMLElement) {
     const current = level(state.xp);
     const pct = current.next === current.start ? 100 : Math.min(100, Math.round((state.xp - current.start) / (current.next - current.start) * 100));
     container.innerHTML = `<div class="tr-page fade-up">
-      <header class="tr-hero" data-illus="entrenamiento">
+      <header class="tr-hero">
         <div><span class="tr-kicker">Retos IMFRA</span><h1>Practica para <em>la obra real.</em></h1><p>Quiz, casos, tarjetas y recompensas.</p></div>
         <div class="tr-hero__stats"><div><span>Racha</span><strong>${streak(state.days)} días</strong></div><div><span>XP formativo</span><strong>${state.xp}</strong></div></div>
       </header>
@@ -157,47 +157,47 @@ function mount(container: HTMLElement) {
       <main class="tr-main">
         <div class="tr-section-head"><div><span>Entrenamiento aplicado</span><h2>Elige una modalidad</h2></div><small>${completedCases} casos · ${reviewedCards} tarjetas estudiadas</small></div>
         <div class="tr-modes">
-          <article class="tr-tile tr-tile--quiz">
+          <article class="tr-tile tr-tile--quiz" data-training-action="quiz">
             <div class="tr-tile__body">
               <span class="tr-tile__icon">${icon("i-bolt")}</span>
               <h3>Quiz Técnico</h3>
               <p>Responde y gana puntos</p>
               <span class="tr-tile__stat">12 desafíos · 3 rondas</span>
-              <button class="btn tr-tile__cta" data-training-action="quiz">Ir al quiz ${icon("i-arrow-right")}</button>
+              <button class="btn tr-tile__cta">Ir al quiz ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.quiz}</div>
           </article>
-          <article class="tr-tile tr-tile--case">
+          <article class="tr-tile tr-tile--case" data-training-action="cases">
             <div class="tr-tile__body">
               <span class="tr-tile__icon">${icon("i-briefcase")}</span>
               <h3>Casos de Obra</h3>
               <p>Analiza situaciones reales</p>
               <span class="tr-tile__stat">${trainingCases.length} expedientes</span>
-              <button class="btn tr-tile__cta" data-training-action="cases">Abrir casos ${icon("i-arrow-right")}</button>
+              <button class="btn tr-tile__cta">Abrir casos ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.case}</div>
           </article>
-          <article class="tr-tile tr-tile--flash">
+          <article class="tr-tile tr-tile--flash" data-training-action="flashcards">
             <div class="tr-tile__body">
               <span class="tr-tile__icon">${icon("i-book")}</span>
               <h3>Tarjetas</h3>
               <p>Repasa conceptos clave</p>
               <span class="tr-tile__stat">${flashcards.length} conceptos</span>
-              <button class="btn tr-tile__cta" data-training-action="flashcards">Repasar ${icon("i-arrow-right")}</button>
+              <button class="btn tr-tile__cta">Repasar ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.flash}</div>
           </article>
         </div>
         <section class="tr-rewards">
           <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Cambia tus puntos por herramientas reales</h2></div><div class="tr-rewards__balance"><span>Tu saldo</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
-          <div class="tr-rewards__row">${rewardChips.map((reward) => `<article class="tr-chip" style="--mode:${reward.accent}"><span>${icon(reward.category === "Software" ? "i-tools" : "i-book")}</span><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} pts</small></div></article>`).join("")}
+          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><span>${icon(reward.category === "Software" ? "i-tools" : "i-book")}</span><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} pts</small></div></button>`).join("")}
             <button class="tr-chip tr-chip--more" data-training-action="rewards"><span>${icon("i-gift")}</span><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
           </div>
         </section>
-        <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><div>${icon(item.icon)}</div><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong><small>${item.detail}</small></article>`).join("")}</div></section>
+        <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><div>${icon(item.icon)}</div><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
       </main>
       <aside class="tr-side">
-        <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong><small>${item.detail}</small></span><button data-training-action="${item.action}" aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>
+        <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}" data-training-action="${item.action}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong></span><button aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>
         <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>El XP formativo mide práctica. Los Puntos IMFRA canjeables se obtienen únicamente en actividades validadas.</p></section>
       </aside>
     </div>`);
@@ -234,19 +234,29 @@ function mount(container: HTMLElement) {
     const card = deck[cardIndex] || flashcards[0];
     const areas = ["Todas", ...new Set(flashcards.map((item) => item.area))];
     const learned = deck.filter((item) => (state.cards[item.id]?.confidence || 0) >= 2).length;
-    const areaIcon: Record<string,string> = { Seguridad:"i-shield-check", Concreto:"i-tools", Costos:"i-credit-card", Planeación:"i-chart-bar", Calidad:"i-check-circle", Documentación:"i-news", Supervisión:"i-clipboard-check" };
-    const answer = card.id === "f13"
-      ? `<ol class="tr-flash-answer-list"><li><b>1</b>Eliminar</li><li><b>2</b>Sustituir</li><li><b>3</b>Controles de ingeniería</li><li><b>4</b>Controles administrativos</li><li><b>5</b>Equipo de protección personal</li></ol>`
-      : `<p class="tr-flash-answer">${esc(card.back)}</p>`;
+    const hints = ["Identifica este término", "Pon a prueba tu memoria técnica", "Reconoce este concepto"];
+    const hint = hints[cardIndex % hints.length];
+    const tip = card.id === "f13"
+      ? `<div class="tr-fc-tip"><span>Clave rápida</span><ol><li><b>1</b>Eliminar</li><li><b>2</b>Sustituir</li><li><b>3</b>Ingeniería</li><li><b>4</b>Administrativos</li><li><b>5</b>EPP</li></ol></div>`
+      : "";
     shell(`<button class="tr-back" data-training-action="hub"><span style="display:inline-flex;transform:rotate(180deg)">${icon("i-arrow-right")}</span> Centro de entrenamiento</button>
       <div class="tr-section-head tr-section-head--page"><div><span>Repaso rápido</span><h2>Tarjetas técnicas</h2></div><small>${learned}/${deck.length} dominadas</small></div>
       <div class="tr-filter">${areas.map((area) => `<button class="${area === cardArea ? "is-active" : ""}" data-card-area="${esc(area)}">${esc(area)}</button>`).join("")}</div>
       <section class="tr-flash-layout">
         <article class="tr-flashcard ${cardFlipped ? "is-flipped" : ""}">
-          <header><span>${icon(areaIcon[card.area] || "i-book")}${esc(card.area)}</span><small>Tarjeta ${cardIndex + 1} de ${deck.length}</small></header>
-          ${cardFlipped
-            ? `<div class="tr-flashcard__answer"><span>${esc(card.front)}</span>${answer}</div><div class="tr-flash-actions"><button data-card-rate="1"><span>↻</span>Repasar</button><button data-card-rate="2"><span>☺</span>Entendido</button><button data-card-rate="3"><span>♕</span>Dominado</button></div>`
-            : `<div class="tr-flashcard__front"><div>${icon(areaIcon[card.area] || "i-book")}</div><h3>${esc(card.front)}</h3><p>¿Recuerdas qué significa?</p></div><button class="btn btn--accent tr-reveal" data-card-flip>Mostrar respuesta ${icon("i-arrow-right")}</button>`}
+          <div class="tr-fc-inner">
+            <div class="tr-fc-face tr-fc-front" style="background-image:linear-gradient(180deg,rgba(8,8,8,.12) 0%,rgba(8,8,8,.32) 42%,rgba(6,6,6,.95) 100%),url('assets/flashcards/${card.id}.jpg')">
+              <div class="tr-fc-top"><span class="tr-fc-cat">${esc(card.area)}</span><span class="tr-fc-progress">${cardIndex + 1} de ${deck.length}</span></div>
+              <div class="tr-fc-main"><h3 class="tr-fc-term">${esc(card.front)}</h3><p class="tr-fc-hint">${hint}</p><button class="btn tr-fc-cta" data-card-flip>Mostrar respuesta ${icon("i-arrow-right")}</button></div>
+            </div>
+            <div class="tr-fc-face tr-fc-back">
+              <span class="tr-fc-badge">Respuesta</span>
+              <h4 class="tr-fc-back-term">${esc(card.front)}</h4>
+              <p class="tr-fc-def">${esc(card.back)}</p>
+              ${tip}
+              <div class="tr-flash-actions"><button data-card-rate="1"><span>↻</span>Repasar</button><button data-card-rate="2"><span>☺</span>Entendido</button><button data-card-rate="3"><span>♕</span>Dominado</button></div>
+            </div>
+          </div>
         </article>
       </section>`);
   }
