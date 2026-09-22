@@ -149,6 +149,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
   let showQuizSummary = !firstUnanswered;
 
   const render = () => {
+    const demoMode = isRewardsDemo();
     const question = quizQuestions.find((item) => item.id === activeQuestionId) || quizQuestions[0];
     const activeRound = quizRounds[activeRoundIndex] || quizRounds[0];
     const roundInfo = QUIZ_ROUNDS[activeRoundIndex] || QUIZ_ROUNDS[0];
@@ -175,8 +176,8 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         <section class="rw-hero">
           <div class="rw-hero__copy">
             <span class="rw-eyebrow">${mode === "quiz" ? "Entrenamiento · Quiz técnico" : "Recompensas IMFRA"}</span>
-            <h1>${mode === "quiz" ? "Responde y <em>gana puntos.</em>" : "Tus puntos, tus <em>recompensas.</em>"}</h1>
-            <p>${mode === "quiz" ? "12 desafíos en 3 rondas." : "Canjea los puntos que ganas en Entrenamiento."}</p>
+            <h1>${mode === "quiz" ? (demoMode ? "Responde y <em>gana puntos.</em>" : "Pon a prueba tu <em>criterio técnico.</em>") : "Tus puntos, tus <em>recompensas.</em>"}</h1>
+            <p>${mode === "quiz" ? "12 desafíos en 3 rondas." : (demoMode ? "Canjea los puntos que ganas en Entrenamiento." : "Consulta tu saldo y los beneficios disponibles.")}</p>
             ${mode === "rewards" ? `<a class="btn btn--ghost rw-hero__link" href="#entrenamiento">Ganar puntos <span aria-hidden="true">→</span></a>` : ""}
           </div>
           <div class="rw-balance" aria-label="Saldo de Puntos IMFRA">
@@ -188,7 +189,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
 
         <div class="rw-private-note">
           <svg class="ic"><use href="#i-shield-check"/></svg>
-          <div><strong>${isRewardsDemo() ? "Modo de prueba" : "Canje seguro"}</strong><span>${isRewardsDemo() ? "No genera licencias reales." : "El servidor valida cada canje."}</span></div>
+          <div><strong>${demoMode ? "Modo de prueba" : "Cuenta protegida"}</strong><span>${demoMode ? "No genera licencias reales." : "Tus intentos se guardan de forma segura."}</span></div>
         </div>
 
         ${featuredReward ? `<section class="rw-featured ${featuredAccess && !featuredPending ? "is-active" : ""} ${featuredPending ? "is-pending" : ""}" style="--reward-accent:${featuredReward.accent}">
@@ -255,10 +256,10 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             </div>
             ${showQuizSummary ? `<div class="rw-quiz-summary">
               <div class="rw-quiz-summary__score"><strong>${Math.round((correctCount / quizQuestions.length) * 100)}%</strong><span>Precisión técnica</span></div>
-              <div class="rw-quiz-summary__copy"><span class="rw-eyebrow">Programa completado</span><h3>${correctCount >= 9 ? "Criterio técnico sólido" : "La práctica fortalece el criterio"}</h3><p>Terminaste las tres rondas, respondiste correctamente ${correctCount} de ${quizQuestions.length} desafíos y sumaste <strong>${quizPoints} Puntos IMFRA</strong>.</p><small>Mañana encontrarás una nueva combinación de casos, fotografías y ejercicios.</small></div>
+              <div class="rw-quiz-summary__copy"><span class="rw-eyebrow">Programa completado</span><h3>${correctCount >= 9 ? "Criterio técnico sólido" : "La práctica fortalece el criterio"}</h3><p>Terminaste las tres rondas y respondiste correctamente <strong>${correctCount} de ${quizQuestions.length}</strong> desafíos.${demoMode ? ` Sumaste <strong>${quizPoints} Puntos IMFRA</strong>.` : " Tu avance quedó registrado."}</p><small>Mañana encontrarás una nueva combinación de casos, fotografías y ejercicios.</small></div>
             </div>` : showRoundSummary ? `<div class="rw-round-summary">
               <span class="rw-round-summary__number">${activeRoundIndex + 1}</span>
-              <div><span class="rw-eyebrow">Ronda completada</span><h3>${roundInfo.name}</h3><p>Lograste <strong>${roundCorrect} de ${activeRound.length}</strong> respuestas correctas y sumaste <strong>${roundPoints} puntos</strong> en esta etapa.</p><button type="button" class="btn btn--accent" data-start-next-round>${activeRoundIndex === quizRounds.length - 1 ? "Ver resultado final" : `Comenzar ronda ${activeRoundIndex + 2}`} <span aria-hidden="true">→</span></button></div>
+              <div><span class="rw-eyebrow">Ronda completada</span><h3>${roundInfo.name}</h3><p>Lograste <strong>${roundCorrect} de ${activeRound.length}</strong> respuestas correctas.${demoMode ? ` Sumaste <strong>${roundPoints} puntos</strong>.` : " Tu avance quedó registrado."}</p><button type="button" class="btn btn--accent" data-start-next-round>${activeRoundIndex === quizRounds.length - 1 ? "Ver resultado final" : `Comenzar ronda ${activeRoundIndex + 2}`} <span aria-hidden="true">→</span></button></div>
             </div>` : `<div class="rw-question-stage">
               <div class="rw-round-intro"><span>Ronda ${activeRoundIndex + 1} de ${quizRounds.length}</span><strong>${roundInfo.name}</strong><small>${roundInfo.description}</small></div>
               <div class="rw-question-meta"><span>${questionTypeLabel(question.type)}</span><span>${question.difficulty}</span><span>${escapeHtml(question.area)}</span></div>
@@ -278,7 +279,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
                   </button>`;
                 }).join("")}
               </div>
-              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? `Correcto · +${answered.earned} puntos` : `Respuesta registrada · +${answered.earned} puntos`}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${roundAnswers.length === activeRound.length ? "Ver resultado de la ronda" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
+              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${demoMode ? (answered.correct ? `Correcto · +${answered.earned} puntos` : `Respuesta registrada · +${answered.earned} puntos`) : (answered.correct ? "Correcto · avance registrado" : "Respuesta registrada")}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${roundAnswers.length === activeRound.length ? "Ver resultado de la ronda" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
             </div>`}
           </section>
 
@@ -292,8 +293,8 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
               <li><b>03</b><span>Identificación mediante imágenes</span></li>
               <li><b>04</b><span>Explicación técnica de cada respuesta</span></li>
             </ul>
-            <div class="rw-how__points"><span>Programa diario</span><strong>12 desafíos · hasta 300 pts</strong><small>3 rondas · 25 por acierto · 5 por participación</small></div>
-            <p>Antes de publicar, los intentos y puntos se validarán en el servidor.</p>
+            <div class="rw-how__points"><span>Programa diario</span><strong>${demoMode ? "12 desafíos · hasta 300 pts" : "12 desafíos · 3 rondas"}</strong><small>${demoMode ? "25 por acierto · 5 por participación" : "Casos, imágenes, medidas y decisiones"}</small></div>
+            <p>${demoMode ? "Vista de prueba: el saldo es una simulación." : "Tus respuestas se guardan en tu cuenta."}</p>
           </aside>
         </div>
 
@@ -347,7 +348,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         if (state.answered[key]) return;
         const selected = Number(button.dataset.answer);
         const correct = selected === answeredQuestion.correct;
-        const earned = correct ? 25 : 5;
+        const earned = isRewardsDemo() ? (correct ? 25 : 5) : 0;
         if (isRewardsDemo()) state.points += earned;
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
