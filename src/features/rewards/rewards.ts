@@ -19,7 +19,7 @@ interface RewardState {
 
 declare global {
   interface Window {
-    IMFRARewards: { mount(container: HTMLElement): void };
+    IMFRARewards: { mount(container: HTMLElement): void; mountQuiz(container: HTMLElement): void };
     UserState?: { uid?: string; email?: string; modo?: string };
   }
 }
@@ -136,7 +136,7 @@ function renderOptionVisual(kind: NonNullable<RewardQuestion["optionVisuals"]>[n
   return `<svg ${base}><path d="M78 8h24v33h24l31 48H23l31-48h24z" fill="#d9dce2" stroke="#596275" stroke-width="2"/><g stroke="#f59d1a" stroke-width="2"><path d="M38 78h104M48 64h84"/>${[52,77,102,127].map(x=>`<path d="M${x} 57v26"/>`).join("")}</g></svg>`;
 }
 
-function mount(container: HTMLElement) {
+function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
   let state = readState();
   let pendingRewardId: string | null = null;
   let redemptionError = "";
@@ -171,12 +171,13 @@ function mount(container: HTMLElement) {
     const pendingReward = rewardCatalog.find((reward) => reward.id === pendingRewardId);
 
     container.innerHTML = `
-      <div class="rw-page fade-up">
+      <div class="rw-page rw-page--${mode} fade-up">
         <section class="rw-hero">
           <div class="rw-hero__copy">
-            <span class="rw-eyebrow">Programa piloto · IMFRA v2</span>
-            <h1>Aprende, suma puntos y obtén <em>recompensas profesionales.</em></h1>
-            <p>Resuelve retos de ingeniería y convierte tu constancia en acceso a software y recursos para obra.</p>
+            <span class="rw-eyebrow">${mode === "quiz" ? "Entrenamiento · Quiz técnico" : "Recompensas IMFRA"}</span>
+            <h1>${mode === "quiz" ? "Responde y <em>gana puntos.</em>" : "Tus puntos, tus <em>recompensas.</em>"}</h1>
+            <p>${mode === "quiz" ? "12 desafíos en 3 rondas." : "Canjea los puntos que ganas en Entrenamiento."}</p>
+            ${mode === "rewards" ? `<a class="btn btn--ghost rw-hero__link" href="#entrenamiento">Ganar puntos <span aria-hidden="true">→</span></a>` : ""}
           </div>
           <div class="rw-balance" aria-label="Saldo de Puntos IMFRA">
             <span>Tu saldo</span>
@@ -187,7 +188,7 @@ function mount(container: HTMLElement) {
 
         <div class="rw-private-note">
           <svg class="ic"><use href="#i-shield-check"/></svg>
-          <div><strong>${isRewardsDemo() ? "Vista privada de desarrollo" : "Canje con validación segura"}</strong><span>${isRewardsDemo() ? "Este flujo funciona como prototipo, pero todavía no genera una licencia real ni modifica el sistema de IMDAC." : "Las solicitudes se validan en el servidor antes de descontar puntos o habilitar un beneficio."}</span></div>
+          <div><strong>${isRewardsDemo() ? "Modo de prueba" : "Canje seguro"}</strong><span>${isRewardsDemo() ? "No genera licencias reales." : "El servidor valida cada canje."}</span></div>
         </div>
 
         ${featuredReward ? `<section class="rw-featured ${featuredAccess && !featuredPending ? "is-active" : ""} ${featuredPending ? "is-pending" : ""}" style="--reward-accent:${featuredReward.accent}">
@@ -237,6 +238,7 @@ function mount(container: HTMLElement) {
           <small>${currentLevel.next > state.points ? `${currentLevel.next - state.points} puntos para el siguiente nivel` : "Nivel máximo alcanzado"}</small>
         </section>
 
+        ${mode === "quiz" ? `<button type="button" class="rw-quiz-back" data-quiz-back><span aria-hidden="true">←</span> Entrenamiento</button>` : ""}
         <div class="rw-grid">
           <section class="rw-quiz rw-quiz--pro">
             <div class="rw-quiz__masthead">
@@ -333,6 +335,10 @@ function mount(container: HTMLElement) {
           </section>
         </div>` : ""}`;
 
+    container.querySelector<HTMLButtonElement>("[data-quiz-back]")?.addEventListener("click", () => {
+      window.IMFRATraining?.mount(container);
+    });
+
     container.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => {
       button.addEventListener("click", () => {
         const answeredQuestion = quizQuestions.find((item) => item.id === button.dataset.question);
@@ -425,10 +431,11 @@ function mount(container: HTMLElement) {
     saveState(state);
     render();
   });
-  if (new URLSearchParams(location.search).has("quiz")) {
+  if (mode === "quiz") {
     requestAnimationFrame(() => container.querySelector(".rw-quiz")?.scrollIntoView({ behavior: "auto", block: "start" }));
   }
 }
 
-window.IMFRARewards = { mount };
+const mountQuiz = (container: HTMLElement) => mount(container, "quiz");
+window.IMFRARewards = { mount, mountQuiz };
 window.dispatchEvent(new CustomEvent("imfra:rewards-ready"));

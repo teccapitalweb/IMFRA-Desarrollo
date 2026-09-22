@@ -104,7 +104,7 @@ function mount(container: HTMLElement) {
     const cardsThisWeek = Object.values(state.cards).filter((item) => new Date(item.lastReviewed).getTime() >= start).length;
     const quiz = quizProgressToday();
     return [
-      { label: "Completa el programa técnico", detail: `${Math.min(quiz, 12)} de 12 desafíos hoy`, value: Math.min(quiz, 12), goal: 12, href: "#recompensas" },
+      { label: "Completa el quiz técnico", detail: `${Math.min(quiz, 12)} de 12 respuestas hoy`, value: Math.min(quiz, 12), goal: 12, action: "quiz" },
       { label: "Resuelve casos de obra", detail: `${Math.min(casesThisWeek, 2)} de 2 esta semana`, value: Math.min(casesThisWeek, 2), goal: 2, action: "cases" },
       { label: "Activa tu memoria", detail: `${Math.min(cardsThisWeek, 8)} de 8 tarjetas esta semana`, value: Math.min(cardsThisWeek, 8), goal: 8, action: "flashcards" }
     ];
@@ -147,7 +147,7 @@ function mount(container: HTMLElement) {
         <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><div>${icon(item.icon)}</div><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong><small>${item.detail}</small></article>`).join("")}</div></section>
       </main>
       <aside class="tr-side">
-        <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong><small>${item.detail}</small></span>${item.href ? `<a href="${item.href}" aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</a>` : `<button data-training-action="${item.action}" aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button>`}</li>`).join("")}</ul></section>
+        <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong><small>${item.detail}</small></span><button data-training-action="${item.action}" aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>
         <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>El XP formativo mide práctica. Los Puntos IMFRA canjeables se obtienen únicamente en actividades validadas.</p></section>
       </aside>
     </div>`);
@@ -204,7 +204,11 @@ function mount(container: HTMLElement) {
   function bind() {
     container.querySelectorAll<HTMLElement>("[data-training-action]").forEach((element) => element.addEventListener("click", () => {
       const action = element.dataset.trainingAction;
-      if (action === "quiz") { location.hash = "recompensas"; return; }
+      if (action === "quiz") {
+        if (window.IMFRARewards) window.IMFRARewards.mountQuiz(container);
+        else window.addEventListener("imfra:rewards-ready", () => window.IMFRARewards?.mountQuiz(container), { once: true });
+        return;
+      }
       if (action === "hub") { renderHub(); goTo(); }
       if (action === "cases") { renderCases(); goTo(".tr-back"); }
       if (action === "flashcards") { rebuildDeck(); renderFlashcards(); goTo(".tr-back"); }
