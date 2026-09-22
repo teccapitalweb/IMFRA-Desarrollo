@@ -1,5 +1,9 @@
 import corrosionImage from "../../../assets/quiz/concreto-corrosion-acero.webp";
 import depositosImage from "../../../assets/quiz/concreto-depositos-blancos.webp";
+import estructuraColumnaImage from "../../../assets/quiz/estructura-columna.jpg";
+import estructuraVigaDetalleImage from "../../../assets/quiz/estructura-viga-detalle.jpg";
+import estructuraVigaReforzadaImage from "../../../assets/quiz/estructura-viga-reforzada.jpg";
+import estructuraZapataImage from "../../../assets/quiz/estructura-zapata.jpg";
 import grietaImage from "../../../assets/quiz/concreto-grieta.webp";
 import nidoGravaImage from "../../../assets/quiz/concreto-nido-grava.webp";
 
@@ -132,7 +136,12 @@ export const rewardQuestions: RewardQuestion[] = [
     difficulty: "Fundamental",
     question: "¿Cuál esquema corresponde a una viga de concreto reforzado con acero longitudinal y estribos cerrados?",
     context: "Selecciona el detalle que representa correctamente el elemento descrito.",
-    optionVisuals: ["slab", "beam", "footing", "column"],
+    optionImages: [
+      estructuraColumnaImage,
+      estructuraVigaReforzadaImage,
+      estructuraZapataImage,
+      estructuraVigaDetalleImage
+    ],
     options: ["Detalle A", "Detalle B", "Detalle C", "Detalle D"],
     correct: 1,
     explanation: "La viga se representa como un elemento horizontal con barras longitudinales y estribos cerrados distribuidos a lo largo de su claro."
