@@ -80,6 +80,13 @@ function rewardsSnapshot() {
   } catch { return { points: 0 }; }
 }
 
+function chipIcon(rewardId: string) {
+  if (rewardId === "imdac-control-obra-30d") return "assets/icons/chip-imdac.png";
+  if (rewardId === "software-presupuestos-7d") return "assets/icons/chip-presupuestos.png";
+  if (rewardId === "pack-plantillas-pro") return "assets/icons/chip-plantillas.png";
+  return "assets/icons/chip-catalogo.png";
+}
+
 const tileArt = {
   quiz: `<img src="assets/retos/quiz-tecnico.png" alt="" loading="lazy">`,
   case: `<img src="assets/retos/casos-obra.png" alt="" loading="lazy">`,
@@ -190,8 +197,8 @@ function mount(container: HTMLElement) {
         </div>
         <section class="tr-rewards">
           <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Cambia tus puntos por herramientas reales</h2></div><div class="tr-rewards__balance"><span>Tu saldo</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
-          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><span>${icon(reward.category === "Software" ? "i-tools" : "i-book")}</span><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} pts</small></div></button>`).join("")}
-            <button class="tr-chip tr-chip--more" data-training-action="rewards"><span>${icon("i-gift")}</span><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
+          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} pts</small></div></button>`).join("")}
+            <button class="tr-chip tr-chip--more" data-training-action="rewards"><img class="tr-chip__icon" src="assets/icons/chip-catalogo.png" alt="" loading="lazy"><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
           </div>
         </section>
         <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><img src="${item.icon}" alt="" loading="lazy"><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
