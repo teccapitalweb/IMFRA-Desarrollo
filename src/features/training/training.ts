@@ -244,7 +244,7 @@ function mount(container: HTMLElement) {
     return `<section class="tr-league">
       <div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div><span class="tr-league__verified">${icon("i-shield-check")} Datos de cursos</span></div>
       <p class="tr-league__intro">Aquí se reconoce a quienes convierten la constancia en resultados. Las clases y cursos terminados valen más que una visita.</p>
-      <div class="tr-podium">${podium.map((entry) => `<article class="tr-podium-card tr-podium-card--${entry.rank} ${entry.uid === window.UserState?.uid ? "is-you" : ""}"><span class="tr-podium-rank">#${entry.rank}</span><div class="tr-podium-avatar">${avatar(entry)}</div><strong>${esc(entry.name)}</strong><small>${entry.courses} cursos · ${entry.classes} clases</small><b>${entry.xp} XP</b></article>`).join("")}</div>
+      <div class="tr-podium">${podium.map((entry) => `<article class="tr-podium-card tr-podium-card--${entry.rank} ${entry.uid === window.UserState?.uid ? "is-you" : ""}"><span class="tr-podium-rank">#${entry.rank}</span><div class="tr-podium-avatar">${avatar(entry)}</div><strong>${esc(entry.name)}</strong><small>${entry.courses} curso${entry.courses === 1 ? "" : "s"} · ${entry.classes} clase${entry.classes === 1 ? "" : "s"}</small><b>${entry.xp} XP</b></article>`).join("")}</div>
       <div class="tr-league-table">${rows.map(row).join("")}</div>
       ${league.current && league.current.rank > 10 ? `<div class="tr-league-you"><span>Tu posición actual</span>${row(league.current)}</div>` : ""}
       <p class="tr-league__privacy">${icon("i-shield-check")} Solo mostramos nombre, foto y avance de aprendizaje. Nunca datos de contacto.</p>
