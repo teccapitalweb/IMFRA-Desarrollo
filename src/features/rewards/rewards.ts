@@ -2,6 +2,7 @@ import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
 import { isRewardsDemo, loadRewardBalance, submitQuizAttempt, submitRewardRequest } from "./cloud";
 import { celebrate } from "../shared/celebration";
+import { awardMaterialForCorrect } from "../material-rewards/material-rewards";
 
 interface Redemption {
   id: string;
@@ -353,7 +354,10 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         if (isRewardsDemo()) state.points += earned;
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
-        if (correct) celebrate("subtle");
+        if (correct) {
+          const unlocked = awardMaterialForCorrect(`reto:${key}`, "Reto de Obra");
+          if (!unlocked) celebrate("subtle");
+        }
         if (!isRewardsDemo()) void submitQuizAttempt(answeredQuestion.id, correct).catch((error) => console.warn("[rewards] Intento pendiente de sincronización", error));
         render();
       });

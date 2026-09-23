@@ -2,12 +2,19 @@
 // No contiene credenciales: usa exclusivamente el Pull Zone público.
 (function () {
   const CDN = 'https://imframateriales.b-cdn.net/';
-  const material = (archivo, titulo, cursoTitulo) => ({
+  const material = (archivo, titulo, cursoTitulo, opciones) => ({
     archivo,
     titulo,
     cursoTitulo,
-    url: CDN + encodeURIComponent(archivo)
+    url: CDN + encodeURIComponent(archivo),
+    ...(opciones || {})
   });
+  const recompensa = (archivo, titulo, rewardOrder) => material(
+    archivo,
+    titulo,
+    'Recompensas de obra',
+    { esRecompensa: true, rewardOrder, area: 'Control de obra' }
+  );
 
   window.IMFRA_MATERIALS_CATALOG = [
     material(
@@ -76,10 +83,10 @@
       'Clase 10 · Cierre del caso aplicado',
       'Generadores y Estimaciones desde cero'
     ),
-    material(
+    recompensa(
       'Calculadoras_Excel_Obra_IMFRAValor.xlsx',
       'Calculadoras Excel para obra',
-      'Generadores y Estimaciones desde cero'
+      3
     ),
 
     material(
@@ -97,35 +104,35 @@
       'Plantilla de Reporte Semanal de Avance del Superintendente',
       'Superintendencia de obra'
     ),
-    material(
+    recompensa(
       'Caso_Practico_Recuperacion_de_Obra_IMFRAValor.pdf',
       'Caso práctico de recuperación de obra',
-      'Superintendencia de obra'
+      1
     ),
-    material(
+    recompensa(
       'Plantillas_Control_Integral_Obra_IMFRAValor.xlsx',
       'Plantillas para control integral de obra',
-      'Superintendencia de obra'
+      2
     ),
-    material(
+    recompensa(
       'Formatos_Word_Control_de_Obra_IMFRAValor.docx',
       'Formatos Word para control de obra',
-      'Superintendencia de obra'
+      4
     ),
-    material(
+    recompensa(
       'Checklist_Integral_de_Obra_IMFRAValor.xlsx',
       'Checklist integral de obra',
-      'Superintendencia de obra'
+      5
     ),
-    material(
+    recompensa(
       'Control_Integral_de_Obra_IMFRAValor.xlsx',
       'Control integral de obra',
-      'Superintendencia de obra'
+      6
     ),
-    material(
+    recompensa(
       'Manual_Tecnico_Control_Integral_de_Obra_IMFRAValor.pdf',
       'Manual técnico de control integral de obra',
-      'Superintendencia de obra'
+      7
     )
   ];
 })();

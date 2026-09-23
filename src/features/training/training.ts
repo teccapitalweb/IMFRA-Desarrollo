@@ -4,6 +4,7 @@ import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
 import { celebrate } from "../shared/celebration";
+import { awardMaterialForCorrect } from "../material-rewards/material-rewards";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -336,7 +337,8 @@ function mount(container: HTMLElement) {
       caseAnswer = Number(button.dataset.caseAnswer);
       if (caseAnswer === selectedCase.steps[caseStep].correct) {
         caseScore += 1;
-        celebrate("subtle");
+        const unlocked = awardMaterialForCorrect(`inspector:${selectedCase.id}:${caseStep}`, "Inspector de Obra");
+        if (!unlocked) celebrate("subtle");
       }
       renderCase();
     }));

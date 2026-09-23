@@ -4545,8 +4545,20 @@ const Sections = (function(){
     return String(cursoId) === primerCursoGratisId() && indexMaterial === 0;
   }
 
+  function cantidadRecompensasMateriales() {
+    if (window.IMFRAMaterialRewards?.getUnlockedCount) return window.IMFRAMaterialRewards.getUnlockedCount();
+    const account = window.UserState?.uid || window.UserState?.email || 'guest';
+    let local = {};
+    try { local = JSON.parse(localStorage.getItem(`imfra:v2:material-rewards:${account}`) || '{}'); } catch(e) {}
+    const remoto = window.memberData?.materialRewards || {};
+    return Math.max(Number(local.unlockedCount) || 0, Number(remoto.unlockedCount) || 0);
+  }
+
   function materialDesbloqueado(cursoId, indexMaterial, material) {
     if (esAdminReal()) return true;
+    if (material?.esRecompensa === true) {
+      return cantidadRecompensasMateriales() >= Number(material.rewardOrder || (indexMaterial + 1));
+    }
     if (material?.disponibleSiempre === true) return true;
     if (esMaterialGratisGlobal(cursoId, indexMaterial)) return true;
     if (window.UserState?.modo !== 'vip') return false;
@@ -4557,6 +4569,7 @@ const Sections = (function(){
 
   function diasParaDesbloquearMaterial(cursoId, indexMaterial, material) {
     if (materialDesbloqueado(cursoId, indexMaterial, material)) return 0;
+    if (material?.esRecompensa === true) return null;
     if (window.UserState?.modo !== 'vip') return null;
     const curso = cursos.find(c => String(c.id) === String(cursoId));
     const indexCurso = cursos.findIndex(c => String(c.id) === String(cursoId));
@@ -4896,7 +4909,7 @@ const Sections = (function(){
 
   window.abrirMaterialIMFRA = function(cursoId, materialIdx) {
     const curso = cursos.find(x => String(x.id) === String(cursoId));
-    const material = curso?.materiales?.[materialIdx];
+    const material = _materialesDelCurso(cursoId)[materialIdx];
     if (!material) {
       Toast.error('Material no encontrado', 'Actualiza la página e intenta de nuevo');
       return;
@@ -5522,7 +5535,7 @@ const Sections = (function(){
             ${c.instructor ? `<span><svg class="ic"><use href="#i-user"/></svg>${c.instructor.split(' ').slice(-1)[0]}</span>` : ''}
             ${c.horas ? `<span><svg class="ic"><use href="#i-clock"/></svg>${c.horas}h</span>` : ''}
             ${c.sesiones?.length ? `<span><svg class="ic"><use href="#i-book"/></svg>${c.sesiones.length} clase${c.sesiones.length!==1?'s':''}</span>` : ''}
-            ${c.materiales?.length ? `<span><svg class="ic"><use href="#i-news"/></svg>${c.materiales.length} PDF${c.materiales.length!==1?'s':''}</span>` : ''}
+            ${_materialesDelCurso(c.id).length ? `<span><svg class="ic"><use href="#i-news"/></svg>${_materialesDelCurso(c.id).length} material${_materialesDelCurso(c.id).length!==1?'es':''}</span>` : ''}
           </div>
         </div>
         ${!desbloqueado ? `<div class="lock-overlay" aria-hidden="true">
@@ -5553,224 +5566,74 @@ const Sections = (function(){
     }
 
     const portada = c.portada || PORTADA_DEFAULT;
-    const colorArea = COLOR_AREA[c.area] || '#F59D1A';
     const iconArea = ICON_AREA[c.area] || 'i-book';
+    const cursoId = c.id;
+    const sesiones = Array.isArray(c.sesiones) ? c.sesiones : [];
+    const materialesCurso = _materialesDelCurso(cursoId);
+    const progCurso = getProgresoCurso(cursoId);
+    const pct = progresoCursoPct(cursoId, sesiones.length);
+    const siguienteClase = Math.max(0, sesiones.findIndex((s, i) => claseDesbloqueada(cursoId, i, sesiones) && !progCurso.clasesVistas.includes(s.numero || i + 1)));
 
-    // Hero con imagen de portada de fondo
-    const heroBg = `background:linear-gradient(135deg,rgba(0,0,0,.35),rgba(0,0,0,.76)),url('${portada}');background-size:cover;background-position:center;border-radius:4px;border-left:3px solid var(--primary);padding:24px;color:#fff;margin-bottom:18px;`;
+    const clasesHtml = sesiones.length ? sesiones.map((s, i) => {
+      const numSes = s.numero || i + 1;
+      const vista = progCurso.clasesVistas.includes(numSes);
+      const abierta = claseDesbloqueada(cursoId, i, sesiones);
+      const gratis = esClaseGratisGlobal(cursoId, i, sesiones);
+      const motivo = abierta ? null : motivoBloqueoClase(cursoId, i, sesiones);
+      const detalle = vista ? 'Completada · vuelve a verla cuando quieras'
+        : abierta ? (gratis ? 'Clase gratuita · lista para comenzar' : 'Disponible ahora')
+        : motivo?.tipo === 'secuencia' ? `Completa primero la clase ${motivo.numPrev}` : 'Contenido bloqueado';
+      return `<button type="button" class="course-lesson ${vista?'is-complete':''} ${!abierta?'is-locked':''}" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
+        <span class="course-lesson__rail"><b>${vista?'✓':abierta?numSes:'🔒'}</b></span>
+        <span class="course-lesson__copy"><strong>${s.titulo || `Clase ${numSes}`}</strong><small>${detalle}</small></span>
+        <span class="course-lesson__action"><svg class="ic"><use href="#${abierta?'i-play':'i-shield-check'}"/></svg></span>
+      </button>`;
+    }).join('') : `<div class="course-detail-empty">Las clases de este curso se están preparando.</div>`;
 
-    // Body con sesiones (clases) y materiales reales
-    let bodyContent = `
-      <div style="${heroBg}">
-        <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
-          <span class="tag tag--soon" style="color:#fff;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12);">${c.area}</span>
-          <span class="tag tag--soon" style="color:#fff;border-color:rgba(255,255,255,.4);background:rgba(255,255,255,.12);">${c.nivel}</span>
-          ${c.disponibleSiempre ? `<span class="tag tag--soon" style="color:#0D0D0D;border-color:var(--success);background:var(--success);font-weight:700;">DISPONIBLE</span>` : ''}
+    const materialesHtml = materialesCurso.length ? materialesCurso.map((material, i) => {
+      const tipo = _inferirTipoMaterial(material.url);
+      const tipoLabel = {excel:'Excel',pdf:'PDF',ppt:'Presentación',doc:'Word'}[tipo] || 'Archivo';
+      const disponible = materialDesbloqueado(cursoId, i, material);
+      const gratis = esMaterialGratisGlobal(cursoId, i);
+      return `<article class="course-material ${!disponible?'is-locked':''}" onclick="window.abrirMaterialIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
+        <span class="course-material__icon"><svg class="ic"><use href="#${disponible?'i-news':'i-shield-check'}"/></svg></span>
+        <span class="course-material__copy"><strong>${material.titulo || 'Material del curso'}</strong><small>${tipoLabel} · ${gratis?'Acceso gratuito':disponible?'Disponible con este curso':'Se habilita con tu acceso'}</small></span>
+        ${disponible ? `<button type="button" class="course-material__download" title="Descargar" aria-label="Descargar ${String(material.titulo||'material').replace(/"/g,'&quot;')}" onclick="event.stopPropagation();window.descargarMaterialIMFRA('${(material.url||'').replace(/'/g,'%27')}','${String(material.titulo||'Material').replace(/'/g,'&apos;')}')"><svg class="ic"><use href="#i-download"/></svg></button>` : ''}
+      </article>`;
+    }).join('') : `<div class="course-detail-empty">Este curso todavía no tiene archivos complementarios.</div>`;
+
+    const bodyContent = `<div class="course-detail">
+      <section class="course-detail-hero" style="background-image:linear-gradient(90deg,rgba(9,9,8,.92),rgba(9,9,8,.34)),url('${portada}')">
+        <div class="course-detail-hero__copy">
+          <div class="course-detail-hero__tags"><span>${c.area || 'Construcción'}</span><span>${c.nivel || 'Profesional'}</span><span>${sesiones.length} clases</span></div>
+          <h2>${c.titulo}</h2>
+          <p><b>${c.instructor || 'Equipo IMFRA'}</b><span>Curso profesional · ${c.horas ? `${c.horas} h` : 'a tu ritmo'}</span></p>
         </div>
-        <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1.2;margin-bottom:8px;">${c.titulo}</h2>
-        <div style="display:flex;gap:14px;font-size:12px;opacity:.9;flex-wrap:wrap;">
-          ${c.instructor ? `<span><svg class="ic" style="color:#fff;"><use href="#i-user"/></svg> ${c.instructor}</span>` : ''}
-          ${c.horas ? `<span><svg class="ic" style="color:#fff;"><use href="#i-clock"/></svg> ${c.horas}h</span>` : ''}
-          ${c.sesiones?.length ? `<span><svg class="ic" style="color:#fff;"><use href="#i-book"/></svg> ${c.sesiones.length} clase${c.sesiones.length!==1?'s':''}</span>` : ''}
-        </div>
-      </div>
-      <p style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:18px;">${c.descripcion || c.desc || ''}</p>
-    `;
+        ${desbloqueado && sesiones.length ? `<button type="button" class="course-detail-hero__start" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${siguienteClase})" data-bypass-paywall="true">${pct ? 'Continuar curso' : 'Empezar curso'}<svg class="ic"><use href="#i-play"/></svg></button>` : ''}
+      </section>
+      <p class="course-detail__description">${c.descripcion || c.desc || ''}</p>
+      ${!desbloqueado ? `<section class="course-detail-lock"><svg class="ic"><use href="#i-shield-check"/></svg><div><strong>Tu siguiente curso está en camino</strong><p>Se habilitará en ${diasFalta} día${diasFalta!==1?'s':''}, de acuerdo con la secuencia de tu membresía.</p></div></section>` : `
+      <div class="course-detail-layout">
+        <main class="course-detail-main">
+          <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Ruta de aprendizaje</span><h3>Temario</h3></div><b>${progCurso.clasesVistas.length}/${sesiones.length}</b></div><div class="course-lessons">${clasesHtml}</div></section>
+          <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Recursos incluidos</span><h3>Material del curso</h3></div><b>${materialesCurso.length}</b></div><p class="course-detail-section__intro">Abre cada archivo para verlo en pantalla y usa el ícono de descarga cuando quieras guardarlo.</p><div class="course-materials">${materialesHtml}</div></section>
+        </main>
+        <aside class="course-detail-progress">
+          <span>Tu avance</span><div class="course-detail-progress__top"><strong>${progCurso.clasesVistas.length} de ${sesiones.length} clases</strong><i style="--progress:${pct*3.6}deg"><b>${pct}%</b></i></div>
+          <div class="course-detail-progress__bar"><i style="width:${pct}%"></i></div>
+          <ul><li><svg class="ic"><use href="#i-shield-check"/></svg>Certificado verificable al concluir</li><li><svg class="ic"><use href="#i-book"/></svg>${materialesCurso.length} materiales dentro del curso</li><li><svg class="ic"><use href="#i-clock"/></svg>Avanza a tu propio ritmo</li></ul>
+        </aside>
+      </div>`}
+    </div>`;
 
-    // Si NO está desbloqueado, mostrar candado con días restantes
-    if (!desbloqueado) {
-      bodyContent += `
-        <div class="empty-state" style="background:var(--surface-2);border:1px solid var(--border-2);border-radius:14px;padding:32px 24px;">
-          <div class="empty-state__icon">
-            <svg class="ic ic--xl" style="color:var(--primary);"><use href="#i-shield-check"/></svg>
-          </div>
-          <h3 style="color:var(--primary);">🔒 Tu siguiente curso está en camino</h3>
-          <p>Disponible en <strong style="color:var(--primary);">${diasFalta} día${diasFalta!==1?'s':''}</strong>. Se habilitará completo cuando llegue su turno.</p>
-          <p style="font-size:12px;color:var(--text-3);margin-top:10px;">Los cursos se desbloquean uno por uno cada ${DIAS_ENTRE_DESBLOQUEOS} días desde la activación de tu membresía.</p>
-        </div>
-      `;
-    } else {
-      // Sesiones (clases) reales — con progreso por clase
-      const cursoId = c.id;
-      const progCurso = getProgresoCurso(cursoId);
-      const totalSes = c.sesiones ? c.sesiones.length : 0;
-      const pct = progresoCursoPct(cursoId, totalSes);
-
-      if (c.sesiones && c.sesiones.length > 0) {
-        bodyContent += `
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-3);font-weight:600;display:flex;align-items:center;gap:7px;"><svg class="ic" style="color:var(--primary);"><use href="#i-broadcast"/></svg>Clases del curso</div>
-            <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${pct===100?'var(--success)':'var(--primary)'};font-weight:700;">${progCurso.clasesVistas.length}/${totalSes} · ${pct}%</div>
-          </div>
-          <div style="height:6px;background:var(--surface-3);border-radius:3px;overflow:hidden;margin-bottom:14px;">
-            <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--primary),var(--highlight));border-radius:3px;transition:width .4s ease;"></div>
-          </div>
-          <div class="modulos-list" style="margin-bottom:18px;">
-            ${c.sesiones.map((s, i) => {
-              const titEsc = (s.titulo || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-              const urlEsc = (s.url || '').replace(/'/g, "\\'");
-              const numSes = s.numero || (i+1);
-              const vista = progCurso.clasesVistas.includes(numSes);
-              const desblok = claseDesbloqueada(cursoId, i, c.sesiones);
-              const esGratis = esClaseGratisGlobal(cursoId, i, c.sesiones);
-              const diasClase = diasParaDesbloquearClase(cursoId, i, c.sesiones);
-              const motivoBloq = desblok ? null : motivoBloqueoClase(cursoId, i, c.sesiones);
-
-              if (vista && desblok) {
-                return `
-                <div class="modulo" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g, "\\'")}', ${i})" style="cursor:pointer;background:color-mix(in srgb,var(--success) 8%,var(--surface-2));border-color:color-mix(in srgb,var(--success) 30%,transparent);" data-bypass-paywall="true">
-                  <div class="modulo__num" style="background:var(--success);color:#0D0D0D;">✓</div>
-                  <div style="flex:1;min-width:0;">
-                    <div class="modulo__title">${s.titulo}</div>
-                    <div class="modulo__meta" style="color:var(--success);">Vista · click para repasar</div>
-                  </div>
-                  <svg class="ic" style="color:var(--success);"><use href="#i-arrow-right"/></svg>
-                </div>`;
-              }
-              if (desblok) {
-                return `
-                <div class="modulo" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g, "\\'")}', ${i})" style="cursor:pointer;${esGratis?'background:color-mix(in srgb,var(--success) 8%,var(--surface-2));border-color:color-mix(in srgb,var(--success) 30%,transparent);':''}" data-bypass-paywall="true">
-                  <div class="modulo__num" ${esGratis?'style="background:var(--success);color:#0D0D0D;"':''}>${numSes}</div>
-                  <div style="flex:1;min-width:0;">
-                    <div class="modulo__title">${s.titulo}</div>
-                    <div class="modulo__meta" ${esGratis?'style="color:var(--success);"':''}>${esGratis?'CLASE GRATIS · Click para verla':'▶ Click para ver la clase'}</div>
-                  </div>
-                  <svg class="ic" style="color:var(--primary);"><use href="#i-arrow-right"/></svg>
-                </div>`;
-              }
-              // Bloqueada
-              return `
-                <div class="modulo" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g, "\\'")}', ${i})" style="cursor:pointer;opacity:.65;" data-bypass-paywall="true">
-                  <div class="modulo__num" style="background:var(--surface-3);color:var(--text-3);">🔒</div>
-                  <div style="flex:1;min-width:0;">
-                    <div class="modulo__title" style="color:var(--text-2);">${s.titulo}</div>
-                    <div class="modulo__meta">${motivoBloq?.tipo === 'secuencia'
-                      ? `Se abre al marcar como vista la clase ${motivoBloq.numPrev}`
-                      : (window.UserState?.modo === 'vip' && diasClase > 0
-                        ? `Se desbloquea junto con el curso en ${diasClase} día${diasClase!==1?'s':''}`
-                        : 'Activa tu membresía para desbloquear esta clase')}</div>
-                  </div>
-                </div>`;
-            }).join('')}
-          </div>
-        `;
-      } else {
-        bodyContent += `
-          <div class="empty-state" style="padding:24px 16px;">
-            <p style="font-size:13px;color:var(--text-3);">Este curso aún no tiene clases publicadas. Vuelve pronto.</p>
-          </div>
-        `;
-      }
-
-      // Materiales (PDFs) del curso — primer material gratis y resto progresivo
-      if (c.materiales && c.materiales.length > 0) {
-        // Detector de tipo según la URL
-        const tipoMat = (url) => {
-          const u = (url || '').toLowerCase();
-          if (u.includes('/presentation/')) return { lbl:'Presentación', color:'#F59D1A', ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>' };
-          if (u.includes('/spreadsheets/')) return { lbl:'Excel', color:'#34D399', ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>' };
-          if (u.includes('/document/')) return { lbl:'Documento', color:'#60A5FA', ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>' };
-          if (u.includes('/folders/')) return { lbl:'Carpeta', color:'#FFCF7A', ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' };
-          return { lbl:'PDF', color:'#F87171', ic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' };
-        };
-
-        // Renderiza una tarjeta de material
-        const matCard = (m, indexMaterial) => {
-          const t = tipoMat(m.url);
-          const titEsc = (m.titulo || 'Material del curso').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-          const disponible = materialDesbloqueado(cursoId, indexMaterial, m);
-          const gratis = esMaterialGratisGlobal(cursoId, indexMaterial);
-          const diasMaterial = diasParaDesbloquearMaterial(cursoId, indexMaterial, m);
-          return `
-            <div class="mat-card" onclick="window.abrirMaterialIMFRA('${String(cursoId).replace(/'/g, "\\'")}', ${indexMaterial})" data-bypass-paywall="true" style="display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--surface-2);border:1px solid ${gratis?'color-mix(in srgb,var(--success) 45%,transparent)':'var(--border)'};border-radius:12px;cursor:pointer;color:inherit;transition:all .18s cubic-bezier(.2,.8,.25,1);position:relative;overflow:hidden;${!disponible?'opacity:.65;':''}" onmouseover="this.style.borderColor='${t.color}';this.style.transform='translateY(-1px)';this.style.boxShadow='0 8px 20px rgba(0,0,0,.25)'" onmouseout="this.style.borderColor='${gratis?'color-mix(in srgb,var(--success) 45%,transparent)':'var(--border)'}';this.style.transform='none';this.style.boxShadow='none'">
-              <div style="width:38px;height:38px;border-radius:9px;background:color-mix(in srgb,${gratis?'var(--success)':t.color} 16%,transparent);color:${gratis?'var(--success)':t.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><span style="width:18px;height:18px;display:block;">${disponible?t.ic:'🔒'}</span></div>
-              <div style="flex:1;min-width:0;">
-                <div style="font-size:13.5px;font-weight:600;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${m.titulo || 'Material del curso'}</div>
-                <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
-                  <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:${t.color};">${t.lbl}</span>
-                  <span style="font-size:11px;color:var(--text-3);">·</span>
-                  <span style="font-size:11px;color:${gratis?'var(--success)':'var(--text-3)'};">${gratis
-                    ? 'GRATIS · Click para ver'
-                    : (disponible
-                      ? 'Click para ver'
-                      : (window.UserState?.modo === 'vip' && diasMaterial > 0
-                        ? `Disponible en ${diasMaterial} día${diasMaterial!==1?'s':''}`
-                        : 'Activa tu membresía para abrir'))}</span>
-                </div>
-              </div>
-              ${disponible ? `<button type="button" aria-label="Descargar ${titEsc}" title="Descargar material" onclick="event.stopPropagation();window.descargarMaterialIMFRA('${(m.url||'').replace(/'/g,'%27')}','${titEsc}')" style="width:34px;height:34px;border-radius:9px;border:1px solid color-mix(in srgb,${gratis?'var(--success)':t.color} 35%,transparent);background:color-mix(in srgb,${gratis?'var(--success)':t.color} 12%,transparent);color:${gratis?'var(--success)':t.color};display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg class="ic" style="width:16px;height:16px;"><use href="#i-download"/></svg></button>` : ''}
-            </div>
-          `;
-        };
-
-        const totalMat = c.materiales.length;
-        const PREVIEW_COUNT = 3;
-
-        bodyContent += `
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:22px;margin-bottom:12px;">
-            <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-3);font-weight:600;display:flex;align-items:center;gap:8px;">
-              <svg style="width:14px;height:14px;color:var(--primary);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-              Material descargable
-            </div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--primary);font-weight:700;background:color-mix(in srgb,var(--primary) 14%,transparent);padding:3px 9px;border-radius:12px;">${totalMat} archivo${totalMat!==1?'s':''}</span>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:8px;" id="mat-preview-${id}">
-            ${c.materiales.slice(0, PREVIEW_COUNT).map((m, i) => matCard(m, i)).join('')}
-          </div>
-        `;
-
-        // Si hay más de 3, agregar botón "Ver los X restantes" expandible inline
-        if (totalMat > PREVIEW_COUNT) {
-          const restantes = totalMat - PREVIEW_COUNT;
-          const restoHTML = c.materiales.slice(PREVIEW_COUNT).map((m, i) => matCard(m, i + PREVIEW_COUNT)).join('');
-          bodyContent += `
-            <div id="mat-extra-${id}" style="display:none;flex-direction:column;gap:8px;margin-top:8px;animation:slideDown .35s cubic-bezier(.2,.8,.25,1);">
-              ${restoHTML}
-            </div>
-            <button type="button" id="mat-toggle-${id}" data-bypass-paywall="true" style="margin-top:12px;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 16px;background:transparent;border:1px dashed color-mix(in srgb,var(--primary) 40%,transparent);border-radius:12px;color:var(--primary);font-family:'Inter',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s cubic-bezier(.2,.8,.25,1);letter-spacing:-.1px;" onmouseover="this.style.background='color-mix(in srgb,var(--primary) 10%,transparent)';this.style.borderStyle='solid';" onmouseout="this.style.background='transparent';this.style.borderStyle='dashed';">
-              <svg style="width:16px;height:16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              <span class="mat-toggle-label">Ver los ${restantes} material${restantes!==1?'es':''} restante${restantes!==1?'s':''}</span>
-            </button>
-            <style>@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}</style>
-          `;
-        }
-      }
-    }
-
-    const footer = document.createElement('div');
-    footer.innerHTML = `<button class="btn btn--ghost" id="cd-close">Cerrar</button>`;
-    const m = Modal.open({
+    Modal.open({
       id: 'curso-' + id,
-      title: 'Detalle del curso',
-      subtitle: c.titulo.length > 40 ? c.titulo.slice(0,40) + '…' : c.titulo,
+      title: 'Curso IMFRA',
+      subtitle: c.titulo,
       icon: iconArea,
       size: 'lg',
-      body: bodyContent,
-      footer
+      body: bodyContent
     });
-    footer.querySelector('#cd-close').addEventListener('click', () => m.close());
-
-    // ─── Handler del toggle de materiales (Ver los X restantes / Ocultar) ───
-    setTimeout(() => {
-      const toggleBtn = document.getElementById('mat-toggle-' + id);
-      const extraBox = document.getElementById('mat-extra-' + id);
-      if (toggleBtn && extraBox) {
-        const restantes = c.materiales.length - 3;
-        toggleBtn.addEventListener('click', () => {
-          const isOpen = extraBox.style.display === 'flex';
-          if (isOpen) {
-            extraBox.style.display = 'none';
-            toggleBtn.querySelector('.mat-toggle-label').textContent = `Ver los ${restantes} material${restantes!==1?'es':''} restante${restantes!==1?'s':''}`;
-            toggleBtn.querySelector('svg').style.transform = 'rotate(0deg)';
-          } else {
-            extraBox.style.display = 'flex';
-            toggleBtn.querySelector('.mat-toggle-label').textContent = 'Ocultar material adicional';
-            toggleBtn.querySelector('svg').style.transform = 'rotate(180deg)';
-          }
-        });
-        toggleBtn.querySelector('svg').style.transition = 'transform .3s cubic-bezier(.2,.8,.25,1)';
-      }
-    }, 50);
   }
 
   // Refresca el DETALLE del curso abierto (re-render) para que la siguiente clase
@@ -6752,10 +6615,25 @@ const Sections = (function(){
   // Recorre todos los cursos y aplana sus materiales con metadata del curso de origen
   function _allMaterialesFromCursos() {
     if (!Array.isArray(cursos)) return [];
+    const catalogo = Array.isArray(window.IMFRA_MATERIALS_CATALOG)
+      ? window.IMFRA_MATERIALS_CATALOG
+      : [];
+    const claveArchivo = valor => {
+      try {
+        const ruta = new URL(valor || '', location.href).pathname;
+        return decodeURIComponent(ruta.split('/').pop() || '').toLowerCase();
+      } catch (e) {
+        return String(valor || '').split('/').pop().toLowerCase();
+      }
+    };
+    const archivosRecompensa = new Set(
+      catalogo.filter(m => m.esRecompensa === true).map(m => String(m.archivo || claveArchivo(m.url)).toLowerCase())
+    );
     const out = [];
     cursos.forEach((c, cursoIdx) => {
       if (!Array.isArray(c.materiales)) return;
       c.materiales.forEach((m, idx) => {
+        if (archivosRecompensa.has(claveArchivo(m.url))) return;
         out.push({
           id: `${c.id}_${idx}`,
           cursoId: c.id,
@@ -6766,6 +6644,7 @@ const Sections = (function(){
           cursoDisponibleSiempre: c.disponibleSiempre === true,
           titulo: m.titulo || 'Sin título',
           url: m.url || '',
+          esRecompensa: false,
           disponibleSiempre: m.disponibleSiempre === true,
           desbloquearEnDias: typeof m.desbloquearEnDias === 'number' ? m.desbloquearEnDias : null
         });
@@ -6776,18 +6655,7 @@ const Sections = (function(){
     // archivos y Firestore permite enriquecerlos desde el panel. Combinamos
     // ambas fuentes para que cada objeto publicado en el CDN aparezca aunque
     // todavía no tenga un registro manual, sin duplicar los ya configurados.
-    const catalogo = Array.isArray(window.IMFRA_MATERIALS_CATALOG)
-      ? window.IMFRA_MATERIALS_CATALOG
-      : [];
     const claveTitulo = valor => normalizarTituloBunny(valor || '');
-    const claveArchivo = valor => {
-      try {
-        const ruta = new URL(valor || '', location.href).pathname;
-        return decodeURIComponent(ruta.split('/').pop() || '').toLowerCase();
-      } catch (e) {
-        return String(valor || '').split('/').pop().toLowerCase();
-      }
-    };
     const titulosRegistrados = new Set(out.map(m => claveTitulo(m.titulo)));
     const archivosRegistrados = new Set(out.map(m => claveArchivo(m.url)).filter(Boolean));
     const cantidadPorCurso = new Map();
@@ -6796,7 +6664,36 @@ const Sections = (function(){
     catalogo.forEach((m, catalogoIdx) => {
       const tituloKey = claveTitulo(m.titulo);
       const archivoKey = String(m.archivo || claveArchivo(m.url)).toLowerCase();
-      if (titulosRegistrados.has(tituloKey) || archivosRegistrados.has(archivoKey)) return;
+      const existenteIdx = out.findIndex(item => claveTitulo(item.titulo) === tituloKey || claveArchivo(item.url) === archivoKey);
+      if (existenteIdx >= 0 && m.esRecompensa !== true) {
+        // Bunny es la fuente canónica de los binarios: conserva la metadata de
+        // Firestore, pero sustituye enlaces antiguos de Drive por el CDN público.
+        out[existenteIdx].url = m.url || out[existenteIdx].url;
+        out[existenteIdx].archivo = m.archivo || out[existenteIdx].archivo;
+        return;
+      }
+      if (existenteIdx >= 0 || titulosRegistrados.has(tituloKey) || archivosRegistrados.has(archivoKey)) return;
+
+      if (m.esRecompensa === true) {
+        out.push({
+          id: `reto-material-${m.rewardOrder || catalogoIdx}`,
+          cursoId: 'recompensas-imfra',
+          materialIndex: Math.max(0, Number(m.rewardOrder || 1) - 1),
+          cursoOrden: -1,
+          cursoTitulo: 'Desbloqueado en Retos',
+          cursoArea: m.area || 'Control de obra',
+          cursoDisponibleSiempre: true,
+          titulo: m.titulo || m.archivo || 'Herramienta IMFRA',
+          url: m.url || '',
+          esRecompensa: true,
+          rewardOrder: Number(m.rewardOrder || 0),
+          disponibleSiempre: false,
+          desbloquearEnDias: null
+        });
+        titulosRegistrados.add(tituloKey);
+        archivosRegistrados.add(archivoKey);
+        return;
+      }
 
       const curso = cursos.find(c => claveTitulo(c.titulo) === claveTitulo(m.cursoTitulo))
         || cursos
@@ -6817,6 +6714,7 @@ const Sections = (function(){
         cursoDisponibleSiempre: curso.disponibleSiempre === true,
         titulo: m.titulo || m.archivo || 'Material IMFRA',
         url: m.url || '',
+        esRecompensa: false,
         disponibleSiempre: m.disponibleSiempre === true,
         desbloquearEnDias: typeof m.desbloquearEnDias === 'number' ? m.desbloquearEnDias : null
       });
@@ -6825,6 +6723,10 @@ const Sections = (function(){
       archivosRegistrados.add(archivoKey);
     });
     return out;
+  }
+
+  function _materialesDelCurso(cursoId) {
+    return _allMaterialesFromCursos().filter(m => !m.esRecompensa && String(m.cursoId) === String(cursoId));
   }
 
   // Determina si un material está disponible para este usuario AHORA
@@ -6839,10 +6741,10 @@ const Sections = (function(){
   // Inferir tamaño desde la URL (heurística simple · solo si no hay metadata)
   function _inferirTipoMaterial(url) {
     const u = (url || '').toLowerCase();
-    if (u.endsWith('.xlsx') || u.endsWith('.xls') || u.includes('sheets.google')) return 'excel';
+    if (/\.xls[xm]?(?:[?#]|$)/.test(u) || u.includes('sheets.google')) return 'excel';
     if (u.endsWith('.pdf')) return 'pdf';
-    if (u.endsWith('.pptx') || u.endsWith('.ppt') || u.includes('presentation')) return 'ppt';
-    if (u.endsWith('.docx') || u.endsWith('.doc') || u.includes('document')) return 'doc';
+    if (/\.ppt[xm]?(?:[?#]|$)/.test(u) || u.includes('presentation')) return 'ppt';
+    if (/\.doc[xm]?(?:[?#]|$)/.test(u) || u.includes('document')) return 'doc';
     return 'pdf'; // default
   }
 
@@ -6860,8 +6762,11 @@ const Sections = (function(){
       await cargarCursosFirestore();
     }
 
-    // Re-leer materiales aplanados (de los cursos reales)
-    const materialesTodos = _allMaterialesFromCursos();
+    // Esta biblioteca muestra las herramientas ganadas en Retos. Los archivos
+    // didácticos viven dentro del detalle de su curso para mantener el contexto.
+    const materialesTodos = _allMaterialesFromCursos()
+      .filter(m => m.esRecompensa === true)
+      .sort((a, b) => Number(a.rewardOrder || 0) - Number(b.rewardOrder || 0));
     const areasUnicas = Array.from(new Set(materialesTodos.map(m => m.cursoArea).filter(Boolean))).sort();
 
     // KPIs
@@ -6874,9 +6779,9 @@ const Sections = (function(){
     container.innerHTML = `
       <div class="fade-up">
         <div class="sec-hero" data-illus="pdfs">
-          <span class="sec-hero__eyebrow">Descargables</span>
+          <span class="sec-hero__eyebrow">Biblioteca de recompensas</span>
           <h1 class="sec-hero__title">PDFs y material</h1>
-          <p class="sec-hero__sub">Plantillas en Excel, checklists, procedimientos y formatos oficiales listos para tu planta. <strong style="color:var(--primary);">El primer material es gratis</strong>; los demás se habilitan junto con su curso.</p>
+          <p class="sec-hero__sub">Herramientas profesionales que ganas al tomar buenas decisiones. <strong style="color:var(--primary);">Cada respuesta correcta</strong> en Reto de Obra o Inspector de Obra desbloquea un archivo nuevo.</p>
         </div>
         ${total === 0 ? `
           <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
@@ -6890,10 +6795,10 @@ const Sections = (function(){
           </div>
         ` : `
           <div class="kpi-grid">
-            <div class="kpi-card"><div class="kpi-card__label">Total materiales</div><div class="kpi-card__value">${total}</div></div>
-            <div class="kpi-card"><div class="kpi-card__label">Disponibles ahora</div><div class="kpi-card__value">${disponiblesAhora}</div></div>
-            <div class="kpi-card"><div class="kpi-card__label">Próximamente</div><div class="kpi-card__value">${proximos}</div></div>
-            <div class="kpi-card"><div class="kpi-card__label">Plantillas Excel</div><div class="kpi-card__value">${tipos.excel}</div></div>
+            <div class="kpi-card"><div class="kpi-card__label">Colección total</div><div class="kpi-card__value">${total}</div></div>
+            <div class="kpi-card"><div class="kpi-card__label">Desbloqueados</div><div class="kpi-card__value">${disponiblesAhora}</div></div>
+            <div class="kpi-card"><div class="kpi-card__label">Por ganar</div><div class="kpi-card__value">${proximos}</div></div>
+            <div class="kpi-card"><div class="kpi-card__label">Plantillas editables</div><div class="kpi-card__value">${tipos.excel + tipos.doc}</div></div>
           </div>
           <div class="toolbar">
             <div class="searchbar">
@@ -6959,21 +6864,7 @@ const Sections = (function(){
       });
       container.querySelectorAll('.pdf-card[data-disponible="false"]').forEach(card => {
         card.addEventListener('click', () => {
-          const dias = parseInt(card.dataset.diasFaltan, 10);
-          if (window.UserState?.modo !== 'vip') {
-            window.__showPaywallModal?.({
-              title: 'Desbloquea todos los materiales',
-              sub: 'El primer material es gratis. Activa tu membresía para abrir el primer curso completo y recibir los siguientes cada 6 días.',
-              cta: 'Ir a Suscripción'
-            });
-            return;
-          }
-          if (Toast) {
-            Toast.info(
-              dias === 1 ? 'Disponible mañana' : `Disponible en ${dias} días`,
-              'Este material se desbloqueará junto con su curso · sigue avanzando'
-            );
-          }
+          Toast?.info('Archivo aún bloqueado', 'Responde correctamente en Reto de Obra o Inspector de Obra para ganar tu siguiente herramienta.');
         });
       });
     }, 50);
@@ -7007,14 +6898,14 @@ const Sections = (function(){
     const tipoLabel = { excel:'Excel', pdf:'PDF', ppt:'PPT', doc:'DOC' }[tipo] || 'Archivo';
     const disponible = _materialDisponible(m);
     const diasFaltan = _diasParaMaterial(m);
-    const gratis = esMaterialGratisGlobal(m.cursoId, m.materialIndex) || m.disponibleSiempre === true;
+    const gratis = !m.esRecompensa && (esMaterialGratisGlobal(m.cursoId, m.materialIndex) || m.disponibleSiempre === true);
     const tituloEsc = (m.titulo || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     const cursoEsc = (m.cursoTitulo || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 
     return `
       <article class="pdf-card ${!disponible ? 'pdf-card--soon' : ''}" style="--pdf-color:${c};cursor:pointer;"
         data-disponible="${disponible}"
-        data-free="${gratis}"
+        data-free="${m.esRecompensa ? 'true' : gratis}"
         data-url="${(m.url||'').replace(/"/g,'&quot;')}"
         data-dias-faltan="${diasFaltan}"
         data-titulo="${tituloEsc}"
@@ -7028,12 +6919,12 @@ const Sections = (function(){
           <div class="pdf-card__title">${tituloEsc}</div>
           <div class="pdf-card__meta">
             <span><svg class="ic"><use href="#i-folder"/></svg>${m.cursoArea}</span>
-            <span title="${cursoEsc}"><svg class="ic"><use href="#i-book"/></svg>${cursoEsc.length > 28 ? cursoEsc.slice(0,28)+'…' : cursoEsc}</span>
+            <span title="${cursoEsc}"><svg class="ic"><use href="#i-trophy"/></svg>Recompensa ${m.rewardOrder || ''} de 7</span>
           </div>
           <div class="pdf-card__tags">
             ${disponible
-              ? `<span class="tag tag--soon" style="color:#0D0D0D;border-color:#34D399;background:#34D399;font-weight:700;">${gratis?'Gratis':'Disponible'}</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;background:linear-gradient(135deg, var(--primary), var(--highlight));color:#0D0D0D;cursor:pointer;" onclick="event.stopPropagation();if(typeof window.descargarMaterialIMFRA==='function'){window.descargarMaterialIMFRA('${(m.url||'').replace(/'/g,'%27')}','${tituloEsc.replace(/'/g,'&apos;')}');}"><svg class="ic"><use href="#i-download"/></svg>Descargar</button>`
-              : `<span class="tag tag--soon">${window.UserState?.modo === 'vip' ? (diasFaltan === 1 ? 'Mañana' : 'En '+diasFaltan+' días') : 'Solo VIP'}</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;opacity:.55;cursor:not-allowed;" disabled><svg class="ic"><use href="#${window.UserState?.modo === 'vip'?'i-clock':'i-crown'}"/></svg>${window.UserState?.modo === 'vip'?'Disponible pronto':'Suscríbete'}</button>`
+              ? `<span class="tag tag--soon" style="color:#0D0D0D;border-color:#34D399;background:#34D399;font-weight:700;">Desbloqueado</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;background:linear-gradient(135deg, var(--primary), var(--highlight));color:#0D0D0D;cursor:pointer;" onclick="event.stopPropagation();if(typeof window.descargarMaterialIMFRA==='function'){window.descargarMaterialIMFRA('${(m.url||'').replace(/'/g,'%27')}','${tituloEsc.replace(/'/g,'&apos;')}');}"><svg class="ic"><use href="#i-download"/></svg>Descargar</button>`
+              : `<span class="tag tag--soon">Bloqueado</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;opacity:.68;cursor:not-allowed;" disabled><svg class="ic"><use href="#i-trophy"/></svg>Gana en Retos</button>`
             }
           </div>
         </div>
@@ -8917,6 +8808,7 @@ window.__maybeAskProfile = function(){
     const md = window.memberData || {};
     let local = {};
     try { local = JSON.parse(localStorage.getItem('imfra_profile') || '{}'); } catch(e){}
+    const intakeKey = `imfra:profile-intake:v1:${String(S.uid || S.email || 'guest').toLowerCase()}`;
 
     const finish = () => {
       window.__IMFRA_PROFILE_FLOW_READY = true;
@@ -8938,8 +8830,14 @@ window.__maybeAskProfile = function(){
     };
 
     if (!S.uid || S.modo === 'demo' || S.modo === 'invitado') { finish(); return; }
+    const intakeSeen = md.profileIntakeSeen === true || localStorage.getItem(intakeKey) === '1';
+    if (intakeSeen) { finish(); return; }
     const savedWhatsapp = String(md.whatsapp || local.whatsapp || '').trim();
-    if (savedWhatsapp) { finish(); return; }
+    if (savedWhatsapp) {
+      localStorage.setItem(intakeKey, '1');
+      finish();
+      return;
+    }
 
     const email = String(S.email || '');
     const emailPart = email.split('@')[0] || '';
@@ -8979,7 +8877,22 @@ window.__maybeAskProfile = function(){
     const error = modal.querySelector('.pi-error');
     const submit = modal.querySelector('.pi-save');
 
-    const close = () => { modal.classList.add('is-closing'); setTimeout(() => { modal.remove(); finish(); }, 190); };
+    const rememberIntake = () => {
+      localStorage.setItem(intakeKey, '1');
+      if (window.memberData) window.memberData.profileIntakeSeen = true;
+      const fs = window.__fs;
+      if (fs?.setDoc && S.uid) {
+        fs.setDoc(fs.doc(fs.db, 'miembros', S.uid), {
+          profileIntakeSeen: true,
+          profileIntakeSeenAt: fs.serverTimestamp()
+        }, { merge: true }).catch(() => {});
+      }
+    };
+    const close = () => {
+      rememberIntake();
+      modal.classList.add('is-closing');
+      setTimeout(() => { modal.remove(); finish(); }, 190);
+    };
     modal.querySelector('.pi-close').addEventListener('click', close);
     modal.querySelector('.pi-later').addEventListener('click', close);
     modal.querySelector('.pi-backdrop').addEventListener('click', close);
@@ -9007,12 +8920,16 @@ window.__maybeAskProfile = function(){
         const fs = window.__fs;
         if (!fs || !fs.updateDoc || !S.uid) throw new Error('No pudimos conectar con tu cuenta.');
         await fs.updateDoc(fs.doc(fs.db, 'miembros', S.uid), {
-          nombre, whatsapp, especialidad, empresa, perfilCompletadoAt: fs.serverTimestamp()
+          nombre, whatsapp, especialidad, empresa,
+          perfilCompletadoAt: fs.serverTimestamp(),
+          profileIntakeSeen: true,
+          profileIntakeSeenAt: fs.serverTimestamp()
         });
         Object.assign(S, { nombre, displayName: nombre, whatsapp, especialidad, empresa, iniciales: window.calcIniciales ? window.calcIniciales(nombre) : nombre.slice(0, 2).toUpperCase() });
         window.memberData = Object.assign({}, md, { nombre, whatsapp, especialidad, empresa });
         localStorage.setItem('imfra_profile', JSON.stringify(Object.assign({}, local, { nombre, whatsapp, especialidad, empresa })));
         localStorage.setItem('imfra_name_confirmed', '1');
+        localStorage.setItem(intakeKey, '1');
         if (typeof window.__applyUserState === 'function') window.__applyUserState();
         window.IMFRACelebrate?.('normal');
         modal.classList.add('is-closing');
@@ -10989,6 +10906,66 @@ body{letter-spacing:-.05px}
   .banner{padding:18px 16px!important}
   .curso-card__cover{height:160px!important}
   #dynamic-section .tabs .tab{padding:7px 4px!important;border-radius:7px!important}
+}
+
+/* Detalle de curso · experiencia editorial con clases y recursos integrados */
+.modal-backdrop[data-modal-id^="curso-"] .modal{max-width:1180px!important;max-height:94vh!important}
+.modal-backdrop[data-modal-id^="curso-"] .modal__header{padding:14px 20px}
+.modal-backdrop[data-modal-id^="curso-"] .modal__body{padding:18px 20px 28px}
+.course-detail{max-width:1080px;margin:0 auto}
+.course-detail-hero{
+  min-height:310px;display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding:34px;
+  border-radius:18px;background-size:cover;background-position:center;color:#fff;overflow:hidden;
+  box-shadow:0 18px 45px rgba(0,0,0,.18)
+}
+.course-detail-hero__copy{max-width:720px}
+.course-detail-hero__tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px}
+.course-detail-hero__tags span{padding:6px 9px;border:1px solid rgba(255,255,255,.28);border-radius:999px;background:rgba(12,12,12,.34);backdrop-filter:blur(7px);font:650 10px/1 "JetBrains Mono",monospace;letter-spacing:.5px;text-transform:uppercase}
+.course-detail-hero h2{max-width:760px;margin:0;font:750 clamp(30px,4vw,48px)/1.04 "Plus Jakarta Sans",sans-serif;letter-spacing:-1.8px}
+.course-detail-hero__copy p{display:grid;gap:3px;margin:20px 0 0;font-size:13px}
+.course-detail-hero__copy p b{font-size:14px}.course-detail-hero__copy p span{color:rgba(255,255,255,.72)}
+.course-detail-hero__start{min-height:52px;display:inline-flex;align-items:center;gap:11px;flex:0 0 auto;padding:0 18px 0 22px;border:0;border-radius:999px;background:#fff;color:#17120c;font:750 13px/1 Inter,sans-serif;cursor:pointer}
+.course-detail-hero__start .ic{width:19px;height:19px;padding:4px;border-radius:50%;background:#17120c;color:#fff}
+.course-detail__description{max-width:780px;margin:22px 0 24px;color:var(--text-2);font-size:14px;line-height:1.65}
+.course-detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:28px;align-items:start}
+.course-detail-main{display:grid;gap:30px;min-width:0}
+.course-detail-section{min-width:0}
+.course-detail-section__head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:13px}
+.course-detail-section__head span,.course-detail-progress>span{display:block;margin-bottom:5px;color:var(--primary);font:700 9px/1 "JetBrains Mono",monospace;letter-spacing:1.5px;text-transform:uppercase}
+.course-detail-section__head h3{margin:0;font-size:22px;letter-spacing:-.55px}
+.course-detail-section__head>b{padding:5px 8px;border-radius:7px;background:var(--surface-2);color:var(--text-3);font:700 10px/1 "JetBrains Mono",monospace}
+.course-detail-section__intro{margin:-3px 0 14px;color:var(--text-3);font-size:12px;line-height:1.5}
+.course-lessons{position:relative;display:grid;gap:8px}
+.course-lesson{width:100%;display:flex;align-items:center;gap:13px;padding:12px 13px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+.course-lesson:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.course-lesson__rail{width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;border-radius:10px;background:color-mix(in srgb,var(--primary) 12%,var(--surface-2));color:var(--primary)}
+.course-lesson__rail b{font:750 12px/1 "JetBrains Mono",monospace}
+.course-lesson__copy{display:grid;gap:4px;min-width:0;flex:1}.course-lesson__copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}.course-lesson__copy small{color:var(--text-3);font:550 10px/1.35 "JetBrains Mono",monospace}
+.course-lesson__action{width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid var(--border);color:var(--text-3)}
+.course-lesson__action .ic{width:13px;height:13px}
+.course-lesson.is-complete{border-color:color-mix(in srgb,var(--success) 35%,var(--border));background:color-mix(in srgb,var(--success) 5%,var(--surface))}.course-lesson.is-complete .course-lesson__rail{background:var(--success);color:#fff}
+.course-lesson.is-locked{opacity:.6}
+.course-materials{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.course-material{display:flex;align-items:center;gap:11px;min-width:0;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+.course-material:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.course-material__icon{width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;border-radius:10px;background:color-mix(in srgb,var(--primary) 10%,var(--surface-2));color:var(--primary)}
+.course-material__icon .ic{width:18px;height:18px}
+.course-material__copy{display:grid;gap:4px;min-width:0;flex:1}.course-material__copy strong{font-size:12px;line-height:1.35}.course-material__copy small{color:var(--text-3);font-size:10px;line-height:1.35}
+.course-material__download{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border:1px solid var(--border);border-radius:9px;background:var(--surface-2);color:var(--primary);cursor:pointer}.course-material__download .ic{width:15px;height:15px}
+.course-material.is-locked{opacity:.6}.course-detail-empty{padding:18px;border:1px dashed var(--border-2);border-radius:12px;color:var(--text-3);font-size:12px;text-align:center}
+.course-detail-progress{position:sticky;top:0;padding:22px;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
+.course-detail-progress__top{display:flex;align-items:center;justify-content:space-between;gap:12px}.course-detail-progress__top>strong{max-width:150px;font-size:20px;line-height:1.18;letter-spacing:-.5px}
+.course-detail-progress__top>i{width:66px;height:66px;display:grid;place-items:center;flex:0 0 66px;border-radius:50%;background:conic-gradient(var(--primary) var(--progress),var(--surface-3) 0);font-style:normal}.course-detail-progress__top>i::before{content:"";grid-area:1/1;width:52px;height:52px;border-radius:50%;background:var(--surface)}.course-detail-progress__top>i b{grid-area:1/1;z-index:1;font:700 10px/1 "JetBrains Mono",monospace}
+.course-detail-progress__bar{height:5px;margin:18px 0;overflow:hidden;border-radius:99px;background:var(--surface-3)}.course-detail-progress__bar i{display:block;height:100%;border-radius:inherit;background:var(--primary)}
+.course-detail-progress ul{display:grid;gap:13px;margin:0;padding:0;list-style:none}.course-detail-progress li{display:flex;align-items:center;gap:9px;color:var(--text-2);font-size:11px;line-height:1.4}.course-detail-progress li .ic{width:16px;height:16px;flex:0 0 16px;color:var(--primary)}
+.course-detail-lock{display:flex;align-items:center;gap:16px;padding:22px;border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border));border-radius:14px;background:color-mix(in srgb,var(--primary) 7%,var(--surface))}.course-detail-lock>.ic{width:28px;height:28px;color:var(--primary)}.course-detail-lock strong{font-size:15px}.course-detail-lock p{margin:4px 0 0;color:var(--text-2);font-size:12px}
+
+@media (max-width:820px){
+  .course-detail-hero{min-height:270px;align-items:flex-start;flex-direction:column;justify-content:flex-end;padding:24px}.course-detail-hero h2{font-size:34px}.course-detail-hero__start{width:100%;justify-content:center}
+  .course-detail-layout{grid-template-columns:1fr}.course-detail-progress{position:static;grid-row:1}.course-materials{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .modal-backdrop[data-modal-id^="curso-"] .modal__body{padding:12px 12px 24px}.course-detail-hero{min-height:245px;padding:20px;border-radius:14px}.course-detail-hero h2{font-size:28px}.course-detail-hero__tags span{font-size:8px}.course-detail__description{margin:17px 2px 20px}.course-detail-layout{gap:22px}.course-detail-section__head h3{font-size:19px}.course-lesson{padding:10px}.course-lesson__copy strong{white-space:normal}.course-detail-progress{padding:18px}
 }
 </style>
 <link rel="stylesheet" href="./src/styles/v2-shell.css">
