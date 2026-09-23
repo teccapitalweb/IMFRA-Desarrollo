@@ -4678,7 +4678,9 @@ const Sections = (function(){
 
   // ═══════════════════════════════════════════════════════════════
   // 🎬 VISOR EMBEBIDO · estilo Sinergia
-  // Convierte URLs de Drive a /preview y abre en iframe interno
+  // Convierte materiales a una URL que el iframe pueda mostrar. Los archivos
+  // de Office alojados en Bunny necesitan Office Web Viewer; la URL original
+  // se conserva por separado para el botón de descarga.
   // ═══════════════════════════════════════════════════════════════
   function convertirUrlDrive(url) {
     if (!url) return '';
@@ -4694,6 +4696,20 @@ const Sections = (function(){
     return url.replace(/\/view(\?.*)?$/, '/preview')
               .replace(/\/edit(\?.*)?$/, '/preview')
               .replace(/\/edit$/, '/preview');
+  }
+
+  function urlVistaPreviaMaterial(url) {
+    if (!url) return '';
+    const drivePreview = convertirUrlDrive(url);
+    if (drivePreview !== url) return drivePreview;
+    try {
+      const extension = new URL(url).pathname.split('.').pop()?.toLowerCase() || '';
+      const extensionesOffice = new Set(['xls', 'xlsx', 'xlsm', 'doc', 'docx', 'ppt', 'pptx']);
+      if (extensionesOffice.has(extension)) {
+        return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`;
+      }
+    } catch (error) {}
+    return url;
   }
 
   function nombreArchivoMaterial(titulo, url) {
@@ -4743,13 +4759,17 @@ const Sections = (function(){
     const markBtn = document.getElementById('visorMarkAsViewed');
     if (!overlay || !frame) return;
 
-    frame.src = convertirUrlDrive(url);
+    frame.src = urlVistaPreviaMaterial(url);
     titleEl.textContent = titulo || 'Visor';
     if (dlEl) {
       dlEl.href = urlDescargaMaterial(url);
       dlEl.download = nombreArchivoMaterial(titulo, url);
       dlEl.style.display = 'inline-flex';
       dlEl.title = 'Descargar archivo';
+      dlEl.onclick = (event) => {
+        event.preventDefault();
+        window.descargarMaterialIMFRA(url, titulo);
+      };
     }
 
     // Botón "Marcar como vista" solo si es clase con cursoId+numClase
@@ -4885,7 +4905,7 @@ const Sections = (function(){
       Toast.info('Material pendiente', 'Este archivo todavía no tiene un enlace asignado');
       return;
     }
-    window.descargarMaterialIMFRA(material.url, material.titulo || 'Material del curso');
+    window.abrirVisor(material.url, material.titulo || 'Material del curso');
   };
 
   window.cerrarVisor = function() {
@@ -5624,15 +5644,15 @@ const Sections = (function(){
                   <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:${t.color};">${t.lbl}</span>
                   <span style="font-size:11px;color:var(--text-3);">·</span>
                   <span style="font-size:11px;color:${gratis?'var(--success)':'var(--text-3)'};">${gratis
-                    ? 'GRATIS · Click para descargar'
+                    ? 'GRATIS · Click para ver'
                     : (disponible
-                      ? 'Click para descargar'
+                      ? 'Click para ver'
                       : (window.UserState?.modo === 'vip' && diasMaterial > 0
                         ? `Disponible en ${diasMaterial} día${diasMaterial!==1?'s':''}`
                         : 'Activa tu membresía para abrir'))}</span>
                 </div>
               </div>
-              ${disponible ? `<svg class="ic" style="color:${gratis?'var(--success)':t.color};opacity:.85;flex-shrink:0;width:16px;height:16px;"><use href="#i-download"/></svg>` : ''}
+              ${disponible ? `<button type="button" aria-label="Descargar ${titEsc}" title="Descargar material" onclick="event.stopPropagation();window.descargarMaterialIMFRA('${(m.url||'').replace(/'/g,'%27')}','${titEsc}')" style="width:34px;height:34px;border-radius:9px;border:1px solid color-mix(in srgb,${gratis?'var(--success)':t.color} 35%,transparent);background:color-mix(in srgb,${gratis?'var(--success)':t.color} 12%,transparent);color:${gratis?'var(--success)':t.color};display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;"><svg class="ic" style="width:16px;height:16px;"><use href="#i-download"/></svg></button>` : ''}
             </div>
           `;
         };
