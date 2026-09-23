@@ -47,6 +47,20 @@ function avatar(entry: LeagueEntry) {
   return photo ? `<img src="${esc(photo)}" alt="" referrerpolicy="no-referrer">` : `<span>${esc(initials(entry.name))}</span>`;
 }
 
+function isDemoTraining() {
+  return window.UserState?.modo === "invitado" || window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
+}
+
+function demoLeague(): LeagueSnapshot {
+  const entries: LeagueEntry[] = [
+    { uid: "demo-1", name: "Mariana Rodríguez", photoURL: "", courses: 2, classes: 14, xp: 920, rank: 1 },
+    { uid: "demo-2", name: "Carlos Hernández", photoURL: "", courses: 1, classes: 16, xp: 760, rank: 2 },
+    { uid: "demo-3", name: "Andrea Salgado", photoURL: "", courses: 1, classes: 11, xp: 610, rank: 3 },
+    { uid: "demo-preview", name: "Tu perfil", photoURL: "", courses: 0, classes: 4, xp: 140, rank: 4 }
+  ];
+  return { entries, current: entries[3], participants: entries.length };
+}
+
 function registerDay(state: TrainingState) {
   if (!state.days.includes(today())) state.days.push(today());
   state.days = state.days.slice(-90);
@@ -113,8 +127,9 @@ function level(xp: number) {
 
 function mount(container: HTMLElement) {
   let state = readState();
-  let league: LeagueSnapshot | null = null;
-  let leagueLoaded = false;
+  const demoMode = isDemoTraining();
+  let league: LeagueSnapshot | null = demoMode ? demoLeague() : null;
+  let leagueLoaded = demoMode;
   let view: View = "hub";
   let selectedCase: TrainingCase | null = null;
   let caseStep = 0;
@@ -363,14 +378,16 @@ function mount(container: HTMLElement) {
     else if (view === "flashcards") renderFlashcards();
     else renderHub();
   });
-  void syncLeagueProfile()
-    .catch((error) => console.warn("[training] No se pudo sincronizar el perfil de aprendizaje", error))
-    .then(() => loadLeague())
-    .then((snapshot) => {
-      league = snapshot;
-      leagueLoaded = true;
-      if (view === "hub") renderHub();
-    });
+  if (!demoMode) {
+    void syncLeagueProfile()
+      .catch((error) => console.warn("[training] No se pudo sincronizar el perfil de aprendizaje", error))
+      .then(() => loadLeague())
+      .then((snapshot) => {
+        league = snapshot;
+        leagueLoaded = true;
+        if (view === "hub") renderHub();
+      });
+  }
 }
 
 window.IMFRATraining = { mount };
