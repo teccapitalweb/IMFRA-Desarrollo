@@ -3110,6 +3110,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="assets/imfra-bunny-catalog.js?v=20260817-real"></script>
+<script src="assets/imfra-materials-catalog.js?v=20260923-1"></script>
 
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
 <div class="fomo-banner" id="fomo-banner" style="display:none">
@@ -6769,6 +6770,59 @@ const Sections = (function(){
           desbloquearEnDias: typeof m.desbloquearEnDias === 'number' ? m.desbloquearEnDias : null
         });
       });
+    });
+
+    // Bunny Storage y Firestore cumplen funciones distintas: Bunny aloja los
+    // archivos y Firestore permite enriquecerlos desde el panel. Combinamos
+    // ambas fuentes para que cada objeto publicado en el CDN aparezca aunque
+    // todavía no tenga un registro manual, sin duplicar los ya configurados.
+    const catalogo = Array.isArray(window.IMFRA_MATERIALS_CATALOG)
+      ? window.IMFRA_MATERIALS_CATALOG
+      : [];
+    const claveTitulo = valor => normalizarTituloBunny(valor || '');
+    const claveArchivo = valor => {
+      try {
+        const ruta = new URL(valor || '', location.href).pathname;
+        return decodeURIComponent(ruta.split('/').pop() || '').toLowerCase();
+      } catch (e) {
+        return String(valor || '').split('/').pop().toLowerCase();
+      }
+    };
+    const titulosRegistrados = new Set(out.map(m => claveTitulo(m.titulo)));
+    const archivosRegistrados = new Set(out.map(m => claveArchivo(m.url)).filter(Boolean));
+    const cantidadPorCurso = new Map();
+    out.forEach(m => cantidadPorCurso.set(String(m.cursoId), (cantidadPorCurso.get(String(m.cursoId)) || 0) + 1));
+
+    catalogo.forEach((m, catalogoIdx) => {
+      const tituloKey = claveTitulo(m.titulo);
+      const archivoKey = String(m.archivo || claveArchivo(m.url)).toLowerCase();
+      if (titulosRegistrados.has(tituloKey) || archivosRegistrados.has(archivoKey)) return;
+
+      const curso = cursos.find(c => claveTitulo(c.titulo) === claveTitulo(m.cursoTitulo))
+        || cursos
+          .map(c => ({ curso: c, score: similitudTituloBunny(c.titulo, m.cursoTitulo) }))
+          .sort((a, b) => b.score - a.score)[0]?.curso;
+      if (!curso) return;
+
+      const cursoIdx = cursos.indexOf(curso);
+      const cursoId = String(curso.id);
+      const materialIndex = cantidadPorCurso.get(cursoId) || 0;
+      out.push({
+        id: `bunny-material-${catalogoIdx}`,
+        cursoId: curso.id,
+        materialIndex,
+        cursoOrden: typeof curso.orden === 'number' ? curso.orden : cursoIdx,
+        cursoTitulo: curso.titulo || m.cursoTitulo || 'Biblioteca IMFRA',
+        cursoArea: curso.area || m.area || 'General',
+        cursoDisponibleSiempre: curso.disponibleSiempre === true,
+        titulo: m.titulo || m.archivo || 'Material IMFRA',
+        url: m.url || '',
+        disponibleSiempre: m.disponibleSiempre === true,
+        desbloquearEnDias: typeof m.desbloquearEnDias === 'number' ? m.desbloquearEnDias : null
+      });
+      cantidadPorCurso.set(cursoId, materialIndex + 1);
+      titulosRegistrados.add(tituloKey);
+      archivosRegistrados.add(archivoKey);
     });
     return out;
   }
