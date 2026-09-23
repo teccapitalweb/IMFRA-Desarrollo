@@ -1937,6 +1937,8 @@ body::after{
   font-size:13px;font-weight:700;letter-spacing:-.3px;
   flex-shrink:0;
 }
+.foro-composer__avatar.has-photo,.post__avatar.has-photo,.com__avatar.has-photo{overflow:hidden;background:var(--surface-2)!important}
+.foro-composer__avatar img,.post__avatar img,.com__avatar img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit}
 .foro-composer__main{flex:1;min-width:0}
 .foro-composer__input{
   width:100%;
@@ -7479,6 +7481,33 @@ const Sections = (function(){
     let h=0; const s=String(uid||'x'); for(let i=0;i<s.length;i++) h=((h<<5)-h+s.charCodeAt(i))|0;
     return colores[Math.abs(h)%colores.length];
   }
+  function foroFotoSegura(value){
+    const foto = String(value || '').trim();
+    return /^https:\/\//i.test(foto) ? foto : '';
+  }
+  function foroFotoAutor(autor){
+    const guardada = foroFotoSegura(autor && (autor.foto || autor.photoURL));
+    if (guardada) return guardada;
+    if (autor && autor.uid && autor.uid === window.UserState?.uid) return foroFotoSegura(window.UserState?.photoURL);
+    return '';
+  }
+  function foroAvatarHtml(autor, clase, color){
+    const iniciales = String((autor && autor.iniciales) || '?');
+    const foto = foroFotoAutor(autor);
+    const fondo = color || (autor && autor.color) || '#F59D1A';
+    return `<div class="${clase}${foto?' has-photo':''}" data-avatar-fallback="${escapeHtml(iniciales)}" style="background:linear-gradient(135deg,${fondo},${fondo}aa);">${foto?`<img class="foro-avatar-img" src="${escapeHtml(foto)}" alt="" loading="lazy" referrerpolicy="no-referrer">`:escapeHtml(iniciales)}</div>`;
+  }
+  function foroPrepararFotos(root){
+    if (!root) return;
+    root.querySelectorAll('.foro-avatar-img').forEach(img=>{
+      img.addEventListener('error', ()=>{
+        const avatar = img.parentElement;
+        if (!avatar) return;
+        avatar.classList.remove('has-photo');
+        avatar.textContent = avatar.dataset.avatarFallback || '?';
+      }, {once:true});
+    });
+  }
   function foroTiempoRel(ts){
     if(!ts) return 'ahora';
     let d; try { d = ts.toDate ? ts.toDate() : new Date(ts); } catch(e){ return 'ahora'; }
@@ -7524,6 +7553,7 @@ const Sections = (function(){
     const esVip = window.UserState?.modo === 'vip' || esAdminReal();
     const ini = window.UserState?.iniciales || 'IN';
     const miColor = foroColorFor(window.UserState?.uid);
+    const miAutor = { uid:window.UserState?.uid, iniciales:ini, foto:foroFotoSegura(window.UserState?.photoURL) };
 
     container.innerHTML = `
       <div class="fade-up">
@@ -7540,7 +7570,7 @@ const Sections = (function(){
 
         ${esVip ? `
         <div class="foro-composer">
-          <div class="foro-composer__avatar" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${ini}</div>
+          ${foroAvatarHtml(miAutor,'foro-composer__avatar',miColor)}
           <div class="foro-composer__main">
             <textarea class="foro-composer__input" id="foro-text" placeholder="¿Qué pasa en tu planta? Comparte un caso o haz una pregunta…" rows="2" maxlength="1500"></textarea>
             <div id="foro-img-preview" class="foro-img-preview" style="display:none;">
@@ -7579,6 +7609,7 @@ const Sections = (function(){
         </div>
       </div>
     `;
+    foroPrepararFotos(container);
 
     // Composer (solo VIP)
     if (esVip) {
@@ -7660,7 +7691,7 @@ const Sections = (function(){
       const dias = foroDiasRestantes(p.createdAt);
       return `
       <article class="post" data-post="${p.id}">
-        <div class="post__avatar" style="background:linear-gradient(135deg,${p.color||'#F59D1A'},${(p.color||'#F59D1A')}aa);">${escapeHtml(p.iniciales||'?')}</div>
+        ${foroAvatarHtml(p,'post__avatar',p.color||'#F59D1A')}
         <div class="post__main">
           <div class="post__header">
             <span class="post__author">${escapeHtml(p.nombre||'Miembro')}</span>
@@ -7679,6 +7710,7 @@ const Sections = (function(){
         </div>
       </article>`;
     }).join('');
+    foroPrepararFotos(list);
 
     // Handlers
     list.querySelectorAll('[data-like]').forEach(b=> b.addEventListener('click', ()=> foroToggleLike(b.dataset.like)));
@@ -7699,6 +7731,7 @@ const Sections = (function(){
         uid: window.UserState.uid,
         nombre: window.UserState?.nombre || window.UserState?.displayName || 'Miembro',
         iniciales: window.UserState?.iniciales || 'IN',
+        foto: foroFotoSegura(window.UserState?.photoURL) || null,
         color: foroColorFor(window.UserState?.uid),
         esAdmin: esAdminReal(),
         texto: contenido,
@@ -7780,13 +7813,14 @@ const Sections = (function(){
       snap.forEach(d=>{ const c=d.data(); c.id=d.id; arr.push(c); });
       cl.innerHTML = arr.map(c=>`
         <div class="com">
-          <div class="com__avatar" style="background:linear-gradient(135deg,${c.color||'#888'},${(c.color||'#888')}aa);">${escapeHtml(c.iniciales||'?')}</div>
+          ${foroAvatarHtml(c,'com__avatar',c.color||'#888')}
           <div class="com__body">
             <div class="com__head"><span class="com__author">${escapeHtml(c.nombre||'Miembro')}</span><span class="com__time">${foroTiempoRel(c.createdAt)}</span>${(c.uid===uid||esAdmin)?`<button class="com__del" data-comdel="${postId}|${c.id}">&times;</button>`:''}</div>
             <div class="com__text">${escapeHtml(c.texto||'').replace(/\n/g,'<br>')}</div>
           </div>
         </div>
       `).join('');
+      foroPrepararFotos(cl);
       cl.querySelectorAll('[data-comdel]').forEach(b=> b.addEventListener('click', ()=>{
         const [pid,cid] = b.dataset.comdel.split('|'); foroBorrarComentario(pid,cid);
       }));
@@ -7802,6 +7836,7 @@ const Sections = (function(){
         uid: window.UserState.uid,
         nombre: window.UserState?.nombre || 'Miembro',
         iniciales: window.UserState?.iniciales || 'IN',
+        foto: foroFotoSegura(window.UserState?.photoURL) || null,
         color: foroColorFor(window.UserState?.uid),
         texto: t,
         createdAt: fs.serverTimestamp()
