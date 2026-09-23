@@ -20,6 +20,11 @@
   inset: 0;
   cursor: default;
 }
+.onboarding-tour-layer--centered .onboarding-tour-backdrop {
+  background: rgba(5, 3, 2, .64);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
 .onboarding-tour-spotlight {
   position: fixed;
   border: 2px solid var(--tour-accent);
@@ -28,6 +33,7 @@
   pointer-events: none;
   transition: top .22s ease, left .22s ease, width .22s ease, height .22s ease;
 }
+.onboarding-tour-spotlight[hidden] { display: none; }
 .onboarding-tour-dialog {
   position: fixed;
   width: min(390px, calc(100vw - 28px));
@@ -39,6 +45,33 @@
   overflow: hidden;
   outline: none;
 }
+.onboarding-tour-dialog--centered {
+  top: 50%;
+  left: 50%;
+  width: min(470px, calc(100vw - 28px));
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+.onboarding-tour-dialog--centered .onboarding-tour-inner { padding: 24px 28px 26px; }
+.onboarding-tour-dialog--centered .onboarding-tour-top { margin-bottom: 2px; }
+.onboarding-tour-dialog--centered .onboarding-tour-actions { justify-content: center; }
+.onboarding-tour-dialog--centered .onboarding-tour-progress-row { max-width: 310px; margin-inline: auto; }
+.onboarding-tour-icon {
+  display: none;
+  width: 64px;
+  height: 64px;
+  margin: 5px auto 16px;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--step-color) 38%, transparent);
+  border-radius: 19px;
+  color: #fff;
+  background: linear-gradient(145deg, var(--step-color), color-mix(in srgb, var(--step-color) 58%, #17100a));
+  box-shadow: 0 15px 34px color-mix(in srgb, var(--step-color) 22%, transparent);
+  font: 800 30px/1 'Plus Jakarta Sans', sans-serif;
+}
+.onboarding-tour-dialog--centered .onboarding-tour-icon { display: grid; }
+.onboarding-tour-icon::after { content: '✦'; }
+.onboarding-tour-icon[data-icon="ready"]::after { content: '✓'; }
 .onboarding-tour-dialog::before {
   content: '';
   display: block;
@@ -155,6 +188,18 @@
     top: calc(12px + env(safe-area-inset-top)) !important;
     bottom: auto !important;
   }
+  .onboarding-tour-dialog--centered {
+    top: 50% !important;
+    bottom: auto !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto;
+    transform: translateY(-50%);
+  }
+  .onboarding-tour-dialog--centered .onboarding-tour-inner { padding: 20px 18px 19px; }
+  .onboarding-tour-dialog--centered .onboarding-tour-actions { flex-direction: column-reverse; }
+  .onboarding-tour-dialog--centered .onboarding-tour-btn { width: 100%; }
+  .onboarding-tour-icon { width: 56px; height: 56px; border-radius: 17px; font-size: 26px; margin-bottom: 13px; }
   .onboarding-tour-inner { padding: 17px 17px 16px; }
   .onboarding-tour-title { font-size: 19px; }
   .onboarding-tour-copy { font-size: 13px; margin-bottom: 14px; }

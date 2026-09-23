@@ -1,6 +1,7 @@
 import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
 import { isRewardsDemo, loadRewardBalance, submitQuizAttempt, submitRewardRequest } from "./cloud";
+import { celebrate } from "../shared/celebration";
 
 interface Redemption {
   id: string;
@@ -352,6 +353,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         if (isRewardsDemo()) state.points += earned;
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
+        if (correct) celebrate("subtle");
         if (!isRewardsDemo()) void submitQuizAttempt(answeredQuestion.id, correct).catch((error) => console.warn("[rewards] Intento pendiente de sincronización", error));
         render();
       });
@@ -368,6 +370,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
       showRoundSummary = false;
       if (activeRoundIndex >= quizRounds.length - 1) {
         showQuizSummary = true;
+        celebrate("big");
       } else {
         activeRoundIndex += 1;
         const nextQuestion = quizRounds[activeRoundIndex].find((item) => !state.answered[answerKey(item.id)]) || quizRounds[activeRoundIndex][0];

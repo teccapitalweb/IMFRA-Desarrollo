@@ -1,38 +1,42 @@
 (function () {
   'use strict';
 
-  const VERSION = 'v1';
+  const VERSION = 'v2';
   const STORAGE_PREFIX = `imfra:onboarding:panel:${VERSION}`;
   const steps = [
     {
-      title: 'Bienvenido a tu panel IMFRA',
-      copy: 'Este es tu centro de capacitación en ingeniería civil y construcción. Desde aquí puedes continuar tu aprendizaje, consultar recursos y administrar tu cuenta.',
-      selectors: ['.sidebar .brand', '.topbar__left', '.topbar']
+      title: '{{nombre}}',
+      copy: 'Te damos un recorrido rápido para que conozcas todo lo que tienes disponible. Son solo 30 segundos.',
+      icon: 'sparkles', color: '#f59d1a', centered: true, selectors: []
     },
     {
       title: 'Tu ruta de cursos',
       copy: 'En Mis cursos encuentras la videoteca de obra, proyectos, costos, calidad y normatividad. Aquí retomas clases, revisas tu avance y obtienes certificados al completar cada programa.',
+      icon: 'courses', color: '#f59d1a',
       selectors: ['.sidebar .nav-item[data-section="cursos"]', '.mobile-nav__item[data-section="cursos"]', '[data-section="cursos"]']
     },
     {
       title: 'Clases en vivo',
       copy: 'Consulta las próximas sesiones con especialistas de la industria y vuelve cuando quieras para revisar las transmisiones que queden disponibles.',
+      icon: 'live', color: '#dc6b2f',
       selectors: ['.sidebar .nav-item[data-section="webinars"]', '.mobile-nav__item[data-section="webinars"]', '[data-section="webinars"]']
     },
     {
       title: 'PDFs y material técnico',
       copy: 'Aquí están tus plantillas, procedimientos, checklists y formatos descargables para aplicar lo aprendido directamente en obra.',
+      icon: 'library', color: '#2f865f',
       selectors: ['.sidebar .nav-item[data-section="pdfs"]', '.mobile-drawer__item[data-section="pdfs"]', '#mobile-nav-more', '.main']
     },
     {
-      title: 'Comunidad de construcción',
-      copy: 'El Foro y el Directorio VIP te conectan con profesionales para compartir casos de obra, resolver dudas y ampliar tu red.',
-      selectors: ['.sidebar .nav-item[data-section="foro"]', '.mobile-drawer__item[data-section="foro"]', '#mobile-nav-more', '.aside']
+      title: 'Aprende practicando',
+      copy: 'En Retos encontrarás decisiones de obra, expedientes técnicos y flashcards. Cada logro fortalece tu perfil y suma experiencia.',
+      icon: 'challenges', color: '#7c5cbf',
+      selectors: ['.sidebar .nav-item[data-section="entrenamiento"]', '.mobile-drawer__item[data-section="entrenamiento"]', '#mobile-nav-more', '.aside']
     },
     {
-      title: 'Perfil y configuración',
-      copy: 'En Mi perfil actualizas tus datos y preferencias. En Suscripción puedes consultar o gestionar tu plan. Podrás repetir este recorrido desde el botón “Ver recorrido guiado”.',
-      selectors: ['.sidebar .nav-item[data-section="perfil"]', '#btn-avatar', '.mobile-drawer__item[data-section="perfil"]', '#mobile-nav-more']
+      title: '¡Listo para empezar!',
+      copy: 'Tu panel quedó preparado. Puedes repetir este recorrido cuando quieras desde el botón de ayuda de la barra superior.',
+      icon: 'ready', color: '#22a861', centered: true, selectors: []
     }
   ];
 
@@ -42,6 +46,7 @@
   let spotlight;
   let titleEl;
   let copyEl;
+  let iconEl;
   let countEl;
   let fillEl;
   let backBtn;
@@ -68,7 +73,7 @@
   function availableIndex(from, direction) {
     let index = from;
     while (index >= 0 && index < steps.length) {
-      if (resolveAnchor(steps[index])) return index;
+      if (steps[index].centered || resolveAnchor(steps[index])) return index;
       index += direction;
     }
     return -1;
@@ -108,6 +113,7 @@
             <span class="onboarding-tour-eyebrow">Recorrido IMFRA</span>
             <button class="onboarding-tour-skip" type="button">Omitir</button>
           </div>
+          <div class="onboarding-tour-icon" aria-hidden="true"></div>
           <h2 class="onboarding-tour-title" id="onboarding-tour-title"></h2>
           <p class="onboarding-tour-copy" id="onboarding-tour-copy"></p>
           <div class="onboarding-tour-progress-row" aria-live="polite">
@@ -125,6 +131,7 @@
     spotlight = layer.querySelector('.onboarding-tour-spotlight');
     titleEl = layer.querySelector('.onboarding-tour-title');
     copyEl = layer.querySelector('.onboarding-tour-copy');
+    iconEl = layer.querySelector('.onboarding-tour-icon');
     countEl = layer.querySelector('.onboarding-tour-count');
     fillEl = layer.querySelector('.onboarding-tour-progress-fill');
     backBtn = layer.querySelector('.onboarding-tour-btn--back');
@@ -135,7 +142,21 @@
   }
 
   function positionUi() {
-    if (!state.active || !state.anchor || !isVisible(state.anchor)) return;
+    if (!state.active) return;
+    const currentStep = steps[state.index];
+    const centered = Boolean(currentStep.centered);
+    layer.classList.toggle('onboarding-tour-layer--centered', centered);
+    dialog.classList.toggle('onboarding-tour-dialog--centered', centered);
+    spotlight.hidden = centered;
+    if (centered) {
+      dialog.style.removeProperty('left');
+      dialog.style.removeProperty('right');
+      dialog.style.removeProperty('top');
+      dialog.style.removeProperty('bottom');
+      dialog.classList.remove('onboarding-tour-dialog--mobile-top', 'onboarding-tour-dialog--mobile-bottom');
+      return;
+    }
+    if (!state.anchor || !isVisible(state.anchor)) return;
     const rect = state.anchor.getBoundingClientRect();
     const pad = 7;
     const left = Math.max(5, rect.left - pad);
@@ -170,15 +191,18 @@
     const actual = availableIndex(index, direction || 1);
     if (actual < 0) { finish('completed'); return; }
     state.index = actual;
-    state.anchor = resolveAnchor(steps[actual]);
+    state.anchor = steps[actual].centered ? null : resolveAnchor(steps[actual]);
     const step = steps[actual];
-    titleEl.textContent = step.title;
+    const firstName = String(window.UserState?.displayName || '').trim().split(/\s+/)[0];
+    titleEl.textContent = step.title.replace('{{nombre}}', firstName ? `¡Bienvenido/a, ${firstName}!` : '¡Bienvenido/a!');
     copyEl.textContent = step.copy;
+    iconEl.dataset.icon = step.icon || 'sparkles';
+    iconEl.style.setProperty('--step-color', step.color || '#f59d1a');
     countEl.textContent = `${actual + 1} de ${steps.length}`;
     fillEl.style.width = `${((actual + 1) / steps.length) * 100}%`;
     backBtn.disabled = availableIndex(actual - 1, -1) < 0;
     nextBtn.textContent = availableIndex(actual + 1, 1) < 0 ? 'Finalizar' : 'Siguiente';
-    state.anchor.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+    if (state.anchor) state.anchor.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
     requestAnimationFrame(positionUi);
     setTimeout(positionUi, 230);
     nextBtn.focus({ preventScroll: true });
@@ -206,6 +230,7 @@
     window.removeEventListener('resize', positionUi);
     window.removeEventListener('scroll', positionUi, true);
     if (state.previousFocus && state.previousFocus.isConnected) state.previousFocus.focus({ preventScroll: true });
+    if (reason === 'completed') window.IMFRACelebrate?.('normal');
   }
 
   function onKeydown(event) {
@@ -261,7 +286,7 @@
 
   function scheduleAutomatic(attempt) {
     const id = accountId();
-    const ready = Boolean(id && window.UserState && window.UserState.modo !== 'cargando');
+    const ready = Boolean(id && window.UserState && window.UserState.modo !== 'cargando' && window.__IMFRA_PROFILE_FLOW_READY === true);
     if (!ready) {
       if (attempt < 80) {
         clearTimeout(automaticTimer);

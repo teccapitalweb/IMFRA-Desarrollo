@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="onboarding-tour.css?v=1">
+<link rel="stylesheet" href="onboarding-tour.css?v=2">
 <link rel="stylesheet" href="assets/imfra-tools.css?v=1">
 
 <style>
@@ -3229,6 +3229,7 @@ const isCheckoutSuccess = new URLSearchParams(window.location.search).get('check
 // Si ya estamos en modo demo (configurado en script anterior), aplicar UserState y salir
 if (window.__isDemoMode) {
   setTimeout(() => { window.__applyUserState && window.__applyUserState(); }, 80);
+  setTimeout(() => { window.__maybeAskProfile && window.__maybeAskProfile(); }, 520);
 } else {
   // ─── Auth normal · puede ser sin-membresia o vip ───
   onAuthStateChanged(auth, async (user) => {
@@ -3308,7 +3309,7 @@ if (window.__isDemoMode) {
     setTimeout(()=>{ if(typeof window.__actualizarWidgetsActividad==='function') window.__actualizarWidgetsActividad(); }, 400);
 
     if (isCheckoutSuccess && window.UserState.modo === 'vip') {
-      setTimeout(() => { window.__showWelcomeSplash && window.__showWelcomeSplash(); }, 600);
+      window.__pendingWelcomeSplash = {};
     }
 
     // ─── Splash de activación MANUAL (admin) · lee notificacionPendiente ───
@@ -3318,22 +3319,20 @@ if (window.__isDemoMode) {
       try {
         const np = window.memberData && window.memberData.notificacionPendiente;
         if (np && !np.mostrada) {
-          setTimeout(() => {
-            window.__showWelcomeSplash && window.__showWelcomeSplash({
-              tipo: np.tipo || null,
-              plan: window.UserState.plan,
-              dias: np.dias || window.UserState.diasRegalo || null,
-              fromNotif: true
-            });
-          }, 700);
+          window.__pendingWelcomeSplash = {
+            tipo: np.tipo || null,
+            plan: window.UserState.plan,
+            dias: np.dias || window.UserState.diasRegalo || null,
+            fromNotif: true
+          };
         }
       } catch(e) { console.warn('notificacionPendiente:', e.message); }
     }
 
     setTimeout(() => { window.__applyUserState && window.__applyUserState(); }, 50);
 
-    // ─── Popup: confirmar/editar nombre (1ª vez) · evita certificados con el email ───
-    setTimeout(() => { try { window.__maybeAskName && window.__maybeAskName(); } catch(e){} }, 900);
+    // ─── Primera entrada: ficha profesional y después recorrido/bienvenida ───
+    setTimeout(() => { try { window.__maybeAskProfile && window.__maybeAskProfile(); } catch(e){} }, 500);
 
     // Arrancar listener de notificaciones de Firestore (tiempo real)
     setTimeout(() => { if (typeof setupNotificacionesListener === 'function') setupNotificacionesListener(); }, 100);
@@ -8799,106 +8798,131 @@ function openPasswordResetModal(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Popup: confirmar/editar nombre la 1ª vez (para que el certificado
-// no salga con el email). Si el nombre parece venir del correo o es
-// genérico, ofrecemos editarlo; si no, igual avisamos con qué nombre
-// se emitirán los certificados.
+// Primera entrada: ficha profesional → bienvenida → recorrido guiado.
+// La ficha se considera completa con nombre y WhatsApp; los demás
+// campos ayudan a personalizar el soporte sin frenar el acceso.
 // ═══════════════════════════════════════════════════════════════════
-window.__maybeAskName = function(){
+window.__IMFRA_PROFILE_FLOW_READY = false;
+window.__maybeAskProfile = function(){
   try {
-    if (localStorage.getItem('imfra_name_confirmed') === '1') return;
-    if (document.getElementById('name-modal')) return;
+    if (document.getElementById('profile-intake-modal')) return;
     const S = window.UserState || {};
-    const email = S.email || '';
-    const emailPart = email.split('@')[0] || '';
-    const actual = (S.nombre || S.displayName || '').trim();
-    // ¿el nombre parece "feo"? = igual al inicio del correo, sin espacio, o con dígitos
-    const pareceEmail = actual && (actual.toLowerCase() === emailPart.toLowerCase());
-    const sinApellido = actual && !actual.includes(' ');
-    const tieneNumeros = /\d/.test(actual);
-    const esGenerico = !actual || ['ingeniero','usuario vip','usuario'].includes(actual.toLowerCase());
-    const sugerido = (pareceEmail || esGenerico) ? '' : actual;
+    const md = window.memberData || {};
+    let local = {};
+    try { local = JSON.parse(localStorage.getItem('imfra_profile') || '{}'); } catch(e){}
 
-    const ov = document.createElement('div');
-    ov.id = 'name-modal';
-    ov.innerHTML = `
-      <div class="nm-ov"></div>
-      <div class="nm-box">
-        <div class="nm-ic">🎓</div>
-        <h2 class="nm-title">¿Cómo quieres que aparezca tu nombre?</h2>
-        <p class="nm-desc">Este es el nombre que aparecerá en <strong>tus certificados oficiales IMFRA</strong>. Escríbelo completo y bien escrito (nombre y apellidos).</p>
-        <input id="nm-input" class="nm-input" type="text" value="${(sugerido||'').replace(/"/g,'&quot;')}" placeholder="Ej. Felipe Estrada Ramírez" autocomplete="name" maxlength="38">
-        <div class="nm-hint" id="nm-hint"></div>
-        <button class="nm-save" id="nm-save">Guardar y continuar</button>
-        <button class="nm-skip" id="nm-skip">Lo dejo así por ahora</button>
-        <p class="nm-foot">Podrás cambiarlo cuando quieras en <strong>Mi perfil → Nombre completo</strong>.</p>
-      </div>`;
-    document.body.appendChild(ov);
-    if (!document.getElementById('nm-css')) {
-      const st=document.createElement('style'); st.id='nm-css';
-      st.textContent = `
-        #name-modal{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px}
-        #name-modal .nm-ov{position:absolute;inset:0;background:rgba(10,12,20,.72);backdrop-filter:blur(4px)}
-        #name-modal .nm-box{position:relative;width:100%;max-width:440px;background:var(--surface,#15110C);border:1px solid var(--border-2,rgba(245,157,26,.14));border-radius:20px;padding:30px 26px 24px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.55);animation:nmIn .25s ease}
-        @keyframes nmIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
-        #name-modal .nm-ic{font-size:34px;margin-bottom:10px}
-        #name-modal .nm-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--text,#F5EFE6);line-height:1.25;margin-bottom:8px}
-        #name-modal .nm-desc{font-size:13.5px;color:var(--text-2,#B8AC9C);line-height:1.6;margin-bottom:18px}
-        #name-modal .nm-input{width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border-2,rgba(245,157,26,.18));background:var(--surface-2,#1E1812);color:var(--text,#F5EFE6);font-size:16px;font-family:inherit;outline:none;transition:border .15s;text-align:center}
-        #name-modal .nm-input:focus{border-color:var(--primary,#F59D1A)}
-        #name-modal .nm-hint{font-size:12px;color:#E0894A;min-height:16px;margin:8px 0 4px}
-        #name-modal .nm-save{width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--primary,#F59D1A),var(--highlight,#FFCF7A));color:#0D0D0D;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
-        #name-modal .nm-save:active{transform:translateY(1px)}
-        #name-modal .nm-skip{width:100%;margin-top:9px;padding:11px;border:1px solid var(--border-2,rgba(245,157,26,.16));border-radius:12px;background:none;color:var(--text-2,#B8AC9C);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
-        #name-modal .nm-foot{font-size:11.5px;color:var(--text-3,#8A7E6E);margin-top:14px;line-height:1.5}`;
-      document.head.appendChild(st);
-    }
-    const input = document.getElementById('nm-input');
-    const hint = document.getElementById('nm-hint');
-    setTimeout(()=>input.focus(), 100);
-
-    // Aviso en vivo: si el nombre se acerca al límite estético del certificado
-    const LIMITE_OK = 32;  // hasta aquí se ve bien centrado en el certificado
-    input.addEventListener('input', ()=>{
-      const v = (input.value||'').trim();
-      if (v.length >= 34) hint.textContent = 'Es el máximo que se ve bien en el certificado. Usa nombre + 1 o 2 apellidos.';
-      else if (v.length >= LIMITE_OK) hint.textContent = 'Procura que no sea más largo para que luzca bien.';
-      else hint.textContent = '';
-    });
-
-    async function guardar(){
-      let val = (input.value||'').trim().replace(/\s+/g,' ');
-      if (val.length < 3 || !val.includes(' ')) { hint.textContent = 'Escribe tu nombre y al menos un apellido.'; input.focus(); return; }
-      if (val.length > 38) { val = val.slice(0,38).trim(); }  // tope duro estético
-      // Guardar igual que openEditField: Auth + Firestore + UserState
-      try { if (window.__setDisplayName) await window.__setDisplayName(val); } catch(e){}
-      try {
-        const fs = window.__fs;
-        if (fs && fs.updateDoc && window.UserState?.uid) {
-          await fs.updateDoc(fs.doc(fs.db,'miembros',window.UserState.uid), { nombre: val });
+    const finish = () => {
+      window.__IMFRA_PROFILE_FLOW_READY = true;
+      const pending = window.__pendingWelcomeSplash;
+      window.__pendingWelcomeSplash = null;
+      let alreadySawTour = false;
+      try { alreadySawTour = !!localStorage.getItem(`imfra:onboarding:panel:v2:${String(S.uid || S.email || '').toLowerCase()}`); } catch(e){}
+      if (pending && alreadySawTour && window.__showWelcomeSplash) {
+        setTimeout(() => window.__showWelcomeSplash(pending), 180);
+      } else if (pending) {
+        if (window.history.replaceState) {
+          const cleanUrl = new URL(window.location.href); cleanUrl.searchParams.delete('checkout');
+          window.history.replaceState({}, '', cleanUrl.toString());
         }
-      } catch(e){}
-      window.UserState.nombre = val;
-      window.UserState.displayName = val;
-      window.UserState.iniciales = (window.calcIniciales ? window.calcIniciales(val) : val.slice(0,2).toUpperCase());
-      if (window.memberData) window.memberData.nombre = val;
-      try { const ls=JSON.parse(localStorage.getItem('imfra_profile')||'{}'); ls.nombre=val; localStorage.setItem('imfra_profile',JSON.stringify(ls)); } catch(e){}
-      localStorage.setItem('imfra_name_confirmed','1');
-      if (typeof window.__applyUserState==='function') window.__applyUserState();
-      if (window.Toast) Toast.success('Nombre guardado', val);
-      ov.remove();
-    }
-    document.getElementById('nm-save').addEventListener('click', guardar);
-    input.addEventListener('keydown', e=>{ if(e.key==='Enter') guardar(); });
-    document.getElementById('nm-skip').addEventListener('click', ()=>{
-      // No volver a molestar, pero NO marcamos como "confirmado" para que el
-      // perfil siga sugiriendo completarlo. Marcamos solo "preguntado".
-      localStorage.setItem('imfra_name_confirmed','1');
-      ov.remove();
-      if (window.Toast) Toast.info('Puedes cambiarlo luego', 'Mi perfil → Nombre completo');
+        if (pending.fromNotif && window.__fs?.updateDoc && S.uid) {
+          window.__fs.updateDoc(window.__fs.doc(window.__fs.db, 'miembros', S.uid), { 'notificacionPendiente.mostrada': true }).catch(()=>{});
+        }
+      }
+    };
+
+    if (!S.uid || S.modo === 'demo' || S.modo === 'invitado') { finish(); return; }
+    const savedWhatsapp = String(md.whatsapp || local.whatsapp || '').trim();
+    if (savedWhatsapp) { finish(); return; }
+
+    const email = String(S.email || '');
+    const emailPart = email.split('@')[0] || '';
+    const currentName = String(md.nombre || S.nombre || S.displayName || local.nombre || '').trim();
+    const genericName = !currentName || currentName.toLowerCase() === emailPart.toLowerCase() || ['ingeniero','usuario vip','usuario'].includes(currentName.toLowerCase());
+    const escAttr = (value) => String(value || '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+
+    const modal = document.createElement('div');
+    modal.id = 'profile-intake-modal';
+    modal.innerHTML = `
+      <div class="pi-backdrop"></div>
+      <section class="pi-panel" role="dialog" aria-modal="true" aria-labelledby="pi-title" aria-describedby="pi-intro">
+        <button class="pi-close" type="button" aria-label="Completar después">×</button>
+        <header class="pi-head">
+          <span class="pi-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/><path d="M17 3.5h4M19 1.5v4"/></svg></span>
+          <div><span>Un último paso</span><h2 id="pi-title">Completa tu ficha profesional</h2></div>
+        </header>
+        <p class="pi-intro" id="pi-intro">Así podremos identificar tu cuenta, emitir correctamente tus certificados y brindarte soporte personalizado dentro de IMFRA.</p>
+        <form class="pi-form">
+          <label class="pi-field"><span>Nombre completo <b>*</b></span><input name="nombre" value="${genericName ? '' : escAttr(currentName)}" required maxlength="60" autocomplete="name" placeholder="Ej. Ing. Felipe Estrada Ramírez"></label>
+          <label class="pi-field"><span>Correo de tu cuenta</span><input value="${escAttr(email)}" readonly disabled></label>
+          <label class="pi-field"><span>WhatsApp <b>*</b></span><input name="whatsapp" value="${escAttr(savedWhatsapp)}" required maxlength="20" inputmode="tel" autocomplete="tel" pattern="\\+?[0-9 ()\\-.]{7,20}" placeholder="+52 238 123 4567"><small>Lo usaremos para identificar tu ficha y darte soporte.</small></label>
+          <div class="pi-grid">
+            <label class="pi-field"><span>Área profesional <em>(opcional)</em></span><input name="especialidad" value="${escAttr(md.especialidad || local.especialidad)}" maxlength="80" placeholder="Ingeniería civil"></label>
+            <label class="pi-field"><span>Empresa / despacho <em>(opcional)</em></span><input name="empresa" value="${escAttr(md.empresa || local.empresa)}" maxlength="80" autocomplete="organization" placeholder="Constructora del Centro"></label>
+          </div>
+          <p class="pi-error" role="alert" hidden></p>
+          <p class="pi-privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>Tus datos se guardan en tu cuenta y no aparecen en la clasificación del club.</p>
+          <div class="pi-actions"><button class="pi-later" type="button">Ahora no</button><button class="pi-save" type="submit">Guardar y continuar <span>→</span></button></div>
+        </form>
+      </section>`;
+    document.body.appendChild(modal);
+
+    const form = modal.querySelector('.pi-form');
+    const nameInput = form.elements.nombre;
+    const whatsappInput = form.elements.whatsapp;
+    const error = modal.querySelector('.pi-error');
+    const submit = modal.querySelector('.pi-save');
+
+    const close = () => { modal.classList.add('is-closing'); setTimeout(() => { modal.remove(); finish(); }, 190); };
+    modal.querySelector('.pi-close').addEventListener('click', close);
+    modal.querySelector('.pi-later').addEventListener('click', close);
+    modal.querySelector('.pi-backdrop').addEventListener('click', close);
+    setTimeout(() => (genericName ? nameInput : whatsappInput).focus(), 100);
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const nombre = String(nameInput.value || '').trim().replace(/\s+/g, ' ');
+      const whatsapp = String(whatsappInput.value || '').trim();
+      const especialidad = String(form.elements.especialidad.value || '').trim();
+      const empresa = String(form.elements.empresa.value || '').trim();
+      error.hidden = true;
+      if (nombre.length < 4 || !nombre.includes(' ')) {
+        error.textContent = 'Escribe tu nombre y al menos un apellido.'; error.hidden = false; nameInput.focus(); return;
+      }
+      if (!/^\+?[0-9 ()\-.]{7,20}$/.test(whatsapp)) {
+        error.textContent = 'Escribe un número de WhatsApp válido, incluyendo lada.'; error.hidden = false; whatsappInput.focus(); return;
+      }
+      submit.disabled = true; submit.textContent = 'Guardando…';
+      try {
+        if (window.__setDisplayName) {
+          const authResult = await window.__setDisplayName(nombre);
+          if (authResult && authResult.ok === false) throw new Error(authResult.error || 'No pudimos actualizar tu nombre.');
+        }
+        const fs = window.__fs;
+        if (!fs || !fs.updateDoc || !S.uid) throw new Error('No pudimos conectar con tu cuenta.');
+        await fs.updateDoc(fs.doc(fs.db, 'miembros', S.uid), {
+          nombre, whatsapp, especialidad, empresa, perfilCompletadoAt: fs.serverTimestamp()
+        });
+        Object.assign(S, { nombre, displayName: nombre, whatsapp, especialidad, empresa, iniciales: window.calcIniciales ? window.calcIniciales(nombre) : nombre.slice(0, 2).toUpperCase() });
+        window.memberData = Object.assign({}, md, { nombre, whatsapp, especialidad, empresa });
+        localStorage.setItem('imfra_profile', JSON.stringify(Object.assign({}, local, { nombre, whatsapp, especialidad, empresa })));
+        localStorage.setItem('imfra_name_confirmed', '1');
+        if (typeof window.__applyUserState === 'function') window.__applyUserState();
+        window.IMFRACelebrate?.('normal');
+        modal.classList.add('is-closing');
+        setTimeout(() => { modal.remove(); finish(); }, 210);
+      } catch(err) {
+        error.textContent = err?.message || 'No pudimos guardar tu ficha. Inténtalo de nuevo.';
+        error.hidden = false;
+        submit.disabled = false; submit.innerHTML = 'Guardar y continuar <span>→</span>';
+      }
     });
-  } catch(e){ console.warn('maybeAskName:', e); }
+  } catch(e) {
+    console.warn('maybeAskProfile:', e);
+    window.__IMFRA_PROFILE_FLOW_READY = true;
+  }
 };
+// Alias temporal para cualquier llamada almacenada por una versión anterior.
+window.__maybeAskName = window.__maybeAskProfile;
 
 function openEditField(field){
   const wrap=document.querySelector(`[data-field="${field}"]`);
@@ -10070,6 +10094,48 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .select-fancy__input option{background:#0D0D0D;color:var(--text);padding:8px}
 </style>
 <style>
+/* ═══ Ficha profesional · primera entrada ═══ */
+#profile-intake-modal{position:fixed;inset:0;z-index:2147483200;display:grid;place-items:center;padding:20px;font-family:'Inter',sans-serif;animation:piFade .22s ease-out}
+#profile-intake-modal.is-closing{opacity:0;transition:opacity .18s ease;pointer-events:none}
+.pi-backdrop{position:absolute;inset:0;background:rgba(7,5,3,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.pi-panel{position:relative;width:min(610px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;padding:30px;border:1px solid var(--border-2,rgba(245,157,26,.18));border-radius:22px;background:var(--surface,#15110c);color:var(--text,#f5efe6);box-shadow:0 30px 90px rgba(0,0,0,.58);animation:piPanel .3s cubic-bezier(.22,1,.36,1)}
+.pi-close{position:absolute;top:14px;right:14px;width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border-2,rgba(255,255,255,.12));border-radius:10px;background:transparent;color:var(--text-2,#b8ac9c);font-size:22px;line-height:1;cursor:pointer}
+.pi-close:hover{background:var(--surface-2,#211910);color:var(--text,#f5efe6)}
+.pi-head{display:flex;align-items:center;gap:14px;padding-right:40px}
+.pi-head>div>span{display:block;margin-bottom:5px;color:var(--primary,#f59d1a);font:700 10px/1 'JetBrains Mono',monospace;letter-spacing:1.6px;text-transform:uppercase}
+.pi-head h2{margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;line-height:1.15;letter-spacing:-.55px}
+.pi-icon{width:54px;height:54px;flex:0 0 auto;display:grid;place-items:center;border:1px solid rgba(255,188,92,.28);border-radius:16px;color:#fff;background:linear-gradient(145deg,#f59d1a,#dc6023);box-shadow:0 12px 28px rgba(245,157,26,.24)}
+.pi-icon svg{width:26px;height:26px}
+.pi-intro{margin:18px 0 20px;color:var(--text-2,#b8ac9c);font-size:13.5px;line-height:1.6}
+.pi-form{display:grid;gap:14px}
+.pi-field{display:grid;gap:7px;text-align:left}
+.pi-field>span{color:var(--text,#f5efe6);font-size:12.5px;font-weight:700}
+.pi-field b{color:var(--primary,#f59d1a)}
+.pi-field em{color:var(--text-3,#8a7e6e);font-size:11px;font-style:normal;font-weight:500}
+.pi-field input{width:100%;min-height:45px;padding:11px 13px;border:1px solid var(--border-2,rgba(245,157,26,.18));border-radius:11px;outline:none;background:var(--surface-2,#211910);color:var(--text,#f5efe6);font:14px/1.3 'Inter',sans-serif;transition:border-color .15s,box-shadow .15s}
+.pi-field input:focus{border-color:var(--primary,#f59d1a);box-shadow:0 0 0 3px rgba(245,157,26,.13)}
+.pi-field input:disabled{opacity:.66;cursor:not-allowed}
+.pi-field small{color:var(--text-3,#8a7e6e);font-size:11.5px;line-height:1.4}
+.pi-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.pi-error{margin:0;padding:10px 12px;border:1px solid rgba(239,96,96,.22);border-radius:10px;background:rgba(239,96,96,.08);color:#f39a9a;font-size:12.5px;line-height:1.45}
+.pi-privacy{display:flex;align-items:flex-start;gap:8px;margin:0;color:var(--text-3,#8a7e6e);font-size:11.5px;line-height:1.45}
+.pi-privacy svg{width:15px;height:15px;flex:0 0 auto;color:var(--primary,#f59d1a)}
+.pi-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:2px}
+.pi-later,.pi-save{min-height:43px;padding:11px 16px;border-radius:11px;font-family:inherit;font-size:13px;font-weight:750;cursor:pointer}
+.pi-later{border:1px solid var(--border-2,rgba(245,157,26,.16));background:transparent;color:var(--text-2,#b8ac9c)}
+.pi-save{border:0;background:linear-gradient(135deg,var(--primary,#f59d1a),var(--highlight,#ffcf7a));color:#17100a;box-shadow:0 10px 24px rgba(245,157,26,.2)}
+.pi-save:disabled{opacity:.62;cursor:wait}
+@keyframes piFade{from{opacity:0}to{opacity:1}}
+@keyframes piPanel{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@media(max-width:600px){
+  #profile-intake-modal{align-items:end;padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+  .pi-panel{width:100%;max-height:calc(100dvh - 16px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:24px 18px 18px;border-radius:22px 22px 14px 14px}
+  .pi-head h2{font-size:21px}.pi-icon{width:48px;height:48px;border-radius:14px}.pi-intro{margin:14px 0 17px}
+  .pi-grid{grid-template-columns:1fr}.pi-actions{flex-direction:column-reverse}.pi-actions button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){#profile-intake-modal,.pi-panel{animation:none}}
+</style>
+<style>
 /* ═══ Splash de BIENVENIDA post-pago ═══ */
 #splash-bienvenida{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;animation:bnvFadeIn .4s ease}
 .splash-bnv__overlay{position:absolute;inset:0;background:rgba(7,5,3,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
@@ -10822,7 +10888,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v3-premium.css">
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
-<script src="onboarding-tour.js?v=1" defer></script>
+<script src="onboarding-tour.js?v=2" defer></script>
 <script src="assets/imfra-tools.js?v=1"></script>
 <script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>

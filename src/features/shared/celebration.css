@@ -1,0 +1,35 @@
+.imfra-confetti {
+  position: fixed;
+  z-index: 2147483600;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.imfra-confetti span {
+  position: absolute;
+  top: -24px;
+  left: var(--x);
+  width: var(--w);
+  height: var(--h);
+  border-radius: 2px;
+  opacity: 1;
+  transform: rotate(var(--rot));
+  animation: imfra-confetti-fall var(--dur) cubic-bezier(.18, .72, .28, 1) var(--delay) forwards;
+  box-shadow: 0 1px 2px rgba(20, 12, 4, .14);
+}
+
+.imfra-confetti span.is-round { border-radius: 50%; }
+.imfra-confetti.is-big span { box-shadow: 0 2px 5px rgba(20, 12, 4, .18); }
+
+@keyframes imfra-confetti-fall {
+  72% { opacity: 1; }
+  to {
+    opacity: 0;
+    transform: translate3d(var(--drift), 105vh, 0) rotate(calc(var(--rot) + 760deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .imfra-confetti { display: none; }
+}

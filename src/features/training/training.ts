@@ -3,6 +3,7 @@ import { flashcards, trainingCases, type TrainingCase } from "./catalog";
 import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
+import { celebrate } from "../shared/celebration";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -333,7 +334,10 @@ function mount(container: HTMLElement) {
     container.querySelectorAll<HTMLButtonElement>("[data-case-answer]").forEach((button) => button.addEventListener("click", () => {
       if (!selectedCase || caseAnswer !== null) return;
       caseAnswer = Number(button.dataset.caseAnswer);
-      if (caseAnswer === selectedCase.steps[caseStep].correct) caseScore += 1;
+      if (caseAnswer === selectedCase.steps[caseStep].correct) {
+        caseScore += 1;
+        celebrate("subtle");
+      }
       renderCase();
     }));
     container.querySelector<HTMLButtonElement>("[data-case-next]")?.addEventListener("click", () => {
@@ -344,6 +348,7 @@ function mount(container: HTMLElement) {
         if (!previous) state.xp += 45 + caseScore * 5;
         state.cases[selectedCase.id] = { score: Math.max(previous?.score || 0, caseScore), completedAt: new Date().toISOString() };
         registerDay(state); persistState(); caseFinished = true; renderCase();
+        celebrate(caseScore === selectedCase.steps.length ? "big" : "normal");
       }
       goTo(caseFinished ? ".tr-case-result" : ".tr-case-run");
     });
@@ -357,6 +362,7 @@ function mount(container: HTMLElement) {
       state.cards[card.id] = { confidence: Math.max(previous?.confidence || 0, confidence), lastReviewed: new Date().toISOString(), rewardDate: today() };
       if (rewardDate !== today()) state.xp += confidence;
       registerDay(state); persistState();
+      if (confidence === 3 && (previous?.confidence || 0) < 3) celebrate("subtle");
       cardIndex = (cardIndex + 1) % deck.length; cardFlipped = false; renderFlashcards();
     }));
   }
