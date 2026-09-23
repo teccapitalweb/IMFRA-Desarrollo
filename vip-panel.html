@@ -137,6 +137,8 @@ body::after{
 
 .avatar{display:flex;align-items:center;gap:9px;padding:5px 11px 5px 5px;border-radius:100px;background:var(--surface);border:0.5px solid var(--border-2)}
 .avatar__circle{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;letter-spacing:-.3px}
+.avatar__circle img,.perfil-hero__avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+.avatar__circle.has-photo{background:var(--surface-2);overflow:hidden}
 .avatar__info{display:flex;flex-direction:column;line-height:1.1}
 .avatar__name{font-size:11px;font-weight:600}
 .avatar__plan{font-size:9px;font-weight:600;color:var(--primary);letter-spacing:.5px}
@@ -3144,7 +3146,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 // UserState inicial (vacío) y detección de modo demo SIN depender de Firebase
 window.UserState = {
   modo: 'cargando',
-  uid: null, email: null, displayName: null, iniciales: 'IN',
+  uid: null, email: null, displayName: null, iniciales: 'IN', photoURL: null,
   plan: null, isAdmin: false,
   membership: { activo:false, proximaRenovacion:null, historial:[], metodoPago:null },
   demo: { timerRestante:300, iniciado:null, visitas:0 }
@@ -3237,6 +3239,7 @@ if (window.__isDemoMode) {
     window.UserState.email = (user.email||'').toLowerCase();
     window.UserState.displayName = user.displayName || user.email?.split('@')[0] || 'Ingeniero';
     window.UserState.iniciales = calcIniciales(user.displayName || user.email);
+    window.UserState.photoURL = user.photoURL || null;
     window.UserState.isAdmin = ADMIN_EMAILS.includes(window.UserState.email);
 
     if (window.UserState.isAdmin) {
@@ -3265,6 +3268,7 @@ if (window.__isDemoMode) {
         const memberSnap = await getDoc(doc(db, 'miembros', user.uid));
         if (memberSnap.exists()) {
           window.memberData = memberSnap.data();
+          window.UserState.photoURL = window.memberData.foto || window.memberData.photoURL || user.photoURL || null;
           // Propagar campos de cancelación al UserState para que el panel los use
           window.UserState.cancelacionProgramada = !!window.memberData.cancelacionProgramada;
           const ffa = window.memberData.fechaFinAcceso;
@@ -4420,6 +4424,16 @@ const Sections = (function(){
   function setProgreso(p) {
     try { localStorage.setItem(getProgresoKey(), JSON.stringify(p)); } catch {}
   }
+
+  // Resumen mínimo que el backend usa para la clasificación del club.
+  // No incluye correo, teléfono ni ningún dato de contacto.
+  window.IMFRAActivitySnapshot = function(){
+    const cursos = Object.values(getProgreso() || {});
+    return {
+      completedCourses: cursos.filter(curso => curso && curso.completado).length,
+      viewedClasses: cursos.reduce((total, curso) => total + (Array.isArray(curso?.clasesVistas) ? curso.clasesVistas.length : 0), 0)
+    };
+  };
 
   function getProgresoCurso(cursoId) {
     const p = getProgreso();
@@ -7916,6 +7930,7 @@ const Sections = (function(){
     const _nom = escapeHtml(S.nombre || S.displayName || 'Ingeniero');
     const _em  = escapeHtml(S.email || '—');
     const _ini = (S.iniciales || 'IN');
+    const _foto = /^https:\/\//i.test(S.photoURL || '') ? S.photoURL : '';
     container.innerHTML = `
       <div class="fade-up">
         <div class="sec-hero" data-illus="perfil">
@@ -7925,7 +7940,7 @@ const Sections = (function(){
         </div>
 
         <section class="perfil-hero">
-          <div class="perfil-hero__avatar">${_ini}</div>
+          <div class="perfil-hero__avatar">${_foto?`<img src="${escapeHtml(_foto)}" alt="Foto de ${_nom}" referrerpolicy="no-referrer">`:_ini}</div>
           <div class="perfil-hero__info">
             <h2 class="perfil-hero__name">${_nom}</h2>
             <div class="perfil-hero__email">${_em}</div>
@@ -8939,7 +8954,7 @@ function openEditField(field){
       try {
         wrap.querySelector('.perfil-field__val').textContent=newVal;
         document.querySelectorAll('.perfil-hero__name').forEach(el=>el.textContent=newVal);
-        const av=document.querySelector('.perfil-hero__avatar'); if(av) av.textContent=window.UserState.iniciales;
+        const av=document.querySelector('.perfil-hero__avatar'); if(av && !window.UserState.photoURL) av.textContent=window.UserState.iniciales;
       } catch(e){}
       Modal.close('edit-nombre');
       Toast.success('Nombre actualizado','Se aplicará también en tus certificados');
@@ -9615,7 +9630,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const avatarCircle = document.querySelector('.avatar__circle');
     const avatarName = document.querySelector('.avatar__name');
     const avatarPlan = document.querySelector('.avatar__plan');
-    if (avatarCircle) avatarCircle.textContent = S.iniciales;
+    if (avatarCircle) {
+      const photo = /^https:\/\//i.test(S.photoURL || '') ? S.photoURL : '';
+      avatarCircle.innerHTML = photo
+        ? `<img src="${String(photo).replace(/&/g,'&amp;').replace(/"/g,'&quot;')}" alt="" referrerpolicy="no-referrer">`
+        : S.iniciales;
+      avatarCircle.classList.toggle('has-photo', !!photo);
+    }
     if (avatarName) {
       avatarName.textContent = S.modo === 'invitado'
         ? 'Invitado'

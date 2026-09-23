@@ -16,7 +16,7 @@ export interface FirestoreFacade {
 declare global {
   interface Window {
     __fs?: FirestoreFacade;
-    UserState?: { uid?: string; email?: string; modo?: string };
+    UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
   }
 }
 

@@ -325,9 +325,9 @@ export const rewardCatalog: RewardItem[] = [
     points: 600,
     availability: "30 días de acceso",
     accent: "#ee8d16",
-    brand: "TEC Capital × IMDAC",
+    brand: "IMDAC · TEC Capital",
     durationDays: 30,
-    accessUrl: "https://imdac-control-obra-web.vercel.app/login",
+    accessUrl: "https://imdac-control-obra-web-nxav.vercel.app/login",
     featured: true,
     features: [
       "Seguimiento físico y financiero",

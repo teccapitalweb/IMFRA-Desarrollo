@@ -819,12 +819,18 @@ async function ensureMiembroDoc(user, displayName, origen) {
       // Ya existe · si tiene activa:true NO tocar nada (es miembro pagado)
       // Si tiene activa:false pero le falta nombre, actualizar solo eso
       const data = snap.data();
+      const profileUpdate = {};
       if (data.activa !== true && displayName && !data.nombre) {
-        await setDoc(ref, {
-          nombre: displayName,
-          displayName: displayName,
-          lastUpdatedAt: serverTimestamp()
-        }, { merge: true });
+        profileUpdate.nombre = displayName;
+        profileUpdate.displayName = displayName;
+      }
+      if (user.photoURL && user.photoURL !== (data.foto || data.photoURL)) {
+        profileUpdate.foto = user.photoURL;
+        profileUpdate.photoURL = user.photoURL;
+      }
+      if (Object.keys(profileUpdate).length) {
+        profileUpdate.lastUpdatedAt = serverTimestamp();
+        await setDoc(ref, profileUpdate, { merge: true });
       }
       console.log('[ensureMiembroDoc] ya existía:', user.uid);
       return { ok: true, action: 'exists', uid: user.uid };
@@ -836,6 +842,8 @@ async function ensureMiembroDoc(user, displayName, origen) {
       email: (user.email || '').toLowerCase(),
       nombre: displayName || user.displayName || (user.email || '').split('@')[0] || 'Sin nombre',
       displayName: displayName || user.displayName || '',
+      foto: user.photoURL || null,
+      photoURL: user.photoURL || null,
       activa: false,
       plan: null,
       fechaRegistro: serverTimestamp(),

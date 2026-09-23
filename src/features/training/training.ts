@@ -2,6 +2,7 @@ import "./training.css";
 import { flashcards, trainingCases, type TrainingCase } from "./catalog";
 import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
+import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -15,7 +16,7 @@ interface TrainingState {
 declare global {
   interface Window {
     IMFRATraining: { mount(container: HTMLElement): void };
-    UserState?: { uid?: string; email?: string; modo?: string };
+    UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
   }
 }
 
@@ -39,6 +40,12 @@ function readState(): TrainingState {
 function saveState(state: TrainingState) { localStorage.setItem(stateKey(), JSON.stringify(state)); }
 function esc(value: string) { return value.replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char] || char); }
 function icon(name: string) { return `<svg class="ic"><use href="#${name}"/></svg>`; }
+function safePhoto(value?: string) { return /^https:\/\//i.test(value || "") ? value || "" : ""; }
+function initials(name: string) { return name.trim().split(/\s+/).slice(0, 2).map((part) => part[0] || "").join("").toUpperCase() || "IM"; }
+function avatar(entry: LeagueEntry) {
+  const photo = safePhoto(entry.photoURL);
+  return photo ? `<img src="${esc(photo)}" alt="" referrerpolicy="no-referrer">` : `<span>${esc(initials(entry.name))}</span>`;
+}
 
 function registerDay(state: TrainingState) {
   if (!state.days.includes(today())) state.days.push(today());
@@ -106,6 +113,8 @@ function level(xp: number) {
 
 function mount(container: HTMLElement) {
   let state = readState();
+  let league: LeagueSnapshot | null = null;
+  let leagueLoaded = false;
   let view: View = "hub";
   let selectedCase: TrainingCase | null = null;
   let caseStep = 0;
@@ -167,34 +176,35 @@ function mount(container: HTMLElement) {
           <article class="tr-tile tr-tile--quiz" data-training-action="quiz">
             <div class="tr-tile__body">
               <span class="tr-tile__icon">${icon("i-bolt")}</span>
-              <h3>Quiz Técnico</h3>
-              <p>Responde y gana puntos</p>
-              <span class="tr-tile__stat">12 desafíos · 3 rondas</span>
-              <button class="btn tr-tile__cta">Ir al quiz ${icon("i-arrow-right")}</button>
+              <h3>Reto de Obra</h3>
+              <p>Decide con criterio técnico</p>
+              <span class="tr-tile__stat">3 rondas · 12 decisiones</span>
+              <button class="btn tr-tile__cta">Comenzar ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.quiz}</div>
           </article>
           <article class="tr-tile tr-tile--case" data-training-action="cases">
             <div class="tr-tile__body">
               <span class="tr-tile__icon">${icon("i-briefcase")}</span>
-              <h3>Casos de Obra</h3>
-              <p>Analiza situaciones reales</p>
-              <span class="tr-tile__stat">${trainingCases.length} expedientes</span>
-              <button class="btn tr-tile__cta">Abrir casos ${icon("i-arrow-right")}</button>
+              <h3>Inspector de Obra</h3>
+              <p>Analiza expedientes reales</p>
+              <span class="tr-tile__stat">${completedCases}/${trainingCases.length} casos resueltos</span>
+              <button class="btn tr-tile__cta">Abrir expedientes ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.case}</div>
           </article>
           <article class="tr-tile tr-tile--flash" data-training-action="flashcards">
             <div class="tr-tile__body">
               <span class="tr-tile__icon">${icon("i-book")}</span>
-              <h3>Tarjetas</h3>
-              <p>Repasa conceptos clave</p>
-              <span class="tr-tile__stat">${flashcards.length} conceptos</span>
+              <h3>Flashcards Técnicas</h3>
+              <p>Domina conceptos de campo</p>
+              <span class="tr-tile__stat">${reviewedCards}/${flashcards.length} dominadas</span>
               <button class="btn tr-tile__cta">Repasar ${icon("i-arrow-right")}</button>
             </div>
             <div class="tr-tile__art">${tileArt.flash}</div>
           </article>
         </div>
+        ${renderLeague()}
         <section class="tr-rewards">
           <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Cambia tus puntos por herramientas reales</h2></div><div class="tr-rewards__balance"><span>Tu saldo</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
           <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} pts</small></div></button>`).join("")}
@@ -208,6 +218,22 @@ function mount(container: HTMLElement) {
         <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>El XP formativo mide práctica. Los Puntos IMFRA canjeables se obtienen únicamente en actividades validadas.</p></section>
       </aside>
     </div>`);
+  }
+
+  function renderLeague() {
+    if (!leagueLoaded) return `<section class="tr-league tr-league--loading"><div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div><span class="tr-league__verified">${icon("i-shield-check")} Datos de cursos</span></div><p>Estamos reuniendo el avance de la comunidad…</p><div class="tr-league__skeleton"></div></section>`;
+    if (!league?.entries?.length) return `<section class="tr-league"><div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div><span class="tr-league__verified">${icon("i-shield-check")} Datos de cursos</span></div><p class="tr-league__intro">La clasificación aparecerá cuando los miembros sincronicen su primer avance.</p></section>`;
+    const podium = league.entries.slice(0, 3);
+    const rows = league.entries.slice(3, 10);
+    const row = (entry: LeagueEntry) => `<article class="tr-league-row ${entry.uid === window.UserState?.uid ? "is-you" : ""}"><b>${entry.rank}</b><div class="tr-league-avatar">${avatar(entry)}</div><div class="tr-league-person"><strong>${esc(entry.name)}${entry.uid === window.UserState?.uid ? " <em>Tú</em>" : ""}</strong><span>${entry.courses ? `${entry.courses} curso${entry.courses === 1 ? "" : "s"} completado${entry.courses === 1 ? "" : "s"}` : "Profesional en formación"}</span></div><span>${entry.classes}<small>clases</small></span><strong>${entry.xp}<small>XP</small></strong></article>`;
+    return `<section class="tr-league">
+      <div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div><span class="tr-league__verified">${icon("i-shield-check")} Datos de cursos</span></div>
+      <p class="tr-league__intro">Aquí se reconoce a quienes convierten la constancia en resultados. Las clases y cursos terminados valen más que una visita.</p>
+      <div class="tr-podium">${podium.map((entry) => `<article class="tr-podium-card tr-podium-card--${entry.rank} ${entry.uid === window.UserState?.uid ? "is-you" : ""}"><span class="tr-podium-rank">#${entry.rank}</span><div class="tr-podium-avatar">${avatar(entry)}</div><strong>${esc(entry.name)}</strong><small>${entry.courses} cursos · ${entry.classes} clases</small><b>${entry.xp} XP</b></article>`).join("")}</div>
+      <div class="tr-league-table">${rows.map(row).join("")}</div>
+      ${league.current && league.current.rank > 10 ? `<div class="tr-league-you"><span>Tu posición actual</span>${row(league.current)}</div>` : ""}
+      <p class="tr-league__privacy">${icon("i-shield-check")} Solo mostramos nombre, foto y avance de aprendizaje. Nunca datos de contacto.</p>
+    </section>`;
   }
 
   function renderCases() {
@@ -337,6 +363,14 @@ function mount(container: HTMLElement) {
     else if (view === "flashcards") renderFlashcards();
     else renderHub();
   });
+  void syncLeagueProfile()
+    .catch((error) => console.warn("[training] No se pudo sincronizar el perfil de aprendizaje", error))
+    .then(() => loadLeague())
+    .then((snapshot) => {
+      league = snapshot;
+      leagueLoaded = true;
+      if (view === "hub") renderHub();
+    });
 }
 
 window.IMFRATraining = { mount };

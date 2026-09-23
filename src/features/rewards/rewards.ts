@@ -20,7 +20,7 @@ interface RewardState {
 declare global {
   interface Window {
     IMFRARewards: { mount(container: HTMLElement): void; mountQuiz(container: HTMLElement): void };
-    UserState?: { uid?: string; email?: string; modo?: string };
+    UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
   }
 }
 
@@ -196,11 +196,11 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         ${featuredReward ? `<section class="rw-featured ${featuredAccess && !featuredPending ? "is-active" : ""} ${featuredPending ? "is-pending" : ""}" style="--reward-accent:${featuredReward.accent}">
           <div class="rw-featured__main">
             <div class="rw-featured__topline">
-              <div class="rw-featured__brand"><img class="rw-featured__brand-icon" src="assets/icons/reward-imdac.png" alt="" loading="lazy"><span class="rw-product-mark">IM<span>DAC</span></span></div>
+              <div class="rw-featured__brand"><img class="rw-imdac-wordmark" src="assets/imdac-wordmark.svg" alt="IMDAC" loading="lazy"></div>
               <span class="rw-status"><i></i>${featuredPending ? "Solicitud en revisión" : featuredAccess ? "Acceso activo" : "Recompensa destacada"}</span>
             </div>
             <span class="rw-eyebrow">Software profesional para construcción</span>
-            <h2>${escapeHtml(featuredReward.name)}</h2>
+            <h2>Control de obra, sin perder el control.</h2>
             <p>${escapeHtml(featuredReward.description)}</p>
             <div class="rw-featured__facts">
               <div><span>Duración</span><strong>${featuredReward.durationDays} días</strong></div>
