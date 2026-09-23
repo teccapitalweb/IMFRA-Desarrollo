@@ -4908,9 +4908,37 @@ const Sections = (function(){
     window.abrirVisor(material.url, material.titulo || 'Material del curso');
   };
 
+  function actualizarBotonVisorPantallaCompleta() {
+    const container = document.querySelector('#visorOverlay .visor-container');
+    const button = document.getElementById('visorFullscreen');
+    if (!container || !button) return;
+    const activo = document.fullscreenElement === container;
+    button.title = activo ? 'Salir de pantalla completa' : 'Ver en pantalla completa';
+    button.setAttribute('aria-label', button.title);
+    button.innerHTML = activo
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M16 3v3a2 2 0 0 0 2 2h3"/><path d="M8 21v-3a2 2 0 0 0-2-2H3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>';
+  }
+
+  window.toggleVisorPantallaCompleta = async function() {
+    const container = document.querySelector('#visorOverlay .visor-container');
+    if (!container?.requestFullscreen) {
+      Toast.info('Pantalla completa no disponible', 'Tu navegador no admite esta función');
+      return;
+    }
+    try {
+      if (document.fullscreenElement === container) await document.exitFullscreen();
+      else await container.requestFullscreen({ navigationUI: 'hide' });
+    } catch (error) {
+      Toast.error('No se pudo ampliar', 'Intenta nuevamente o usa la tecla F11');
+    }
+  };
+
   window.cerrarVisor = function() {
     const overlay = document.getElementById('visorOverlay');
     const frame = document.getElementById('visorFrame');
+    const container = overlay?.querySelector('.visor-container');
+    if (document.fullscreenElement === container) document.exitFullscreen().catch(() => {});
     if (overlay) overlay.style.display = 'none';
     if (frame) {
       frame.src = ''; // detener video
@@ -4922,6 +4950,8 @@ const Sections = (function(){
   // Bind del botón de cerrar y tecla Esc (una sola vez al cargar)
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('visorClose')?.addEventListener('click', window.cerrarVisor);
+    document.getElementById('visorFullscreen')?.addEventListener('click', window.toggleVisorPantallaCompleta);
+    document.addEventListener('fullscreenchange', actualizarBotonVisorPantallaCompleta);
     document.getElementById('visorOverlay')?.addEventListener('click', (e) => {
       if (e.target.id === 'visorOverlay') window.cerrarVisor();
     });
@@ -9937,6 +9967,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg>
           Marcar como vista
         </button>
+        <button id="visorFullscreen" class="visor-btn visor-btn--ghost" type="button" title="Ver en pantalla completa" aria-label="Ver en pantalla completa">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>
+        </button>
         <a id="visorDownload" class="visor-btn visor-btn--ghost" href="#" target="_blank" rel="noopener" title="Descargar archivo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4v12"/></svg>
         </a>
@@ -9954,6 +9987,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .visor-overlay{position:fixed;inset:0;z-index:9999;background:rgba(7,5,3,.94);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:24px;animation:visorFadeIn .25s ease}
 @keyframes visorFadeIn{from{opacity:0}to{opacity:1}}
 .visor-container{width:100%;max-width:1200px;height:88vh;background:#0D0D0D;border:1px solid rgba(255,255,255,.14);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.visor-container:fullscreen{width:100vw;max-width:none;height:100vh;border:0;border-radius:0;box-shadow:none}
 .visor-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 20px;background:linear-gradient(180deg,#161616,#0D0D0D);border-bottom:1px solid rgba(255,255,255,.08)}
 .visor-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:#F5F5F4;letter-spacing:-.2px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .visor-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
