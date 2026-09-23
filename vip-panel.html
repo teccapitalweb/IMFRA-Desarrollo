@@ -7475,6 +7475,7 @@ const Sections = (function(){
   let _foroFiltro = 'recientes';
   let _foroImg = null; // base64 de la imagen adjunta pendiente
   let _foroPosts = [];
+  const _foroFotosSincronizadas = new Map();
 
   function foroColorFor(uid){
     const colores = ['#F59D1A','#10B981','#60A5FA','#A78BFA','#F87171','#FBBF24','#38BDF8','#FB7185'];
@@ -7506,6 +7507,22 @@ const Sections = (function(){
         avatar.classList.remove('has-photo');
         avatar.textContent = avatar.dataset.avatarFallback || '?';
       }, {once:true});
+    });
+  }
+  function foroSincronizarFotoPropia(fs, postId, post){
+    const uid = window.UserState?.uid;
+    if (!uid || post.uid !== uid) return;
+    const fotoActual = foroFotoSegura(window.UserState?.photoURL);
+    const fotoGuardada = foroFotoSegura(post.foto || post.photoURL);
+    if (fotoActual === fotoGuardada || _foroFotosSincronizadas.get(postId) === fotoActual) return;
+
+    // Actualizamos primero la copia en memoria para que el autor vea el mismo
+    // resultado que verá el resto de la comunidad cuando Firestore confirme.
+    post.foto = fotoActual || null;
+    _foroFotosSincronizadas.set(postId, fotoActual);
+    fs.updateDoc(fs.doc(fs.db,'posts',postId), { foto: fotoActual || null }).catch(err=>{
+      _foroFotosSincronizadas.delete(postId);
+      console.warn('No se pudo sincronizar la foto del autor en el foro', err);
     });
   }
   function foroTiempoRel(ts){
@@ -7666,6 +7683,7 @@ const Sections = (function(){
           try { fs.deleteDoc(fs.doc(fs.db,'posts',d.id)); } catch(e){}
           return;
         }
+        foroSincronizarFotoPropia(fs, d.id, p);
         _foroPosts.push(p);
       });
       foroPintar();
