@@ -3584,6 +3584,8 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
 <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></symbol>
 <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M13 18l6 -6"/><path d="M13 6l6 6"/></symbol>
+<symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12h-14"/><path d="M11 18l-6 -6"/><path d="M11 6l-6 6"/></symbol>
+<symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3h-5v5"/><path d="M16 3h5v5"/><path d="M8 21h-5v-5"/><path d="M16 21h5v-5"/></symbol>
 <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4v12"/></symbol>
 <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
@@ -4152,11 +4154,14 @@ function __seccionesValidasVIP(){
   try { Object.keys(Sections.renderers || {}).forEach(k => s.add(k)); } catch(e) {}
   return s;
 }
+function __esRutaDinamicaVIP(s){
+  return /^curso\/[^/]+$/.test(s) || /^libro\/[^/]+$/.test(s);
+}
 function __leerSeccionURLVIP(){
   let s = '';
   try { s = decodeURIComponent((location.hash || '').replace(/^#/, '')).trim(); } catch(e) { s = ''; }
   if (!s) s = (new URLSearchParams(location.search).get('seccion') || '').trim();
-  return __seccionesValidasVIP().has(s) ? s : SECCION_DEFAULT_VIP;
+  return (__seccionesValidasVIP().has(s) || __esRutaDinamicaVIP(s)) ? s : SECCION_DEFAULT_VIP;
 }
 function __sincronizarDesdeURLVIP(){
   const s = __leerSeccionURLVIP();
@@ -4166,7 +4171,8 @@ window.addEventListener('popstate', __sincronizarDesdeURLVIP);
 window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
 
 function navigateToSection(section, opciones){
-  if(!__seccionesValidasVIP().has(section)) section = SECCION_DEFAULT_VIP;
+  if(!__seccionesValidasVIP().has(section) && !__esRutaDinamicaVIP(section)) section = SECCION_DEFAULT_VIP;
+  document.body.classList.toggle('immersive-content-route', section.startsWith('curso/') || section.startsWith('libro/'));
 
   // Cada cambio de sección inicia arriba, también en navegadores móviles.
   window.scrollTo({top:0,left:0,behavior:'auto'});
@@ -4181,7 +4187,8 @@ function navigateToSection(section, opciones){
   }
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
-  document.querySelectorAll(`[data-section="${section}"]`).forEach(ni => ni.classList.add('is-active'));
+  const navSection = section.startsWith('curso/') ? 'cursos' : section.startsWith('libro/') ? 'libros' : section;
+  document.querySelectorAll(`[data-section="${navSection}"]`).forEach(ni => ni.classList.add('is-active'));
   // Si es una herramienta-sección (tool-iper, tool-oee...), resaltar su item data-tool
   if(section.startsWith('tool-')){
     const toolKey=section.slice(5);
@@ -4201,7 +4208,14 @@ function navigateToSection(section, opciones){
   }
   if(section==='inicio'){inicio.style.display='';dyn.style.display='none';if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();window.scrollTo({top:0,left:0,behavior:'auto'});return;}
   inicio.style.display='none';dyn.style.display='';
-  const renderer=Sections.renderers[section];
+  let renderer=Sections.renderers[section];
+  if(section.startsWith('curso/')){
+    const cursoId=decodeURIComponent(section.slice('curso/'.length));
+    renderer=(contenedor)=>Sections.renderCursoDetalle(cursoId,contenedor);
+  } else if(section.startsWith('libro/')){
+    const libroId=decodeURIComponent(section.slice('libro/'.length));
+    renderer=(contenedor)=>Sections.renderLibroVisor(contenedor,libroId);
+  }
   if(renderer){dyn.innerHTML='';renderer(dyn);}
   else{dyn.innerHTML=sectionPlaceholder(section);}
   window.scrollTo({top:0,left:0,behavior:'auto'});
@@ -4546,6 +4560,7 @@ const Sections = (function(){
   }
 
   function cantidadRecompensasMateriales() {
+    if (window.UserState?.modo !== 'vip' && !esAdminReal()) return 0;
     if (window.IMFRAMaterialRewards?.getUnlockedCount) return window.IMFRAMaterialRewards.getUnlockedCount();
     const account = window.UserState?.uid || window.UserState?.email || 'guest';
     let local = {};
@@ -4557,6 +4572,7 @@ const Sections = (function(){
   function materialDesbloqueado(cursoId, indexMaterial, material) {
     if (esAdminReal()) return true;
     if (material?.esRecompensa === true) {
+      if (window.UserState?.modo !== 'vip') return false;
       return cantidadRecompensasMateriales() >= Number(material.rewardOrder || (indexMaterial + 1));
     }
     if (material?.disponibleSiempre === true) return true;
@@ -5550,9 +5566,18 @@ const Sections = (function(){
     });
   }
 
-  function openCursoDetalle(id){
-    const c=cursos.find(x=>x.id===id);if(!c)return;
-    const cursoIdx = cursos.findIndex(x => x.id === id);
+  function openCursoDetalle(id, container){
+    const c=cursos.find(x=>String(x.id)===String(id));
+    if(!c){
+      if(container && !_cursosLoaded && !_cursosLoading){
+        container.innerHTML='<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando curso…</strong></div>';
+        cargarCursosFirestore().then(()=>openCursoDetalle(id,container));
+      } else if(container) {
+        container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Curso no encontrado</h3><p>Regresa al catálogo para elegir otro curso.</p><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'cursos\')">Volver a cursos</button></div>';
+      }
+      return;
+    }
+    const cursoIdx = cursos.findIndex(x => String(x.id) === String(id));
     const desbloqueado = cursoDesbloqueado(cursoIdx, c);
     const diasFalta = diasParaDesbloquear(cursoIdx, c);
 
@@ -5562,6 +5587,12 @@ const Sections = (function(){
         sub: 'Activa tu membresía para abrir el primer curso completo. Después recibirás un curso nuevo cada 6 días.',
         cta: 'Ir a Suscripción'
       });
+      if(container) container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-shield-check"/></svg></div><h3>Curso exclusivo para miembros</h3><p>Activa tu membresía para acceder al curso completo.</p><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'cursos\')">Volver al catálogo</button></div>';
+      return;
+    }
+
+    if(!container){
+      navigateToSection('curso/'+encodeURIComponent(String(id)));
       return;
     }
 
@@ -5626,24 +5657,22 @@ const Sections = (function(){
       </div>`}
     </div>`;
 
-    Modal.open({
-      id: 'curso-' + id,
-      title: 'Curso IMFRA',
-      subtitle: c.titulo,
-      icon: iconArea,
-      size: 'lg',
-      body: bodyContent
-    });
+    container.innerHTML=`<div class="fade-up course-page">
+      <button type="button" class="course-detail-back" onclick="navigateToSection('cursos')">
+        <span><svg class="ic"><use href="#i-arrow-left"/></svg></span>Catálogo de cursos
+      </button>
+      ${bodyContent}
+    </div>`;
   }
 
-  // Refresca el DETALLE del curso abierto (re-render) para que la siguiente clase
-  // se desbloquee al instante tras marcar una como vista, sin recargar la página.
-  // IMPORTANTE: el modal cierra con animación de 250ms; reabrimos DESPUÉS de eso
-  // para no chocar con la animación y dejar el modal huérfano (no-cerrable).
+  // Refresca la página de detalle para que la siguiente clase se desbloquee al
+  // instante tras marcar una como vista, sin convertir el curso en un modal.
   window.__refrescarCursoDetalle = function(cid){
     if (!cid) return;
-    try { if (typeof Modal !== 'undefined' && Modal.close) Modal.close('curso-' + cid); } catch(e){}
-    setTimeout(() => { try { openCursoDetalle(cid); } catch(e){} }, 300);
+    const dyn=document.getElementById('dynamic-section');
+    if(dyn && location.hash==='#curso/'+encodeURIComponent(String(cid))){
+      try { openCursoDetalle(cid,dyn); } catch(e){}
+    }
   };
 
   function moduloTitulo(c,i){
@@ -6781,7 +6810,7 @@ const Sections = (function(){
         <div class="sec-hero" data-illus="pdfs">
           <span class="sec-hero__eyebrow">Biblioteca de recompensas</span>
           <h1 class="sec-hero__title">PDFs y material</h1>
-          <p class="sec-hero__sub">Herramientas profesionales que ganas al tomar buenas decisiones. <strong style="color:var(--primary);">Cada respuesta correcta</strong> en Reto de Obra o Inspector de Obra desbloquea un archivo nuevo.</p>
+          <p class="sec-hero__sub">Recompensas profesionales para miembros activos. <strong style="color:var(--primary);">Si eres VIP, cada respuesta correcta</strong> en Reto de Obra o Inspector de Obra desbloquea un archivo nuevo.</p>
         </div>
         ${total === 0 ? `
           <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
@@ -6864,6 +6893,14 @@ const Sections = (function(){
       });
       container.querySelectorAll('.pdf-card[data-disponible="false"]').forEach(card => {
         card.addEventListener('click', () => {
+          if (card.dataset.reward === 'true' && window.UserState?.modo !== 'vip' && !esAdminReal()) {
+            window.__showPaywallModal?.({
+              title: 'Recompensas exclusivas para miembros VIP',
+              sub: 'Activa tu membresía y responde correctamente en Reto de Obra o Inspector de Obra para desbloquear estos archivos.',
+              cta: 'Activar membresía'
+            });
+            return;
+          }
           Toast?.info('Archivo aún bloqueado', 'Responde correctamente en Reto de Obra o Inspector de Obra para ganar tu siguiente herramienta.');
         });
       });
@@ -6905,7 +6942,8 @@ const Sections = (function(){
     return `
       <article class="pdf-card ${!disponible ? 'pdf-card--soon' : ''}" style="--pdf-color:${c};cursor:pointer;"
         data-disponible="${disponible}"
-        data-free="${m.esRecompensa ? 'true' : gratis}"
+        data-free="${m.esRecompensa ? ((window.UserState?.modo === 'vip' || esAdminReal()) ? 'true' : 'false') : gratis}"
+        data-reward="${m.esRecompensa === true}"
         data-url="${(m.url||'').replace(/"/g,'&quot;')}"
         data-dias-faltan="${diasFaltan}"
         data-titulo="${tituloEsc}"
@@ -6947,7 +6985,7 @@ const Sections = (function(){
     var esVip = window.UserState?.modo === 'vip' || esAdminReal();
     container.innerHTML = '<div class="fade-up"><div class="sec-hero" data-illus="libros"><span class="sec-hero__eyebrow">Biblioteca</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">'+IMFRA_LIBROS.length+' libros de referencia para tu formación. <strong style="color:var(--primary);">El primero es gratis</strong>; el resto es exclusivo para miembros VIP.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){var acc=libro.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+(libro.gratis?'<span class="chip--free">Gratis</span>':'')+(!acc?'<span class="chip--lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' \u00b7 '+libro.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>';
     var intro=container.querySelector('.sec-hero__sub');if(intro)intro.textContent='Toca una portada para abrir el libro.';
-    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();var libro=IMFRA_LIBROS.find(function(item){return item.id===el.dataset.libroId;});var acceso=libro&&(libro.gratis||esVip);if(acceso){window.open(libro.url,'_blank','noopener');return;}_libroDetalle=el.dataset.libroId;renderLibros(container);});});
+    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;renderLibros(container);window.scrollTo({top:0,behavior:'smooth'});});});
   }
   function _renderLibroDetalle(container, libroId) {
     var libro = IMFRA_LIBROS.find(function(l){return l.id===libroId;});
@@ -6957,13 +6995,73 @@ const Sections = (function(){
     var rel = IMFRA_LIBROS.filter(function(l){return l.id!==libro.id;}).slice(0,3);
     var lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
     var openSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-    var btnHtml = acc ? '<a href="'+libro.url+'" target="_blank" rel="noopener" class="btn btn--accent" style="gap:8px;">'+openSvg+'Abrir libro</a>' : '<button class="btn btn--accent" style="gap:8px;opacity:.7;cursor:not-allowed;" disabled>'+lockSvg+'Solo VIP</button>';
+    var btnHtml = acc ? '<button type="button" class="btn btn--accent" data-read-book="'+libro.id+'" style="gap:8px;">'+openSvg+'Leer dentro de IMFRA</button>' : '<button class="btn btn--accent" style="gap:8px;opacity:.7;cursor:not-allowed;" disabled>'+lockSvg+'Solo VIP</button>';
     var relHtml = rel.length ? '<div style="margin-top:32px;"><h3 style="font-size:16px;font-weight:700;margin-bottom:14px;">M\u00e1s libros</h3><div class="shelf">'+rel.map(function(r){var ra=r.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+r.id+'"><div class="shelf__cover"><img src="'+r.portada+'" alt="" loading="lazy">'+(r.gratis?'<span class="chip--free">Gratis</span>':'')+(!ra?'<span class="chip--lock">'+lockSvg+'</span>':'')+'</div><div class="shelf__title">'+r.titulo+'</div><div class="shelf__meta">'+r.autor+' \u00b7 '+r.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>' : '';
     container.innerHTML = '<div class="fade-up"><div style="margin-bottom:20px;"><a href="javascript:void(0)" id="libros-back" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Biblioteca</a></div><div class="book-detail"><div class="book-detail__cover"><img src="'+libro.portada+'" alt=""></div><div><div class="book-detail__eyebrow">'+libro.area+' \u00b7 Libro</div><h2 class="book-detail__title">'+libro.titulo+'</h2><p class="book-detail__author">'+libro.autor+'</p><p class="book-detail__desc">'+libro.descripcion+'</p><div style="display:flex;gap:10px;margin-bottom:20px;">'+btnHtml+'</div><div class="book-detail__facts"><div><h4>Formato</h4><p>PDF \u00b7 '+libro.paginas+' p\u00e1ginas</p></div><div><h4>\u00c1rea</h4><p>'+libro.area+'</p></div><div><h4>Autor</h4><p>'+libro.autor+'</p></div><div><h4>Acceso</h4><p>'+(libro.gratis?'Gratis para todos':'Exclusivo VIP')+'</p></div></div></div></div>'+relHtml+'</div>';
     container.querySelector('#libros-back')?.addEventListener('click',function(){_libroDetalle=null;renderLibros(container);});
+    container.querySelector('[data-read-book]')?.addEventListener('click',function(){navigateToSection('libro/'+encodeURIComponent(libro.id));});
     var portada=container.querySelector('.book-detail__cover');
-    if(portada&&acc){portada.setAttribute('role','link');portada.setAttribute('tabindex','0');portada.setAttribute('aria-label','Abrir '+libro.titulo);portada.addEventListener('click',function(){window.open(libro.url,'_blank','noopener');});portada.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();window.open(libro.url,'_blank','noopener');}});}
-    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();var item=IMFRA_LIBROS.find(function(x){return x.id===el.dataset.libroId;});var acceso=item&&(item.gratis||esVip);if(acceso){window.open(item.url,'_blank','noopener');return;}_libroDetalle=el.dataset.libroId;_renderLibroDetalle(container,el.dataset.libroId);window.scrollTo({top:0,behavior:'smooth'});});});
+    if(portada&&acc){portada.setAttribute('role','link');portada.setAttribute('tabindex','0');portada.setAttribute('aria-label','Leer '+libro.titulo);portada.addEventListener('click',function(){navigateToSection('libro/'+encodeURIComponent(libro.id));});portada.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();navigateToSection('libro/'+encodeURIComponent(libro.id));}});}
+    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;_renderLibroDetalle(container,el.dataset.libroId);window.scrollTo({top:0,behavior:'smooth'});});});
+  }
+
+  function renderLibroVisor(container, libroId) {
+    var libro = IMFRA_LIBROS.find(function(l){return l.id===libroId;});
+    if (!libro) {
+      container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Libro no encontrado</h3><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'libros\')">Volver a la biblioteca</button></div>';
+      return;
+    }
+    var esVip = window.UserState?.modo === 'vip' || esAdminReal();
+    if (!libro.gratis && !esVip) {
+      window.__showPaywallModal?.({title:'Biblioteca exclusiva para miembros',sub:'Activa tu membresía VIP para leer la biblioteca completa de ingeniería.',cta:'Activar membresía'});
+      _libroDetalle=libro.id;
+      renderLibros(container);
+      return;
+    }
+    var driveMatch=String(libro.url||'').match(/\/d\/([^/]+)/);
+    var driveId=driveMatch?driveMatch[1]:'';
+    var pdfUrl=driveId?'https://drive.usercontent.google.com/download?id='+driveId+'&export=download&confirm=t':libro.url;
+    var downloadUrl=pdfUrl;
+    var safeTitle=String(libro.titulo||'Libro IMFRA').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    container.innerHTML=`<div class="fade-up book-reader-page">
+      <section class="book-reader" id="imfra-book-reader">
+        <header class="book-reader__header">
+          <button type="button" class="book-reader__back" data-book-back aria-label="Volver a la ficha"><svg class="ic"><use href="#i-arrow-left"/></svg></button>
+          <img src="${libro.portada}" alt="" class="book-reader__mini-cover">
+          <div class="book-reader__identity"><span>${libro.area} · Biblioteca IMFRA</span><strong>${safeTitle}</strong><small>${libro.autor}</small></div>
+          <div class="book-reader__actions">
+            <a class="book-reader__control" href="${downloadUrl}" target="_blank" rel="noopener" title="Descargar libro" aria-label="Descargar ${safeTitle}"><svg class="ic"><use href="#i-download"/></svg><span>Descargar</span></a>
+            <button type="button" class="book-reader__control" data-book-fullscreen title="Pantalla completa" aria-label="Pantalla completa"><svg class="ic"><use href="#i-maximize"/></svg><span>Pantalla completa</span></button>
+          </div>
+        </header>
+        <div class="book-reader__stage">
+          <div class="book-reader__loading"><div class="sub-loading__spin"></div><span>Preparando el libro…</span></div>
+          <div class="book-reader__mount" data-book-reader-mount></div>
+        </div>
+        <footer class="book-reader__footer"><span><svg class="ic"><use href="#i-book"/></svg>${libro.paginas} páginas</span><span>El lector recuerda la última página que leíste.</span></footer>
+      </section>
+    </div>`;
+    var reader=container.querySelector('#imfra-book-reader');
+    var mountPoint=reader?.querySelector('[data-book-reader-mount]');
+    var mountReader=function(){
+      if(!mountPoint||mountPoint.dataset.mounted==='true'||!window.IMFRABookReader)return;
+      mountPoint.dataset.mounted='true';
+      window.IMFRABookReader.mount(mountPoint,{id:libro.id,title:libro.titulo,url:pdfUrl,downloadUrl:downloadUrl,pages:libro.paginas});
+    };
+    mountReader();
+    var loadReader=function(){
+      if(window.IMFRABookReader){mountReader();return;}
+      if(window.loadIMFRABookReader)window.loadIMFRABookReader().then(mountReader).catch(function(error){console.error('[book-reader] No se pudo iniciar el lector',error);});
+    };
+    if(!window.IMFRABookReader){
+      window.addEventListener('imfra:book-reader-ready',mountReader,{once:true});
+      if(window.loadIMFRABookReader)loadReader();
+      else window.addEventListener('imfra:book-reader-loader-ready',loadReader,{once:true});
+    }
+    reader?.querySelector('[data-book-back]')?.addEventListener('click',function(){_libroDetalle=libro.id;navigateToSection('libros');});
+    reader?.querySelector('[data-book-fullscreen]')?.addEventListener('click',function(){
+      if(!document.fullscreenElement) reader.requestFullscreen?.(); else document.exitFullscreen?.();
+    });
   }
 
     /* ============================ BIBLIOTECA POR MES ============================ */
@@ -8632,6 +8730,8 @@ const Sections = (function(){
   }
 
   return {
+    renderCursoDetalle:openCursoDetalle,
+    renderLibroVisor:renderLibroVisor,
     renderers:{
       cursos:renderCursos,
       certificados:renderCertificados,
@@ -10908,11 +11008,15 @@ body{letter-spacing:-.05px}
   #dynamic-section .tabs .tab{padding:7px 4px!important;border-radius:7px!important}
 }
 
-/* Detalle de curso · experiencia editorial con clases y recursos integrados */
-.modal-backdrop[data-modal-id^="curso-"] .modal{max-width:1180px!important;max-height:94vh!important}
-.modal-backdrop[data-modal-id^="curso-"] .modal__header{padding:14px 20px}
-.modal-backdrop[data-modal-id^="curso-"] .modal__body{padding:18px 20px 28px}
-.course-detail{max-width:1080px;margin:0 auto}
+/* Detalle de curso · página editorial, nunca modal */
+.immersive-content-route .app{grid-template-columns:208px minmax(0,1fr)}
+.immersive-content-route .aside{display:none}
+.course-page{width:100%;max-width:1180px;margin:0 auto;padding:4px 0 42px}
+.course-page-loading{min-height:55vh;display:grid;place-content:center;justify-items:center;gap:14px;color:var(--text-2)}
+.course-detail-back{display:inline-flex;align-items:center;gap:9px;margin:0 0 18px;padding:0;border:0;background:transparent;color:var(--text-2);font:650 12px/1 Inter,sans-serif;cursor:pointer}
+.course-detail-back span{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--border);border-radius:50%;background:var(--surface)}
+.course-detail-back .ic{width:15px;height:15px}.course-detail-back:hover{color:var(--text)}
+.course-detail{width:100%;max-width:none;margin:0 auto}
 .course-detail-hero{
   min-height:310px;display:flex;align-items:flex-end;justify-content:space-between;gap:28px;padding:34px;
   border-radius:18px;background-size:cover;background-position:center;color:#fff;overflow:hidden;
@@ -10960,12 +11064,27 @@ body{letter-spacing:-.05px}
 .course-detail-progress ul{display:grid;gap:13px;margin:0;padding:0;list-style:none}.course-detail-progress li{display:flex;align-items:center;gap:9px;color:var(--text-2);font-size:11px;line-height:1.4}.course-detail-progress li .ic{width:16px;height:16px;flex:0 0 16px;color:var(--primary)}
 .course-detail-lock{display:flex;align-items:center;gap:16px;padding:22px;border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border));border-radius:14px;background:color-mix(in srgb,var(--primary) 7%,var(--surface))}.course-detail-lock>.ic{width:28px;height:28px;color:var(--primary)}.course-detail-lock strong{font-size:15px}.course-detail-lock p{margin:4px 0 0;color:var(--text-2);font-size:12px}
 
+/* Lector interno de libros · biblioteca → ficha → lectura */
+.book-reader-page{width:100%;max-width:1400px;margin:0 auto}
+.book-reader{height:calc(100vh - 38px);min-height:620px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:#171717;box-shadow:0 18px 55px rgba(0,0,0,.22)}
+.book-reader__header{min-height:76px;display:flex;align-items:center;gap:13px;padding:11px 14px;border-bottom:1px solid rgba(255,255,255,.11);background:#121212;color:#fff}
+.book-reader__back{width:40px;height:40px;display:grid;place-items:center;flex:0 0 40px;border:1px solid rgba(255,255,255,.16);border-radius:50%;background:rgba(255,255,255,.07);color:#fff;cursor:pointer}.book-reader__back .ic{width:16px;height:16px}
+.book-reader__mini-cover{width:38px;height:52px;flex:0 0 38px;border-radius:4px;object-fit:cover;box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.book-reader__identity{display:grid;gap:3px;min-width:0;flex:1}.book-reader__identity>span{color:var(--primary);font:700 8px/1 "JetBrains Mono",monospace;letter-spacing:1.25px;text-transform:uppercase}.book-reader__identity strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}.book-reader__identity small{color:rgba(255,255,255,.58);font-size:10px}
+.book-reader__actions{display:flex;align-items:center;gap:8px}.book-reader__control{min-height:38px;display:inline-flex;align-items:center;gap:7px;padding:0 12px;border:1px solid rgba(255,255,255,.16);border-radius:9px;background:rgba(255,255,255,.07);color:#fff;text-decoration:none;font:650 10px/1 Inter,sans-serif;cursor:pointer}.book-reader__control:hover{background:rgba(255,255,255,.13)}.book-reader__control .ic{width:15px;height:15px}
+.book-reader__stage{position:relative;min-height:0;background:#252525}.book-reader__mount{position:absolute;inset:0}.book-reader__loading{position:absolute;inset:0;z-index:2;display:grid;place-content:center;justify-items:center;gap:12px;background:#252525;color:rgba(255,255,255,.7);font-size:12px;pointer-events:none}.book-reader.is-ready .book-reader__loading{display:none}
+.book-reader__footer{min-height:38px;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 15px;border-top:1px solid rgba(255,255,255,.1);background:#121212;color:rgba(255,255,255,.55);font-size:9px}.book-reader__footer span{display:flex;align-items:center;gap:6px}.book-reader__footer .ic{width:12px;height:12px}
+.book-reader:fullscreen{width:100vw;height:100vh;min-height:100vh;border:0;border-radius:0}
+
 @media (max-width:820px){
+  .immersive-content-route .app{grid-template-columns:1fr}
   .course-detail-hero{min-height:270px;align-items:flex-start;flex-direction:column;justify-content:flex-end;padding:24px}.course-detail-hero h2{font-size:34px}.course-detail-hero__start{width:100%;justify-content:center}
   .course-detail-layout{grid-template-columns:1fr}.course-detail-progress{position:static;grid-row:1}.course-materials{grid-template-columns:1fr}
+  .book-reader{height:calc(100dvh - 118px);min-height:520px;border-radius:13px}.book-reader__control span{display:none}.book-reader__control{width:40px;padding:0;justify-content:center}.book-reader__footer span:last-child{display:none}
 }
 @media (max-width:560px){
-  .modal-backdrop[data-modal-id^="curso-"] .modal__body{padding:12px 12px 24px}.course-detail-hero{min-height:245px;padding:20px;border-radius:14px}.course-detail-hero h2{font-size:28px}.course-detail-hero__tags span{font-size:8px}.course-detail__description{margin:17px 2px 20px}.course-detail-layout{gap:22px}.course-detail-section__head h3{font-size:19px}.course-lesson{padding:10px}.course-lesson__copy strong{white-space:normal}.course-detail-progress{padding:18px}
+  .course-page{padding-top:0}.course-detail-back{margin-bottom:12px}.course-detail-hero{min-height:245px;padding:20px;border-radius:14px}.course-detail-hero h2{font-size:28px}.course-detail-hero__tags span{font-size:8px}.course-detail__description{margin:17px 2px 20px}.course-detail-layout{gap:22px}.course-detail-section__head h3{font-size:19px}.course-lesson{padding:10px}.course-lesson__copy strong{white-space:normal}.course-detail-progress{padding:18px}
+  .book-reader{height:calc(100dvh - 94px);min-height:480px;border-radius:10px}.book-reader__header{min-height:62px;padding:7px 8px;gap:8px}.book-reader__mini-cover{display:none}.book-reader__identity small{display:none}.book-reader__identity strong{font-size:12px}.book-reader__back,.book-reader__control{width:36px;height:36px;min-height:36px;flex-basis:36px}.book-reader__footer{min-height:32px}
 }
 </style>
 <link rel="stylesheet" href="./src/styles/v2-shell.css">
@@ -10976,5 +11095,6 @@ body{letter-spacing:-.05px}
 <script src="assets/imfra-tools.js?v=1"></script>
 <script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>
+<script type="module" src="./src/features/book-reader/loader.ts"></script>
 </body>
 </html>

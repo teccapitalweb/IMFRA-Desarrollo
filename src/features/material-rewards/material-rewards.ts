@@ -33,6 +33,13 @@ function accountId() {
   return currentUserId() || window.UserState?.email || "guest";
 }
 
+function hasVipAccess() {
+  const state = window.UserState as (typeof window.UserState & { plan?: string; isAdmin?: boolean }) | undefined;
+  return state?.modo === "vip"
+    || state?.plan === "admin"
+    || state?.isAdmin === true;
+}
+
 function stateKey() {
   return `imfra:v2:material-rewards:${accountId()}`;
 }
@@ -132,16 +139,16 @@ function escapeHtml(value: string) {
 }
 
 export function getUnlockedMaterialCount() {
-  return readState().unlockedCount;
+  return hasVipAccess() ? readState().unlockedCount : 0;
 }
 
 export function isMaterialRewardUnlocked(order: number) {
-  return Number(order) > 0 && getUnlockedMaterialCount() >= Number(order);
+  return hasVipAccess() && Number(order) > 0 && getUnlockedMaterialCount() >= Number(order);
 }
 
 export function awardMaterialForCorrect(eventId: string, source: string): MaterialRewardItem | null {
   const catalog = rewardCatalog();
-  if (!eventId || !catalog.length) return null;
+  if (!hasVipAccess() || !eventId || !catalog.length) return null;
   const state = readState();
   if (state.eventIds.includes(eventId) || state.unlockedCount >= catalog.length) return null;
 
