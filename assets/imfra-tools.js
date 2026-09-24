@@ -188,6 +188,9 @@ HT.shell = (container, o) => {
   const {icon, titulo, sub, acciones=[]} = o;
   container.innerHTML = `
     <div class="tool-section">
+      <button class="tool-section__back" type="button" data-tools-back>
+        <svg class="ic"><use href="#i-arrow-right"/></svg>Herramientas
+      </button>
       <div class="tool-section__head">
         <div class="tool-section__title">
           <div class="tool-section__icon"><svg class="ic"><use href="#${icon}"/></svg></div>
@@ -198,6 +201,10 @@ HT.shell = (container, o) => {
       </div>
       <div class="ht" id="ht-root"></div>
     </div>`;
+  container.querySelector('[data-tools-back]')?.addEventListener('click', () => {
+    if (typeof window.navigateToSection === 'function') window.navigateToSection('herramientas');
+    else location.hash = '#herramientas';
+  });
   return container.querySelector('#ht-root');
 };
 

@@ -1164,7 +1164,71 @@ body::after{
 /* =========================================================
    HERRAMIENTAS · header de sección (modo apartado, no popup)
    ========================================================= */
+.tools-hub{display:flex;flex-direction:column;gap:24px;max-width:1180px;margin:0 auto;padding-bottom:28px}
+.tools-hub__hero{
+  position:relative;isolation:isolate;overflow:hidden;min-height:260px;padding:38px 40px;border-radius:26px;
+  background:linear-gradient(118deg,#11100F 0%,#1B1712 56%,#3A2812 100%);color:#fff;
+  box-shadow:0 24px 54px -34px rgba(26,17,7,.65);display:flex;align-items:flex-end;
+}
+.tools-hub__hero::before,.tools-hub__hero::after{content:"";position:absolute;z-index:-1;border-radius:50%;pointer-events:none}
+.tools-hub__hero::before{width:330px;height:330px;right:-76px;top:-180px;border:1px solid rgba(245,157,26,.25);box-shadow:0 0 0 42px rgba(245,157,26,.045),0 0 0 84px rgba(245,157,26,.025)}
+.tools-hub__hero::after{width:220px;height:220px;right:95px;bottom:-160px;background:radial-gradient(circle,rgba(245,157,26,.25),transparent 68%)}
+.tools-hub__hero-copy{max-width:710px}
+.tools-hub__eyebrow{display:flex;align-items:center;gap:9px;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.7px;text-transform:uppercase;color:#FFB13B}
+.tools-hub__eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:#F59D1A;box-shadow:0 0 0 5px rgba(245,157,26,.13)}
+.tools-hub__title{margin:0;font-size:clamp(34px,4.4vw,54px);line-height:.98;letter-spacing:-2.2px;font-weight:800;max-width:650px}
+.tools-hub__sub{margin:17px 0 0;max-width:630px;color:rgba(255,255,255,.7);font-size:14px;line-height:1.65}
+.tools-hub__meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.tools-hub__meta span{display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:7px 12px;border:1px solid rgba(255,255,255,.13);border-radius:100px;background:rgba(255,255,255,.065);font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.84);backdrop-filter:blur(8px)}
+.tools-hub__meta .ic{width:13px;height:13px;color:#FFB13B}
+.tools-hub__heading{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:2px 2px 0}
+.tools-hub__heading h2{font-size:22px;line-height:1.15;letter-spacing:-.55px;margin:0;color:var(--text)}
+.tools-hub__heading p{font-size:12.5px;color:var(--text-3);line-height:1.5;margin:5px 0 0}
+.tools-hub__count{flex:0 0 auto;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--primary);padding:7px 11px;border-radius:100px;background:var(--primary-soft);border:1px solid color-mix(in srgb,var(--primary) 23%,transparent)}
+.tools-hub__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.tools-hub-card{
+  appearance:none;width:100%;min-height:176px;padding:22px;border:1px solid var(--border);border-radius:20px;
+  background:linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--primary) 2.5%,var(--surface)));
+  color:var(--text);text-align:left;cursor:pointer;box-shadow:var(--shadow-card);display:grid;
+  grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto;column-gap:16px;row-gap:8px;
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
+}
+.tools-hub-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--primary) 44%,var(--border));box-shadow:0 20px 40px -30px rgba(25,18,10,.55);background:linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--primary) 6%,var(--surface)))}
+.tools-hub-card:focus-visible{outline:3px solid var(--primary-glow);outline-offset:3px;border-color:var(--primary)}
+.tools-hub-card__icon{grid-column:1;grid-row:1/3;width:50px;height:50px;border-radius:15px;background:color-mix(in srgb,var(--primary) 11%,var(--surface));border:1px solid color-mix(in srgb,var(--primary) 18%,var(--border));display:flex;align-items:center;justify-content:center;color:var(--primary)}
+.tools-hub-card__icon .ic{width:23px;height:23px}
+.tools-hub-card__top{grid-column:2/4;grid-row:1;display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
+.tools-hub-card__tag{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:1.15px;text-transform:uppercase;color:var(--primary)}
+.tools-hub-card__title{grid-column:2/4;grid-row:2;font-size:17px;line-height:1.2;letter-spacing:-.32px;font-weight:750;margin:0;color:var(--text)}
+.tools-hub-card__desc{grid-column:2/4;grid-row:3;font-size:12.5px;line-height:1.55;color:var(--text-3);margin:0;align-self:start;max-width:520px}
+.tools-hub-card__foot{grid-column:1/4;grid-row:4;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;padding-top:13px;border-top:1px solid var(--border)}
+.tools-hub-card__access{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.55px;text-transform:uppercase;color:var(--text-3)}
+.tools-hub-card__open{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--primary)}
+.tools-hub-card__open .ic{width:14px;height:14px;transition:transform .2s ease}
+.tools-hub-card:hover .tools-hub-card__open .ic{transform:translateX(3px)}
+@media(max-width:760px){
+  .tools-hub{gap:20px;padding-bottom:16px}
+  .tools-hub__hero{min-height:235px;padding:30px 24px;border-radius:22px;align-items:center}
+  .tools-hub__title{font-size:38px;letter-spacing:-1.7px}
+  .tools-hub__sub{font-size:13px;margin-top:14px}
+  .tools-hub__heading{align-items:flex-start}
+  .tools-hub__grid{grid-template-columns:1fr;gap:11px}
+  .tools-hub-card{min-height:162px;padding:18px;border-radius:17px;column-gap:13px}
+  .tools-hub-card__icon{width:46px;height:46px;border-radius:14px}
+}
+@media(max-width:430px){
+  .tools-hub__hero{min-height:248px;padding:27px 20px}
+  .tools-hub__title{font-size:34px}
+  .tools-hub__meta span:last-child{display:none}
+  .tools-hub__heading{display:block}
+  .tools-hub__count{display:inline-flex;margin-top:12px}
+  .tools-hub-card__title{font-size:15.5px}
+  .tools-hub-card__desc{grid-column:1/4;margin-top:2px}
+}
 .tool-section{display:flex;flex-direction:column;gap:18px}
+.tool-section__back{display:inline-flex;align-items:center;gap:8px;width:max-content;margin-bottom:-3px;padding:7px 0;border:0;background:transparent;color:var(--text-2);font-size:12.5px;font-weight:650;cursor:pointer;transition:color .15s ease}
+.tool-section__back:hover{color:var(--primary)}
+.tool-section__back .ic{width:15px;height:15px;transform:rotate(180deg)}
 .tool-section__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:0.5px solid var(--border-2)}
 .tool-section__title{display:flex;align-items:center;gap:14px}
 .tool-section__icon{width:46px;height:46px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;box-shadow:0 6px 20px -6px var(--primary-glow)}
@@ -3625,15 +3689,8 @@ window.__setDisplayName = async (nombre) => {
     </div>
 
     <div class="nav-section">
-      <div class="nav-label">Herramientas pro</div>
-      <a class="nav-item" data-tool="concreto"><svg class="ic"><use href="#i-cube"/></svg>Volumen de concreto</a>
-      <a class="nav-item" data-tool="acero"><svg class="ic"><use href="#i-rebar"/></svg>Cuantificación de acero</a>
-      <a class="nav-item" data-tool="muros"><svg class="ic"><use href="#i-wall"/></svg>Muros y albañilería</a>
-      <a class="nav-item" data-tool="retenciones"><svg class="ic"><use href="#i-percent"/></svg>Retenciones en estimaciones</a>
-      <a class="nav-item" data-tool="curvas"><svg class="ic"><use href="#i-trend"/></svg>Curva S</a>
-      <a class="nav-item" data-tool="checklist"><svg class="ic"><use href="#i-clipboard-check"/></svg>Checklist de supervisión</a>
-      <a class="nav-item" data-tool="bitacora"><svg class="ic"><use href="#i-notebook"/></svg>Bitácora de obra</a>
-      <a class="nav-item" data-tool="generadores"><svg class="ic"><use href="#i-ruler"/></svg>Números generadores</a>
+      <div class="nav-label">Profesional</div>
+      <a class="nav-item" data-section="herramientas"><svg class="ic"><use href="#i-tools"/></svg>Herramientas<span class="nav-item__badge">8</span></a>
     </div>
 
     <div class="nav-section">
@@ -3854,15 +3911,8 @@ window.__setDisplayName = async (nombre) => {
       </div>
 
       <div class="mobile-drawer__section">
-        <div class="mobile-drawer__label">Herramientas pro</div>
-        <a class="mobile-drawer__item" data-tool="concreto"><svg class="ic"><use href="#i-cube"/></svg>Volumen de concreto</a>
-        <a class="mobile-drawer__item" data-tool="acero"><svg class="ic"><use href="#i-rebar"/></svg>Cuantificación de acero</a>
-        <a class="mobile-drawer__item" data-tool="muros"><svg class="ic"><use href="#i-wall"/></svg>Muros y albañilería</a>
-        <a class="mobile-drawer__item" data-tool="retenciones"><svg class="ic"><use href="#i-percent"/></svg>Retenciones en estimaciones</a>
-        <a class="mobile-drawer__item" data-tool="curvas"><svg class="ic"><use href="#i-trend"/></svg>Curva S</a>
-        <a class="mobile-drawer__item" data-tool="checklist"><svg class="ic"><use href="#i-clipboard-check"/></svg>Checklist de supervisión</a>
-        <a class="mobile-drawer__item" data-tool="bitacora"><svg class="ic"><use href="#i-notebook"/></svg>Bitácora de obra</a>
-        <a class="mobile-drawer__item" data-tool="generadores"><svg class="ic"><use href="#i-ruler"/></svg>Números generadores</a>
+        <div class="mobile-drawer__label">Profesional</div>
+        <a class="mobile-drawer__item" data-section="herramientas"><svg class="ic"><use href="#i-tools"/></svg>Herramientas</a>
       </div>
 
       <div class="mobile-drawer__section">
@@ -4187,7 +4237,7 @@ function navigateToSection(section, opciones){
   }
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
-  const navSection = section.startsWith('curso/') ? 'cursos' : section.startsWith('libro/') ? 'libros' : section;
+  const navSection = section.startsWith('curso/') ? 'cursos' : section.startsWith('libro/') ? 'libros' : section.startsWith('tool-') ? 'herramientas' : section;
   document.querySelectorAll(`[data-section="${navSection}"]`).forEach(ni => ni.classList.add('is-active'));
   // Si es una herramienta-sección (tool-iper, tool-oee...), resaltar su item data-tool
   if(section.startsWith('tool-')){
@@ -8897,6 +8947,63 @@ const Sections = (function(){
     }
   }
 
+  /* ============================ CENTRO DE HERRAMIENTAS ============================ */
+  const HERRAMIENTAS_PRO = [
+    {id:'concreto',icon:'i-cube',tag:'Volumetría',titulo:'Volumen de concreto',desc:'Calcula volúmenes por elemento, materiales y viajes de revolvedora.'},
+    {id:'acero',icon:'i-rebar',tag:'Estructuras',titulo:'Cuantificación de acero',desc:'Obtén kilos, metros lineales y piezas de varilla por calibre y elemento.'},
+    {id:'muros',icon:'i-wall',tag:'Albañilería',titulo:'Muros y albañilería',desc:'Estima piezas, mortero, cemento, arena y jornales para tus muros.'},
+    {id:'retenciones',icon:'i-percent',tag:'Estimaciones',titulo:'Retenciones en estimaciones',desc:'Controla amortizaciones, retenciones, garantías, IVA y neto a cobrar.'},
+    {id:'curvas',icon:'i-trend',tag:'Control de obra',titulo:'Curva S',desc:'Compara avance programado contra real y detecta desviaciones a tiempo.'},
+    {id:'checklist',icon:'i-clipboard-check',tag:'Supervisión',titulo:'Checklist de supervisión',desc:'Documenta inspecciones, hallazgos, acciones correctivas y responsables.'},
+    {id:'bitacora',icon:'i-notebook',tag:'Seguimiento',titulo:'Bitácora de obra',desc:'Registra personal, clima, maquinaria, actividades e incidencias por día.'},
+    {id:'generadores',icon:'i-ruler',tag:'Cuantificación',titulo:'Números generadores',desc:'Genera cantidades por concepto y prepara el soporte de tus estimaciones.'}
+  ];
+
+  function renderHerramientas(container){
+    container.innerHTML = `
+      <section class="tools-hub fade-up" aria-labelledby="tools-hub-title">
+        <header class="tools-hub__hero">
+          <div class="tools-hub__hero-copy">
+            <div class="tools-hub__eyebrow">Centro profesional IMFRA</div>
+            <h1 class="tools-hub__title" id="tools-hub-title">Herramientas para decidir mejor en obra.</h1>
+            <p class="tools-hub__sub">Calcula, documenta y controla tus procesos desde un solo lugar. Elige una herramienta para trabajarla en pantalla completa.</p>
+            <div class="tools-hub__meta">
+              <span><svg class="ic"><use href="#i-tools"/></svg>8 herramientas activas</span>
+              <span><svg class="ic"><use href="#i-certificate"/></svg>Reportes profesionales</span>
+              <span><svg class="ic"><use href="#i-bolt"/></svg>Resultados al instante</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="tools-hub__heading">
+          <div>
+            <h2>Selecciona una herramienta</h2>
+            <p>Cada módulo conserva tus datos y abre su flujo completo de trabajo.</p>
+          </div>
+          <span class="tools-hub__count">8 disponibles</span>
+        </div>
+
+        <div class="tools-hub__grid">
+          ${HERRAMIENTAS_PRO.map(tool=>`
+            <button class="tools-hub-card" type="button" data-open-tool="${tool.id}" aria-label="Abrir ${tool.titulo}">
+              <span class="tools-hub-card__icon"><svg class="ic"><use href="#${tool.icon}"/></svg></span>
+              <span class="tools-hub-card__top"><span class="tools-hub-card__tag">${tool.tag}</span></span>
+              <strong class="tools-hub-card__title">${tool.titulo}</strong>
+              <span class="tools-hub-card__desc">${tool.desc}</span>
+              <span class="tools-hub-card__foot">
+                <span class="tools-hub-card__access">Herramienta profesional</span>
+                <span class="tools-hub-card__open">Abrir <svg class="ic"><use href="#i-arrow-right"/></svg></span>
+              </span>
+            </button>
+          `).join('')}
+        </div>
+      </section>`;
+
+    container.querySelectorAll('[data-open-tool]').forEach(card=>{
+      card.addEventListener('click',()=>navigateToSection('tool-'+card.dataset.openTool));
+    });
+  }
+
   /* ============================ VIDEOTECA · agrupa todos los meses ============================ */
   let videotecaState = {mes:'mes-mayo'};
 
@@ -9020,6 +9127,7 @@ const Sections = (function(){
       canal:renderCanal,
       perfil:renderPerfil,
       suscripcion:renderSuscripcion,
+      herramientas:renderHerramientas,
       // Herramientas pro (assets/imfra-tools.js)
       'tool-concreto':(c)=>window.IMFRATools.concreto.mount(c),
       'tool-acero':(c)=>window.IMFRATools.acero.mount(c),
@@ -11405,7 +11513,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <script src="onboarding-tour.js?v=2" defer></script>
-<script src="assets/imfra-tools.js?v=1"></script>
+<script src="assets/imfra-tools.js?v=20260924-1"></script>
 <script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>
