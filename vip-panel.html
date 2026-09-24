@@ -4155,7 +4155,7 @@ function __seccionesValidasVIP(){
   return s;
 }
 function __esRutaDinamicaVIP(s){
-  return /^curso\/[^/]+$/.test(s) || /^libro\/[^/]+$/.test(s);
+  return /^curso\/[^/]+$/.test(s) || /^curso\/[^/]+\/clase\/\d+$/.test(s) || /^libro\/[^/]+$/.test(s);
 }
 function __leerSeccionURLVIP(){
   let s = '';
@@ -4209,7 +4209,12 @@ function navigateToSection(section, opciones){
   if(section==='inicio'){inicio.style.display='';dyn.style.display='none';if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();window.scrollTo({top:0,left:0,behavior:'auto'});return;}
   inicio.style.display='none';dyn.style.display='';
   let renderer=Sections.renderers[section];
-  if(section.startsWith('curso/')){
+  const claseMatch=section.match(/^curso\/([^/]+)\/clase\/(\d+)$/);
+  if(claseMatch){
+    const cursoId=decodeURIComponent(claseMatch[1]);
+    const numeroClase=Number(claseMatch[2]);
+    renderer=(contenedor)=>Sections.renderClaseDetalle(cursoId,numeroClase,contenedor);
+  } else if(section.startsWith('curso/')){
     const cursoId=decodeURIComponent(section.slice('curso/'.length));
     renderer=(contenedor)=>Sections.renderCursoDetalle(cursoId,contenedor);
   } else if(section.startsWith('libro/')){
@@ -4886,41 +4891,7 @@ const Sections = (function(){
     }
 
     const numClase = sesion.numero || (sesionIdx + 1);
-    if (!sesion.videoId) {
-      if (sesion.url) window.abrirVisor(sesion.url, sesion.titulo, cursoId, numClase);
-      else Toast.info('Video pendiente', 'Esta clase todavía no tiene un video asignado');
-      return;
-    }
-
-    window.abrirVisor('about:blank', sesion.titulo || `Clase ${numClase}`, cursoId, numClase);
-    const frame = document.getElementById('visorFrame');
-    const titleEl = document.getElementById('visorTitle');
-    const dlEl = document.getElementById('visorDownload');
-    const requestId = `${Date.now()}-${Math.random()}`;
-    if (frame) frame.dataset.bunnyRequest = requestId;
-    if (titleEl) titleEl.textContent = `Cargando · ${sesion.titulo || `Clase ${numClase}`}`;
-    if (dlEl) dlEl.style.display = 'none';
-
-    try {
-      const user = window.__currentUser || window.__auth?.currentUser;
-      const idToken = user ? await user.getIdToken() : '';
-      const headers = { 'Content-Type': 'application/json' };
-      if (idToken) headers.Authorization = `Bearer ${idToken}`;
-      const response = await fetch(`${window.WEBHOOK_URL}/api/bunny/embed-token`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ videoId: sesion.videoId, courseId: cursoId, sessionIndex: sesionIdx })
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
-      if (frame?.dataset.bunnyRequest !== requestId) return;
-      frame.src = data.embedUrl;
-      if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
-    } catch (error) {
-      console.error('[Bunny player]', error);
-      if (frame?.dataset.bunnyRequest === requestId) window.cerrarVisor();
-      Toast.error('No se pudo abrir la clase', error.message || 'Intenta nuevamente');
-    }
+    navigateToSection(`curso/${encodeURIComponent(String(cursoId))}/clase/${numClase}`);
   };
 
   window.abrirMaterialIMFRA = function(cursoId, materialIdx) {
@@ -5566,6 +5537,291 @@ const Sections = (function(){
     });
   }
 
+  const CLASES_EDITORIALES = {
+    calidad: [
+      'Fundamentos de ISO 9001 en obra',
+      'Alcance y mapa de procesos',
+      'Control documental y registros',
+      'Responsabilidades y competencias',
+      'Inspección, pruebas y liberación',
+      'No conformidades y acciones correctivas',
+      'Auditoría interna de obra',
+      'Indicadores y mejora continua',
+      'Implementación del sistema en la constructora'
+    ],
+    generadores: [
+      'Alcance de generadores y estimaciones',
+      'Lectura de planos y catálogo de conceptos',
+      'Cuantificación de volúmenes de obra',
+      'Números generadores por partidas',
+      'Elaboración de estimaciones',
+      'Precios unitarios y control de conceptos',
+      'Evidencia y soporte de campo',
+      'Presupuestos, avances y estimaciones',
+      'Revisión, conciliación y correcciones',
+      'Cierre del caso aplicado'
+    ],
+    superintendencia: [
+      'Rol técnico del superintendente',
+      'Planeación y arranque de obra',
+      'Coordinación de contratistas y cuadrillas',
+      'Control de programa y avances',
+      'Bitácora, reportes y comunicación',
+      'Calidad y liberación de trabajos',
+      'Seguridad y prevención en campo',
+      'Control administrativo de la obra',
+      'Entrega, pendientes y cierre',
+      'Caso integral de superintendencia'
+    ]
+  };
+
+  function tituloClaseEditorial(curso, sesion, index){
+    const tituloOriginal = String(sesion?.titulo || '').trim();
+    if (tituloOriginal && !/^clase\s+\d+$/i.test(tituloOriginal)) return tituloOriginal;
+    const tituloCurso = String(curso?.titulo || '').toLowerCase();
+    const grupo = tituloCurso.includes('calidad') || tituloCurso.includes('9001') ? CLASES_EDITORIALES.calidad
+      : tituloCurso.includes('generador') || tituloCurso.includes('estimacion') ? CLASES_EDITORIALES.generadores
+      : tituloCurso.includes('superintend') ? CLASES_EDITORIALES.superintendencia : null;
+    return grupo?.[index] || `Aplicación profesional · ${curso?.area || 'Construcción'}`;
+  }
+
+  function contenidoClaseEditorial(curso, sesion, index){
+    const titulo = tituloClaseEditorial(curso, sesion, index);
+    const area = curso?.area || 'Construcción';
+    const resumen = `Aprende a aplicar ${titulo.toLowerCase()} con criterios verificables, evidencia de campo y control profesional dentro de un proyecto de construcción.`;
+    const conceptos = [
+      { tiempo:'02:00', texto:titulo },
+      { tiempo:'06:20', texto:`Criterios técnicos y documentación de ${area.toLowerCase()}` },
+      { tiempo:'10:40', texto:'Verificación, evidencia y errores frecuentes en obra' }
+    ];
+    const preguntas = [
+      {
+        texto:`¿Cuál es la práctica más adecuada al aplicar “${titulo}” en una obra?`,
+        opciones:[
+          'Definir el criterio, registrar la evidencia y verificar el resultado',
+          'Resolverlo únicamente de manera verbal con la cuadrilla',
+          'Esperar al cierre de la obra para documentarlo'
+        ],
+        correcta:0,
+        explicacion:'La trazabilidad exige un criterio definido, evidencia verificable y una revisión del resultado; así la decisión puede auditarse y corregirse a tiempo.'
+      },
+      {
+        texto:'¿Qué evidencia ofrece mayor trazabilidad para el control de obra?',
+        opciones:[
+          'Un comentario informal sin fecha ni responsable',
+          'Un registro fechado, con responsable, ubicación y soporte técnico',
+          'Una fotografía aislada sin referencia al concepto ejecutado'
+        ],
+        correcta:1,
+        explicacion:'Un registro completo vincula la actividad con fecha, responsable, ubicación y soporte; una evidencia aislada no permite comprobar el proceso.'
+      }
+    ];
+    return { titulo, resumen, conceptos, preguntas };
+  }
+
+  function claveNotasClase(cursoId, numeroClase){
+    const cuenta = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `imfra:v2:lesson-notes:${cuenta}:${cursoId}:${numeroClase}`;
+  }
+
+  function claveQuizClase(cursoId, numeroClase){
+    const cuenta = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `imfra:v2:lesson-quiz:${cuenta}:${cursoId}:${numeroClase}`;
+  }
+
+  function estadoQuizClase(cursoId, numeroClase){
+    try {
+      const estado = JSON.parse(localStorage.getItem(claveQuizClase(cursoId, numeroClase)) || '{}');
+      return { mejor:Math.max(0,Number(estado.mejor)||0), intentos:Math.max(0,Number(estado.intentos)||0) };
+    } catch(e){ return { mejor:0, intentos:0 }; }
+  }
+
+  async function montarVideoClase(curso, sesion, sesionIdx, container){
+    const frame = container.querySelector('[data-lesson-frame]');
+    const estado = container.querySelector('[data-lesson-player-status]');
+    if (!frame || !estado) return;
+    if (sesion.url && !sesion.videoId) {
+      frame.src = urlVistaPreviaMaterial(sesion.url);
+      frame.hidden = false;
+      estado.hidden = true;
+      return;
+    }
+    if (!sesion.videoId) {
+      estado.innerHTML='<span class="lesson-player__empty-icon"><svg class="ic"><use href="#i-play"/></svg></span><strong>Video en preparación</strong><small>El contenido de esta clase estará disponible muy pronto.</small>';
+      return;
+    }
+    try {
+      const user = window.__currentUser || window.__auth?.currentUser;
+      const idToken = user ? await user.getIdToken() : '';
+      const headers = { 'Content-Type':'application/json' };
+      if (idToken) headers.Authorization = `Bearer ${idToken}`;
+      const response = await fetch(`${window.WEBHOOK_URL}/api/bunny/embed-token`, {
+        method:'POST', headers,
+        body:JSON.stringify({ videoId:sesion.videoId, courseId:curso.id, sessionIndex:sesionIdx })
+      });
+      const data = await response.json().catch(()=>({}));
+      if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
+      if (!container.isConnected || location.hash !== `#curso/${encodeURIComponent(String(curso.id))}/clase/${sesion.numero || sesionIdx + 1}`) return;
+      frame.src = data.embedUrl;
+      frame.hidden = false;
+      estado.hidden = true;
+    } catch(error) {
+      console.error('[Bunny lesson player]',error);
+      estado.innerHTML='<span class="lesson-player__empty-icon"><svg class="ic"><use href="#i-alert-circle"/></svg></span><strong>No pudimos cargar el video</strong><small>Comprueba tu conexión e intenta nuevamente.</small><button type="button" class="lesson-player__retry">Reintentar</button>';
+      estado.querySelector('.lesson-player__retry')?.addEventListener('click',()=>montarVideoClase(curso,sesion,sesionIdx,container));
+    }
+  }
+
+  function iniciarQuizClase(curso, sesion, sesionIdx, container){
+    const numeroClase = sesion.numero || sesionIdx + 1;
+    const contenido = contenidoClaseEditorial(curso,sesion,sesionIdx);
+    const host = container.querySelector('[data-lesson-challenge]');
+    if (!host) return;
+    let indice=0;
+    let aciertos=0;
+
+    const terminar=()=>{
+      const porcentaje=Math.round((aciertos/contenido.preguntas.length)*100);
+      const previo=estadoQuizClase(curso.id,numeroClase);
+      const estado={mejor:Math.max(previo.mejor,porcentaje),intentos:previo.intentos+1};
+      try{localStorage.setItem(claveQuizClase(curso.id,numeroClase),JSON.stringify(estado));}catch(e){}
+      host.innerHTML=`<div class="lesson-quiz-result ${porcentaje>=70?'is-pass':'is-retry'}">
+        <span class="lesson-quiz-result__score">${porcentaje}%</span>
+        <div><small>${porcentaje>=70?'Reto aprobado':'Sigue reforzando'}</small><h3>${porcentaje>=70?'Buen criterio técnico':'Repasa la explicación e inténtalo otra vez'}</h3><p>${aciertos} de ${contenido.preguntas.length} respuestas correctas · mejor resultado ${estado.mejor}%</p></div>
+        <button type="button" class="lesson-quiz-result__retry">${porcentaje>=70?'Repetir reto':'Intentar de nuevo'}</button>
+      </div>`;
+      host.querySelector('.lesson-quiz-result__retry')?.addEventListener('click',()=>iniciarQuizClase(curso,sesion,sesionIdx,container));
+      container.querySelectorAll('[data-lesson-quiz-summary]').forEach(sidebarQuiz=>{sidebarQuiz.innerHTML=`<strong>${estado.mejor}%</strong><span>Mejor resultado · ${estado.intentos} intento${estado.intentos!==1?'s':''}</span>`;});
+    };
+
+    const mostrarPregunta=()=>{
+      const pregunta=contenido.preguntas[indice];
+      host.innerHTML=`<div class="lesson-quiz-live">
+        <div class="lesson-quiz-live__head"><span>Pregunta ${indice+1} de ${contenido.preguntas.length}</span><b>${Math.round(indice/contenido.preguntas.length*100)}%</b></div>
+        <div class="lesson-quiz-live__bar"><i style="width:${indice/contenido.preguntas.length*100}%"></i></div>
+        <h3>${escapeHtml(pregunta.texto)}</h3>
+        <div class="lesson-quiz-options">${pregunta.opciones.map((opcion,i)=>`<button type="button" data-answer="${i}"><span>${String.fromCharCode(65+i)}</span>${escapeHtml(opcion)}</button>`).join('')}</div>
+        <div class="lesson-quiz-feedback" hidden></div>
+      </div>`;
+      host.querySelectorAll('[data-answer]').forEach(boton=>boton.addEventListener('click',()=>{
+        const elegida=Number(boton.dataset.answer);
+        const correcta=elegida===pregunta.correcta;
+        if(correcta) aciertos+=1;
+        host.querySelectorAll('[data-answer]').forEach((item,i)=>{
+          item.disabled=true;
+          if(i===pregunta.correcta)item.classList.add('is-correct');
+          else if(i===elegida)item.classList.add('is-wrong');
+        });
+        const feedback=host.querySelector('.lesson-quiz-feedback');
+        feedback.hidden=false;
+        feedback.innerHTML=`<div><strong>${correcta?'Correcto':'Revisa este criterio'}</strong><p>${escapeHtml(pregunta.explicacion)}</p></div><button type="button">${indice===contenido.preguntas.length-1?'Ver resultado':'Siguiente pregunta'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>`;
+        feedback.querySelector('button')?.addEventListener('click',()=>{indice+=1;if(indice>=contenido.preguntas.length)terminar();else mostrarPregunta();});
+      }));
+    };
+    mostrarPregunta();
+    host.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+
+  function renderClaseDetalle(cursoId, numeroClase, container){
+    const curso=cursos.find(x=>String(x.id)===String(cursoId));
+    if(!curso){
+      if(!_cursosLoaded&&!_cursosLoading){container.innerHTML='<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando clase…</strong></div>';cargarCursosFirestore().then(()=>renderClaseDetalle(cursoId,numeroClase,container));}
+      else container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Clase no encontrada</h3><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'cursos\')">Volver a cursos</button></div>';
+      return;
+    }
+    const sesiones=Array.isArray(curso.sesiones)?curso.sesiones:[];
+    const sesionIdx=sesiones.findIndex((s,i)=>(s.numero||i+1)===Number(numeroClase));
+    const sesion=sesiones[sesionIdx];
+    if(!sesion){navigateToSection('curso/'+encodeURIComponent(String(cursoId)));return;}
+    const motivo=motivoBloqueoClase(cursoId,sesionIdx,sesiones);
+    if(motivo){
+      if(motivo.tipo==='secuencia')Toast.info('Primero termina la clase anterior',`Marca como vista la clase ${motivo.numPrev} para abrir esta.`);
+      else window.__showPaywallModal?.({title:'Clase exclusiva para miembros',sub:'Activa tu membresía para continuar con el curso completo.',cta:'Ir a Suscripción'});
+      navigateToSection('curso/'+encodeURIComponent(String(cursoId)));
+      return;
+    }
+
+    const num=sesion.numero||sesionIdx+1;
+    const contenido=contenidoClaseEditorial(curso,sesion,sesionIdx);
+    const progreso=getProgresoCurso(cursoId);
+    const yaVista=progreso.clasesVistas.includes(num);
+    const siguiente=sesiones[sesionIdx+1]||null;
+    const siguienteNum=siguiente?(siguiente.numero||sesionIdx+2):null;
+    const siguienteAbierta=siguiente?claseDesbloqueada(cursoId,sesionIdx+1,sesiones):false;
+    const minutos=Math.max(25,Math.round(((Number(curso.horas)||sesiones.length)*60)/Math.max(1,sesiones.length)));
+    const quizState=estadoQuizClase(cursoId,num);
+    let notas='';try{notas=localStorage.getItem(claveNotasClase(cursoId,num))||'';}catch(e){}
+
+    const temarioHtml=sesiones.map((item,i)=>{
+      const itemNum=item.numero||i+1;
+      const abierta=claseDesbloqueada(cursoId,i,sesiones);
+      const vista=progreso.clasesVistas.includes(itemNum);
+      return `<button type="button" class="lesson-outline__item ${i===sesionIdx?'is-current':''} ${vista?'is-complete':''}" data-lesson-open="${i}" ${!abierta?'disabled':''}>
+        <span>${vista?'✓':itemNum}</span><strong>${escapeHtml(tituloClaseEditorial(curso,item,i))}</strong>${!abierta?'<svg class="ic"><use href="#i-shield-check"/></svg>':''}
+      </button>`;
+    }).join('');
+    const panelEstudioHtml=(variante='')=>`<aside class="lesson-side ${variante}">
+      <div class="lesson-side__tabs" role="tablist"><button class="is-active" type="button" data-lesson-tab="temario">Temario</button><button type="button" data-lesson-tab="notas">Notas</button><button type="button" data-lesson-tab="quiz">Quiz</button></div>
+      <div class="lesson-side__panel is-active" data-lesson-panel="temario"><div class="lesson-outline">${temarioHtml}</div></div>
+      <div class="lesson-side__panel" data-lesson-panel="notas"><label class="lesson-notes"><span>Tus notas de la clase</span><textarea data-lesson-notes placeholder="Escribe ideas, criterios o pendientes para tu obra…">${escapeHtml(notas)}</textarea><small data-notes-state>Se guardan automáticamente en este dispositivo.</small></label></div>
+      <div class="lesson-side__panel" data-lesson-panel="quiz"><div class="lesson-side-quiz"><span class="lesson-side-quiz__icon"><svg class="ic"><use href="#i-trophy"/></svg></span><h3>Reto de la clase</h3><p>Dos preguntas con explicación técnica inmediata.</p><div data-lesson-quiz-summary><strong>${quizState.intentos?quizState.mejor+'%':'—'}</strong><span>${quizState.intentos?`Mejor resultado · ${quizState.intentos} intento${quizState.intentos!==1?'s':''}`:'Aún no lo has intentado'}</span></div><button type="button" data-lesson-quiz-side>Comenzar reto</button></div></div>
+    </aside>`;
+
+    container.innerHTML=`<div class="fade-up lesson-page">
+      <button type="button" class="course-detail-back" data-lesson-back><span><svg class="ic"><use href="#i-arrow-left"/></svg></span>${escapeHtml(curso.titulo)}</button>
+      <div class="lesson-layout">
+        <main class="lesson-main">
+          <section class="lesson-player">
+            <iframe data-lesson-frame title="${escapeHtml(contenido.titulo)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen hidden></iframe>
+            <div class="lesson-player__status" data-lesson-player-status><div class="sub-loading__spin"></div><strong>Preparando la clase</strong><small>Estamos autorizando la reproducción segura.</small></div>
+          </section>
+          <section class="lesson-heading">
+            <div><span>Clase ${num} de ${sesiones.length} · ${minutos} min</span><h1>${escapeHtml(contenido.titulo)}</h1><div class="lesson-heading__progress"><i style="width:${((sesionIdx+(yaVista?1:0))/sesiones.length)*100}%"></i><small>${progreso.clasesVistas.length} de ${sesiones.length} vistas · ${progresoCursoPct(cursoId,sesiones.length)}%</small></div></div>
+            <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete>${yaVista?(siguiente?'Continuar a la siguiente':'Volver al curso'):'Marcar vista y seguir'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          </section>
+          ${panelEstudioHtml('lesson-side--mobile')}
+          ${siguiente?`<button type="button" class="lesson-next ${siguienteAbierta?'is-ready':''}" data-lesson-next ${!siguienteAbierta?'disabled':''}><span class="lesson-next__thumb" style="background-image:linear-gradient(90deg,rgba(9,9,8,.24),rgba(9,9,8,.58)),url('${curso.portada||PORTADA_DEFAULT}')"></span><span><small>A continuación · clase ${siguienteNum}</small><strong>${escapeHtml(tituloClaseEditorial(curso,siguiente,sesionIdx+1))}</strong><em>${siguienteAbierta?'Lista para continuar':'Se desbloquea al marcar esta clase como vista'}</em></span><svg class="ic"><use href="#${siguienteAbierta?'i-arrow-right':'i-shield-check'}"/></svg></button>`:''}
+
+          <section class="lesson-summary-card">
+            <span class="lesson-section-kicker">Resumen de la clase</span><h2>Resumen</h2><p>${escapeHtml(contenido.resumen)}</p>
+            <h3>Conceptos clave</h3><div class="lesson-concepts">${contenido.conceptos.map(c=>`<div><time>${c.tiempo}</time><span>${escapeHtml(c.texto)}</span></div>`).join('')}</div>
+            <footer><svg class="ic"><use href="#i-shield-check"/></svg>Material revisado por el equipo técnico de IMFRA</footer>
+          </section>
+
+          <section class="lesson-challenge-card" data-lesson-challenge>
+            <div class="lesson-challenge-card__intro"><span class="lesson-section-kicker">Reto de la clase</span><h2>Pon a prueba lo que aprendiste</h2><p>Responde con calma. Después de cada pregunta recibirás una explicación para reforzar el criterio técnico.</p></div>
+            <div class="lesson-challenge-card__stats"><div><strong>2</strong><span>preguntas</span></div><div><strong>2 min</strong><span>aproximadamente</span></div><div><strong>70%</strong><span>para aprobar</span></div></div>
+            <div class="lesson-challenge-card__best"><span>Tu mejor resultado</span><strong>${quizState.intentos?`${quizState.mejor}% · ${quizState.intentos} intento${quizState.intentos!==1?'s':''}`:'Sin intentos todavía'}</strong></div>
+            <button type="button" class="lesson-challenge-card__start" data-lesson-quiz-start>Comenzar reto<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          </section>
+        </main>
+
+        ${panelEstudioHtml('lesson-side--desktop')}
+      </div>
+    </div>`;
+
+    container.querySelector('[data-lesson-back]')?.addEventListener('click',()=>navigateToSection('curso/'+encodeURIComponent(String(cursoId))));
+    container.querySelectorAll('[data-lesson-tab]').forEach(tab=>tab.addEventListener('click',()=>{
+      container.querySelectorAll('[data-lesson-tab]').forEach(x=>x.classList.toggle('is-active',x===tab));
+      container.querySelectorAll('[data-lesson-panel]').forEach(x=>x.classList.toggle('is-active',x.dataset.lessonPanel===tab.dataset.lessonTab));
+    }));
+    container.querySelectorAll('[data-lesson-open]').forEach(item=>item.addEventListener('click',()=>window.abrirClaseIMFRA(cursoId,Number(item.dataset.lessonOpen))));
+    let notaTimer=0;
+    container.querySelectorAll('[data-lesson-notes]').forEach(nota=>nota.addEventListener('input',()=>{container.querySelectorAll('[data-notes-state]').forEach(estado=>estado.textContent='Guardando…');clearTimeout(notaTimer);notaTimer=setTimeout(()=>{try{localStorage.setItem(claveNotasClase(cursoId,num),nota.value);}catch(e){}container.querySelectorAll('[data-lesson-notes]').forEach(copia=>{if(copia!==nota)copia.value=nota.value;});container.querySelectorAll('[data-notes-state]').forEach(estado=>estado.textContent='Guardado en este dispositivo.');},350);}));
+    const comenzarQuiz=()=>iniciarQuizClase(curso,sesion,sesionIdx,container);
+    container.querySelector('[data-lesson-quiz-start]')?.addEventListener('click',comenzarQuiz);
+    container.querySelectorAll('[data-lesson-quiz-side]').forEach(boton=>boton.addEventListener('click',comenzarQuiz));
+    const irSiguiente=()=>{if(siguiente)navigateToSection(`curso/${encodeURIComponent(String(cursoId))}/clase/${siguienteNum}`);else navigateToSection('curso/'+encodeURIComponent(String(cursoId)));};
+    container.querySelector('[data-lesson-next]')?.addEventListener('click',irSiguiente);
+    container.querySelector('[data-lesson-complete]')?.addEventListener('click',()=>{
+      if(yaVista){irSiguiente();return;}
+      window.marcarClaseVista(cursoId,num);
+      Toast.success('Clase marcada como vista',siguiente?`Clase ${siguienteNum} desbloqueada`:'Curso completado');
+      setTimeout(irSiguiente,450);
+    });
+    void montarVideoClase(curso,sesion,sesionIdx,container);
+  }
+
   function openCursoDetalle(id, container){
     const c=cursos.find(x=>String(x.id)===String(id));
     if(!c){
@@ -5616,7 +5872,7 @@ const Sections = (function(){
         : motivo?.tipo === 'secuencia' ? `Completa primero la clase ${motivo.numPrev}` : 'Contenido bloqueado';
       return `<button type="button" class="course-lesson ${vista?'is-complete':''} ${!abierta?'is-locked':''}" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
         <span class="course-lesson__rail"><b>${vista?'✓':abierta?numSes:'🔒'}</b></span>
-        <span class="course-lesson__copy"><strong>${s.titulo || `Clase ${numSes}`}</strong><small>${detalle}</small></span>
+        <span class="course-lesson__copy"><strong>${escapeHtml(tituloClaseEditorial(c,s,i))}</strong><small>${detalle}</small></span>
         <span class="course-lesson__action"><svg class="ic"><use href="#${abierta?'i-play':'i-shield-check'}"/></svg></span>
       </button>`;
     }).join('') : `<div class="course-detail-empty">Las clases de este curso se están preparando.</div>`;
@@ -8731,6 +8987,7 @@ const Sections = (function(){
 
   return {
     renderCursoDetalle:openCursoDetalle,
+    renderClaseDetalle:renderClaseDetalle,
     renderLibroVisor:renderLibroVisor,
     renderers:{
       cursos:renderCursos,
@@ -11064,6 +11321,44 @@ body{letter-spacing:-.05px}
 .course-detail-progress ul{display:grid;gap:13px;margin:0;padding:0;list-style:none}.course-detail-progress li{display:flex;align-items:center;gap:9px;color:var(--text-2);font-size:11px;line-height:1.4}.course-detail-progress li .ic{width:16px;height:16px;flex:0 0 16px;color:var(--primary)}
 .course-detail-lock{display:flex;align-items:center;gap:16px;padding:22px;border:1px solid color-mix(in srgb,var(--primary) 28%,var(--border));border-radius:14px;background:color-mix(in srgb,var(--primary) 7%,var(--surface))}.course-detail-lock>.ic{width:28px;height:28px;color:var(--primary)}.course-detail-lock strong{font-size:15px}.course-detail-lock p{margin:4px 0 0;color:var(--text-2);font-size:12px}
 
+/* Clase individual · reproducción, estudio y evaluación en una sola página */
+.lesson-page{width:100%;max-width:1180px;margin:0 auto;padding:4px 0 54px}
+.lesson-layout{display:grid;grid-template-columns:minmax(0,1fr) 326px;gap:24px;align-items:start}
+.lesson-main{display:grid;gap:22px;min-width:0}
+.lesson-player{position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:#090909;box-shadow:0 18px 48px rgba(0,0,0,.18)}
+.lesson-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#090909}
+.lesson-player__status{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;padding:28px;color:rgba(255,255,255,.92);text-align:center}
+.lesson-player__status[hidden]{display:none}.lesson-player__status small{max-width:330px;color:rgba(255,255,255,.52);font-size:11px;line-height:1.5}
+.lesson-player__empty-icon{width:68px;height:68px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(255,255,255,.07);color:var(--primary)}
+.lesson-player__empty-icon .ic{width:25px;height:25px}.lesson-player__retry{min-height:38px;margin-top:4px;padding:0 15px;border:1px solid rgba(255,255,255,.2);border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-weight:700;cursor:pointer}
+.lesson-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;padding:0 2px}
+.lesson-heading>div{min-width:0;flex:1}.lesson-heading>div>span{display:block;margin-bottom:7px;color:var(--text-3);font:700 9px/1 "JetBrains Mono",monospace;letter-spacing:1.45px;text-transform:uppercase}
+.lesson-heading h1{margin:0;font:750 clamp(24px,3.2vw,34px)/1.1 "Plus Jakarta Sans",sans-serif;letter-spacing:-1px}
+.lesson-heading__progress{position:relative;display:flex;align-items:center;gap:10px;margin-top:13px}.lesson-heading__progress::before{content:"";height:4px;min-width:120px;flex:1;border-radius:99px;background:var(--surface-3)}
+.lesson-heading__progress i{position:absolute;height:4px;max-width:calc(100% - 205px);border-radius:99px;background:var(--primary)}.lesson-heading__progress small{flex:0 0 auto;color:var(--text-3);font-size:10px}
+.lesson-complete{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;padding:0 15px 0 18px;border:0;border-radius:999px;background:var(--text);color:var(--surface);font:750 11px/1 Inter,sans-serif;cursor:pointer}
+.lesson-complete .ic{width:23px;height:23px;padding:5px;border-radius:50%;background:color-mix(in srgb,var(--surface) 16%,transparent)}.lesson-complete.is-complete{background:var(--surface);color:var(--text);border:1px solid var(--border-2)}
+.lesson-next{width:100%;display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);text-align:left;cursor:pointer}
+.lesson-next:disabled{cursor:not-allowed;opacity:.58}.lesson-next.is-ready:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.lesson-next__thumb{width:118px;height:70px;flex:0 0 118px;border-radius:9px;background-size:cover;background-position:center}.lesson-next>span:nth-child(2){display:grid;gap:4px;min-width:0;flex:1}.lesson-next small{color:var(--primary);font:700 8px/1 "JetBrains Mono",monospace;letter-spacing:1.2px;text-transform:uppercase}.lesson-next strong{font-size:13px}.lesson-next em{color:var(--text-3);font-size:10px;font-style:normal}.lesson-next>.ic{width:18px;height:18px;color:var(--text-3)}
+.lesson-section-kicker{display:block;margin-bottom:8px;color:var(--primary);font:700 9px/1 "JetBrains Mono",monospace;letter-spacing:1.5px;text-transform:uppercase}
+.lesson-summary-card,.lesson-challenge-card{padding:26px;border:1px solid var(--border);border-radius:17px;background:var(--surface)}
+.lesson-summary-card h2,.lesson-challenge-card h2{margin:0;font:750 23px/1.18 "Plus Jakarta Sans",sans-serif;letter-spacing:-.5px}.lesson-summary-card>p,.lesson-challenge-card__intro p{max-width:720px;margin:10px 0 0;color:var(--text-2);font-size:13px;line-height:1.65}
+.lesson-summary-card h3{margin:25px 0 12px;font-size:13px}.lesson-concepts{display:grid;gap:0;border-top:1px solid var(--border)}.lesson-concepts>div{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}.lesson-concepts time{color:var(--primary);font:700 10px/1.4 "JetBrains Mono",monospace}.lesson-concepts span{color:var(--text-2);font-size:12px;line-height:1.45}.lesson-summary-card footer{display:flex;align-items:center;gap:8px;margin-top:19px;color:var(--text-3);font-size:10px}.lesson-summary-card footer .ic{width:15px;height:15px;color:var(--success)}
+.lesson-challenge-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px 26px;align-items:center;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 8%,var(--surface)),var(--surface) 46%)}
+.lesson-challenge-card__intro{grid-column:1/-1}.lesson-challenge-card__stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.lesson-challenge-card__stats>div{display:grid;gap:5px;padding:14px 16px;border-right:1px solid var(--border)}.lesson-challenge-card__stats>div:last-child{border-right:0}.lesson-challenge-card__stats strong{font-size:18px}.lesson-challenge-card__stats span{color:var(--text-3);font-size:9px}
+.lesson-challenge-card__best{display:grid;gap:5px;align-content:center;min-width:170px}.lesson-challenge-card__best span{color:var(--text-3);font-size:10px}.lesson-challenge-card__best strong{font-size:12px}
+.lesson-challenge-card__start{grid-column:1/-1;min-height:46px;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:10px;background:var(--primary);color:#15100a;font:800 12px/1 Inter,sans-serif;cursor:pointer}.lesson-challenge-card__start .ic{width:16px;height:16px}
+.lesson-side{position:sticky;top:0;overflow:hidden;border:1px solid var(--border);border-radius:17px;background:var(--surface);box-shadow:0 15px 36px rgba(0,0,0,.08)}
+.lesson-side--mobile{display:none}
+.lesson-side__tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:12px;padding:4px;border-radius:11px;background:var(--surface-2)}.lesson-side__tabs button{min-height:38px;border:0;border-radius:8px;background:transparent;color:var(--text-3);font:700 11px/1 Inter,sans-serif;cursor:pointer}.lesson-side__tabs button.is-active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.lesson-side__panel{display:none;padding:0 16px 18px}.lesson-side__panel.is-active{display:block}.lesson-outline{display:grid}.lesson-outline__item{width:100%;min-height:45px;display:grid;grid-template-columns:24px minmax(0,1fr) 15px;align-items:center;gap:7px;padding:9px 3px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--text-2);text-align:left;cursor:pointer}.lesson-outline__item:last-child{border-bottom:0}.lesson-outline__item>span{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;color:var(--text-3);font:700 9px/1 "JetBrains Mono",monospace}.lesson-outline__item strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}.lesson-outline__item>.ic{width:12px;height:12px;color:var(--text-3)}.lesson-outline__item.is-current{color:var(--text)}.lesson-outline__item.is-current>span{border:1px solid var(--primary);color:var(--primary)}.lesson-outline__item.is-complete>span{background:var(--success);color:#fff}.lesson-outline__item:disabled{cursor:not-allowed;opacity:.46}
+.lesson-notes{display:grid;gap:9px}.lesson-notes>span{font-weight:750;font-size:12px}.lesson-notes textarea{width:100%;min-height:280px;resize:vertical;padding:13px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font:500 12px/1.65 Inter,sans-serif;outline:0}.lesson-notes textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}.lesson-notes small{color:var(--text-3);font-size:9px}
+.lesson-side-quiz{display:grid;justify-items:center;gap:8px;padding:18px 5px 6px;text-align:center}.lesson-side-quiz__icon{width:52px;height:52px;display:grid;place-items:center;border-radius:15px;background:color-mix(in srgb,var(--primary) 13%,var(--surface-2));color:var(--primary)}.lesson-side-quiz__icon .ic{width:23px;height:23px}.lesson-side-quiz h3{margin:5px 0 0;font-size:15px}.lesson-side-quiz p{margin:0;color:var(--text-3);font-size:10px;line-height:1.5}.lesson-side-quiz>div{display:grid;gap:3px;width:100%;margin:8px 0;padding:13px;border:1px solid var(--border);border-radius:10px}.lesson-side-quiz>div strong{font-size:20px}.lesson-side-quiz>div span{color:var(--text-3);font-size:9px}.lesson-side-quiz>button{width:100%;min-height:40px;border:1px solid var(--border-2);border-radius:9px;background:var(--text);color:var(--surface);font-weight:750;cursor:pointer}
+.lesson-quiz-live{grid-column:1/-1;display:grid;gap:16px}.lesson-quiz-live__head{display:flex;justify-content:space-between;color:var(--text-3);font:700 9px/1 "JetBrains Mono",monospace;text-transform:uppercase}.lesson-quiz-live__bar{height:4px;overflow:hidden;border-radius:99px;background:var(--surface-3)}.lesson-quiz-live__bar i{display:block;height:100%;border-radius:inherit;background:var(--primary)}.lesson-quiz-live h3{margin:5px 0 0;font-size:18px;line-height:1.4}.lesson-quiz-options{display:grid;gap:8px}.lesson-quiz-options button{min-height:48px;display:flex;align-items:center;gap:11px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);text-align:left;font:600 11px/1.45 Inter,sans-serif;cursor:pointer}.lesson-quiz-options button>span{width:28px;height:28px;display:grid;place-items:center;flex:0 0 28px;border-radius:7px;background:var(--surface-2);font:700 10px/1 "JetBrains Mono",monospace}.lesson-quiz-options button:hover:not(:disabled){border-color:var(--border-strong);background:var(--surface-2)}.lesson-quiz-options button.is-correct{border-color:color-mix(in srgb,var(--success) 60%,var(--border));background:color-mix(in srgb,var(--success) 8%,var(--surface))}.lesson-quiz-options button.is-wrong{border-color:color-mix(in srgb,var(--danger) 55%,var(--border));background:color-mix(in srgb,var(--danger) 7%,var(--surface))}
+.lesson-quiz-feedback{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px;border-radius:11px;background:var(--surface-2)}.lesson-quiz-feedback strong{font-size:12px}.lesson-quiz-feedback p{margin:5px 0 0;color:var(--text-2);font-size:11px;line-height:1.55}.lesson-quiz-feedback button{min-height:38px;display:flex;align-items:center;gap:7px;flex:0 0 auto;padding:0 12px;border:0;border-radius:8px;background:var(--text);color:var(--surface);font-weight:750;cursor:pointer}.lesson-quiz-feedback .ic{width:14px;height:14px}
+.lesson-quiz-result{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:12px}.lesson-quiz-result__score{width:82px;height:82px;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--primary) 12%,var(--surface-2));color:var(--primary);font-size:22px;font-weight:800}.lesson-quiz-result small{color:var(--primary);font:700 9px/1 "JetBrains Mono",monospace;text-transform:uppercase}.lesson-quiz-result h3{margin:5px 0;font-size:17px}.lesson-quiz-result p{margin:0;color:var(--text-3);font-size:10px}.lesson-quiz-result__retry{min-height:40px;padding:0 14px;border:1px solid var(--border-2);border-radius:9px;background:var(--surface);color:var(--text);font-weight:750;cursor:pointer}
+
 /* Lector interno de libros · biblioteca → ficha → lectura */
 .book-reader-page{width:100%;max-width:1400px;margin:0 auto}
 .book-reader{height:calc(100vh - 38px);min-height:620px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border:1px solid var(--border);border-radius:18px;background:#171717;box-shadow:0 18px 55px rgba(0,0,0,.22)}
@@ -11080,10 +11375,12 @@ body{letter-spacing:-.05px}
   .immersive-content-route .app{grid-template-columns:1fr}
   .course-detail-hero{min-height:270px;align-items:flex-start;flex-direction:column;justify-content:flex-end;padding:24px}.course-detail-hero h2{font-size:34px}.course-detail-hero__start{width:100%;justify-content:center}
   .course-detail-layout{grid-template-columns:1fr}.course-detail-progress{position:static;grid-row:1}.course-materials{grid-template-columns:1fr}
+  .lesson-layout{grid-template-columns:1fr}.lesson-side{position:static}.lesson-side--desktop{display:none}.lesson-side--mobile{display:block}.lesson-heading{align-items:flex-start}.lesson-side__panel{max-height:none}.lesson-outline__item strong{white-space:normal}.lesson-notes textarea{min-height:190px}
   .book-reader{height:calc(100dvh - 118px);min-height:520px;border-radius:13px}.book-reader__control span{display:none}.book-reader__control{width:40px;padding:0;justify-content:center}.book-reader__footer span:last-child{display:none}
 }
 @media (max-width:560px){
   .course-page{padding-top:0}.course-detail-back{margin-bottom:12px}.course-detail-hero{min-height:245px;padding:20px;border-radius:14px}.course-detail-hero h2{font-size:28px}.course-detail-hero__tags span{font-size:8px}.course-detail__description{margin:17px 2px 20px}.course-detail-layout{gap:22px}.course-detail-section__head h3{font-size:19px}.course-lesson{padding:10px}.course-lesson__copy strong{white-space:normal}.course-detail-progress{padding:18px}
+  .lesson-page{padding:0 0 24px}.lesson-layout,.lesson-main{gap:15px}.lesson-page>.course-detail-back{margin-bottom:11px}.lesson-player{border-radius:12px}.lesson-heading{display:grid;gap:15px}.lesson-heading h1{font-size:24px}.lesson-heading__progress{flex-wrap:wrap}.lesson-heading__progress i{max-width:calc(100% - 170px)}.lesson-complete{width:100%}.lesson-next{align-items:flex-start}.lesson-next__thumb{width:82px;height:66px;flex-basis:82px}.lesson-summary-card,.lesson-challenge-card{padding:19px 16px;border-radius:13px}.lesson-summary-card h2,.lesson-challenge-card h2{font-size:20px}.lesson-challenge-card{grid-template-columns:1fr}.lesson-challenge-card__stats{grid-column:1/-1}.lesson-challenge-card__stats>div{padding:12px 8px}.lesson-challenge-card__stats strong{font-size:15px}.lesson-challenge-card__best{min-width:0}.lesson-concepts>div{grid-template-columns:55px 1fr}.lesson-side{border-radius:13px}.lesson-quiz-feedback{align-items:stretch;flex-direction:column}.lesson-quiz-feedback button{justify-content:center}.lesson-quiz-result{grid-template-columns:1fr;justify-items:center;text-align:center}.lesson-quiz-result__retry{width:100%}
   .book-reader{height:calc(100dvh - 94px);min-height:480px;border-radius:10px}.book-reader__header{min-height:62px;padding:7px 8px;gap:8px}.book-reader__mini-cover{display:none}.book-reader__identity small{display:none}.book-reader__identity strong{font-size:12px}.book-reader__back,.book-reader__control{width:36px;height:36px;min-height:36px;flex-basis:36px}.book-reader__footer{min-height:32px}
 }
 </style>
