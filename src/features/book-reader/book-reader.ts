@@ -13,7 +13,6 @@ interface BookReaderOptions {
   id: string;
   title: string;
   url: string;
-  downloadUrl: string;
   pages?: number;
 }
 
@@ -54,7 +53,6 @@ function icon(path: string) {
 
 function mount(container: HTMLElement, options: BookReaderOptions): MountedReader {
   const safeTitle = escapeHtml(options.title || "Libro IMFRA");
-  const safeDownloadUrl = escapeHtml(options.downloadUrl || options.url);
   let documentProxy: PDFDocumentProxy | null = null;
   let renderTask: RenderTask | null = null;
   let currentPage = Math.max(1, readSavedPage(options.id));
@@ -64,8 +62,6 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   let touchStartX = 0;
   let touchStartY = 0;
   let destroyed = false;
-  const isGoogleDrive = /(^|\.)googleusercontent\.com$|(^|\.)google\.com$/i.test(new URL(options.url, location.href).hostname);
-
   container.innerHTML = `<div class="imfra-pdf-reader" tabindex="0" aria-label="Lector de ${safeTitle}">
     <div class="imfra-pdf-reader__viewport" data-pdf-viewport>
       <button class="imfra-pdf-reader__edge imfra-pdf-reader__edge--prev" type="button" data-pdf-prev aria-label="Página anterior">${icon('<polyline points="15 18 9 12 15 6"/>')}</button>
@@ -88,9 +84,9 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
     </div>
     <button class="imfra-pdf-reader__progress" type="button" data-pdf-progress aria-label="Progreso del libro"><i></i></button>
     <div class="imfra-pdf-reader__error" data-pdf-error hidden>
-      <strong>${isGoogleDrive ? "Este título aún necesita migrarse al lector de IMFRA." : "No pudimos cargar este libro dentro del lector."}</strong>
-      <span>${isGoogleDrive ? "Mientras se completa la migración desde Drive, puedes abrir el archivo original." : "Comprueba tu conexión o abre el archivo original."}</span>
-      <a href="${safeDownloadUrl}" target="_blank" rel="noopener">Abrir archivo original</a>
+      <strong>No pudimos cargar este libro.</strong>
+      <span>Comprueba tu conexión y vuelve a intentarlo en unos segundos.</span>
+      <button type="button" data-pdf-retry>Reintentar</button>
     </div>
   </div>`;
 
@@ -172,6 +168,7 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   container.querySelector("[data-pdf-zoom-out]")?.addEventListener("click", () => setZoom(zoom - .2), listenerOptions);
   container.querySelector("[data-pdf-zoom-in]")?.addEventListener("click", () => setZoom(zoom + .2), listenerOptions);
   container.querySelector("[data-pdf-fit]")?.addEventListener("click", () => setZoom(1), listenerOptions);
+  container.querySelector("[data-pdf-retry]")?.addEventListener("click", () => window.location.reload(), listenerOptions);
   pageInput.addEventListener("change", () => goTo(Number(pageInput.value)), listenerOptions);
   pageInput.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); goTo(Number(pageInput.value)); pageInput.blur(); } }, listenerOptions);
   container.addEventListener("keydown", (event) => {
@@ -202,15 +199,7 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   resizeObserver.observe(viewport);
 
   updateControls();
-  // Google Drive no acepta la preflight que PDF.js genera al pedir rangos desde
-  // otro origen. La descarga simple sí expone CORS, así que se carga el archivo
-  // completo. Cuando los libros migren a Bunny podremos reactivar los rangos.
-  const loadingTask = getDocument(isGoogleDrive ? {
-    url: options.url,
-    disableRange: true,
-    disableStream: true,
-    disableAutoFetch: true
-  } : {
+  const loadingTask = getDocument({
     url: options.url,
     rangeChunkSize: 262144
   });

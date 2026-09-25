@@ -7393,10 +7393,10 @@ const Sections = (function(){
 
   // ═══ BIBLIOTECA DE LIBROS ═══
   const IMFRA_LIBROS = [
-    {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:286,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://drive.google.com/file/d/1A0Kjr1M1EEsM87efHAxs2L_Xfviu3KKK/view?usp=sharing',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:true},
-    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:680,portada:'assets/libros/advanced_mechanics.jpg',url:'https://drive.google.com/file/d/1HFFZgL5fxAwJ7DCYV1hJJIR-yhNiDGQH/view?usp=sharing',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false},
-    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:560,portada:'assets/libros/advanced_strength.jpg',url:'https://drive.google.com/file/d/1Q-6gGdPX9SjdLFKuy6GgGmlUG2H5CmdU/view?usp=sharing',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false},
-    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:610,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://drive.google.com/file/d/1y_lJja0AwfoZhz3eKb-p2obZbSRkFm5Z/view?usp=sharing',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false}
+    {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:148,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://imfrabooks.b-cdn.net/Gu%C3%ADa%20De%20Hidrolog%C3%ADa%20B%C3%A1sica.pdf',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:true},
+    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:611,portada:'assets/libros/advanced_mechanics.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20Mechanics%20of%20Materials%20-%20Boresi.%20Schmidt.pdf',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false},
+    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:559,portada:'assets/libros/advanced_strength.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20strength%20and%20applied%20elasticity%20-%20Ugural.%20Fenster.pdf',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false},
+    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:180,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://imfrabooks.b-cdn.net/Resistencia%20de%20materiales%20-%20S.%20Timoshenko.pdf',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false}
   ];
   var _libroDetalle = null;
 
@@ -7438,10 +7438,7 @@ const Sections = (function(){
       renderLibros(container);
       return;
     }
-    var driveMatch=String(libro.url||'').match(/\/d\/([^/]+)/);
-    var driveId=driveMatch?driveMatch[1]:'';
-    var pdfUrl=driveId?'https://drive.usercontent.google.com/download?id='+driveId+'&export=download&confirm=t':libro.url;
-    var downloadUrl=pdfUrl;
+    var pdfUrl=libro.url;
     var safeTitle=String(libro.titulo||'Libro IMFRA').replace(/</g,'&lt;').replace(/"/g,'&quot;');
     container.innerHTML=`<div class="fade-up book-reader-page">
       <section class="book-reader" id="imfra-book-reader">
@@ -7450,7 +7447,6 @@ const Sections = (function(){
           <img src="${libro.portada}" alt="" class="book-reader__mini-cover">
           <div class="book-reader__identity"><span>${libro.area} · Biblioteca IMFRA</span><strong>${safeTitle}</strong><small>${libro.autor}</small></div>
           <div class="book-reader__actions">
-            <a class="book-reader__control" href="${downloadUrl}" target="_blank" rel="noopener" title="Descargar libro" aria-label="Descargar ${safeTitle}"><svg class="ic"><use href="#i-download"/></svg><span>Descargar</span></a>
             <button type="button" class="book-reader__control" data-book-fullscreen title="Pantalla completa" aria-label="Pantalla completa"><svg class="ic"><use href="#i-maximize"/></svg><span>Pantalla completa</span></button>
           </div>
         </header>
@@ -7466,7 +7462,7 @@ const Sections = (function(){
     var mountReader=function(){
       if(!mountPoint||mountPoint.dataset.mounted==='true'||!window.IMFRABookReader)return;
       mountPoint.dataset.mounted='true';
-      window.IMFRABookReader.mount(mountPoint,{id:libro.id,title:libro.titulo,url:pdfUrl,downloadUrl:downloadUrl,pages:libro.paginas});
+      window.IMFRABookReader.mount(mountPoint,{id:libro.id,title:libro.titulo,url:pdfUrl,pages:libro.paginas});
     };
     mountReader();
     var loadReader=function(){
