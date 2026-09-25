@@ -9,11 +9,18 @@
     url: CDN + encodeURIComponent(archivo),
     ...(opciones || {})
   });
+  const COSTOS_RECOMPENSA = [160, 175, 190, 205, 220, 240, 260];
   const recompensa = (archivo, titulo, rewardOrder) => material(
     archivo,
     titulo,
     'Recompensas de obra',
-    { esRecompensa: true, rewardOrder, area: 'Control de obra' }
+    {
+      esRecompensa: true,
+      rewardOrder,
+      rewardId: `material-${rewardOrder}`,
+      creditCost: COSTOS_RECOMPENSA[rewardOrder - 1],
+      area: 'Control de obra'
+    }
   );
 
   window.IMFRA_MATERIALS_CATALOG = [

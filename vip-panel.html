@@ -1186,6 +1186,11 @@ body::after{
 .tools-hub__heading h2{font-size:22px;line-height:1.15;letter-spacing:-.55px;margin:0;color:var(--text)}
 .tools-hub__heading p{font-size:12.5px;color:var(--text-3);line-height:1.5;margin:5px 0 0}
 .tools-hub__count{flex:0 0 auto;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--primary);padding:7px 11px;border-radius:100px;background:var(--primary-soft);border:1px solid color-mix(in srgb,var(--primary) 23%,transparent)}
+.credit-welcome{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:16px;padding:18px 20px;border:1px solid color-mix(in srgb,var(--primary) 30%,var(--border));border-radius:18px;background:linear-gradient(120deg,color-mix(in srgb,var(--primary) 10%,var(--surface)),var(--surface));box-shadow:var(--shadow-card)}
+.credit-welcome::after{content:"";position:absolute;right:-38px;top:-70px;width:150px;height:150px;border-radius:50%;border:1px solid color-mix(in srgb,var(--primary) 20%,transparent);box-shadow:0 0 0 26px color-mix(in srgb,var(--primary) 4%,transparent)}
+.credit-welcome__icon{position:relative;z-index:1;width:48px;height:48px;border-radius:15px;display:flex;align-items:center;justify-content:center;background:var(--primary);color:#15100A;box-shadow:0 12px 22px -16px rgba(245,157,26,.9)}
+.credit-welcome__icon .ic{width:22px;height:22px}.credit-welcome__copy{position:relative;z-index:1;min-width:0}.credit-welcome__eyebrow{font:700 9px/1.2 'JetBrains Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--primary);margin-bottom:5px}.credit-welcome__copy strong{display:block;font-size:15px;line-height:1.3;color:var(--text)}.credit-welcome__copy p{margin:4px 0 0;font-size:11.5px;line-height:1.5;color:var(--text-3)}
+.credit-welcome__balance{position:relative;z-index:1;min-width:118px;padding:10px 13px;border:1px solid var(--border);border-radius:13px;background:var(--surface);text-align:right}.credit-welcome__balance small{display:block;font:650 8px 'JetBrains Mono',monospace;letter-spacing:.8px;text-transform:uppercase;color:var(--text-3)}.credit-welcome__balance b{display:block;margin-top:3px;font:800 20px 'JetBrains Mono',monospace;color:var(--primary)}
 .tools-hub__grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .tools-hub-card{
   appearance:none;width:100%;min-height:176px;padding:22px;border:1px solid var(--border);border-radius:20px;
@@ -1195,6 +1200,8 @@ body::after{
   transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
 }
 .tools-hub-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--primary) 44%,var(--border));box-shadow:0 20px 40px -30px rgba(25,18,10,.55);background:linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--primary) 6%,var(--surface)))}
+.tools-hub-card.is-starter{border-color:color-mix(in srgb,var(--primary) 60%,var(--border));box-shadow:0 18px 38px -31px rgba(245,157,26,.9),inset 0 1px 0 rgba(255,255,255,.7)}
+.tools-hub-card.is-owned{border-color:color-mix(in srgb,var(--success) 42%,var(--border));background:linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--success) 5%,var(--surface)))}
 .tools-hub-card:focus-visible{outline:3px solid var(--primary-glow);outline-offset:3px;border-color:var(--primary)}
 .tools-hub-card__icon{grid-column:1;grid-row:1/3;width:64px;height:64px;border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 12%,var(--surface)),color-mix(in srgb,var(--primary) 4%,var(--surface)));border:1px solid color-mix(in srgb,var(--primary) 24%,var(--border));display:flex;align-items:center;justify-content:center;color:var(--primary);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 10px 24px -18px rgba(245,157,26,.8)}
 .tools-hub-card__icon .ic{width:23px;height:23px}
@@ -1202,6 +1209,7 @@ body::after{
 .tools-hub-card:hover .tools-hub-card__icon img{transform:scale(1.06);filter:drop-shadow(0 7px 9px rgba(138,82,0,.24))}
 .tools-hub-card__top{grid-column:2/4;grid-row:1;display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
 .tools-hub-card__tag{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:1.15px;text-transform:uppercase;color:var(--primary)}
+.tools-hub-card__price{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:100px;background:var(--primary-soft);border:1px solid color-mix(in srgb,var(--primary) 24%,transparent);font:750 8.5px 'JetBrains Mono',monospace;letter-spacing:.4px;text-transform:uppercase;color:var(--primary);white-space:nowrap}.tools-hub-card__price.is-included,.tools-hub-card__price.is-owned{color:var(--success);border-color:color-mix(in srgb,var(--success) 25%,transparent);background:color-mix(in srgb,var(--success) 9%,transparent)}
 .tools-hub-card__title{grid-column:2/4;grid-row:2;font-size:17px;line-height:1.2;letter-spacing:-.32px;font-weight:750;margin:0;color:var(--text)}
 .tools-hub-card__desc{grid-column:2/4;grid-row:3;font-size:12.5px;line-height:1.55;color:var(--text-3);margin:0;align-self:start;max-width:520px}
 .tools-hub-card__foot{grid-column:1/4;grid-row:4;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;padding-top:13px;border-top:1px solid var(--border)}
@@ -1209,12 +1217,14 @@ body::after{
 .tools-hub-card__open{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:700;color:var(--primary)}
 .tools-hub-card__open .ic{width:14px;height:14px;transition:transform .2s ease}
 .tools-hub-card:hover .tools-hub-card__open .ic{transform:translateX(3px)}
+.credit-guide{display:flex;flex-direction:column;gap:15px}.credit-guide__success{text-align:center;padding:4px 10px 2px}.credit-guide__success-icon{width:58px;height:58px;margin:0 auto 11px;border-radius:18px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--success) 13%,var(--surface));color:var(--success)}.credit-guide__success-icon .ic{width:28px;height:28px}.credit-guide__success h3{margin:0;font-size:18px;letter-spacing:-.3px}.credit-guide__success p{margin:6px auto 0;max-width:420px;color:var(--text-2);font-size:12px;line-height:1.55}.credit-guide__ways{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.credit-guide__way{padding:13px;border:1px solid var(--border);border-radius:13px;background:var(--surface-2)}.credit-guide__way b{display:block;font-size:12px;color:var(--text)}.credit-guide__way span{display:block;margin-top:4px;font-size:10.5px;line-height:1.4;color:var(--text-3)}.credit-guide__way em{display:block;margin-bottom:7px;font:800 13px 'JetBrains Mono',monospace;color:var(--primary);font-style:normal}
 @media(max-width:760px){
   .tools-hub{gap:20px;padding-bottom:16px}
   .tools-hub__hero{min-height:235px;padding:30px 24px;border-radius:22px;align-items:center}
   .tools-hub__title{font-size:38px;letter-spacing:-1.7px}
   .tools-hub__sub{font-size:13px;margin-top:14px}
   .tools-hub__heading{align-items:flex-start}
+  .credit-welcome{grid-template-columns:auto 1fr;padding:16px}.credit-welcome__balance{grid-column:1/3;width:100%;text-align:left;display:flex;align-items:center;justify-content:space-between}.credit-welcome__balance b{margin:0}.credit-guide__ways{grid-template-columns:1fr}
   .tools-hub__grid{grid-template-columns:1fr;gap:11px}
   .tools-hub-card{min-height:162px;padding:18px;border-radius:17px;column-gap:13px}
   .tools-hub-card__icon{width:58px;height:58px;border-radius:16px}
@@ -4288,13 +4298,32 @@ function toolEsVIP(){
   if (S.isAdmin) return true;
   return false;
 }
-// Devuelve true si puede continuar; si NO es VIP, muestra paywall y devuelve false
+function toolIdDesdeNombre(nombreHerramienta){
+  const nombre=String(nombreHerramienta||'').trim().toLowerCase();
+  const catalogo=Array.isArray(window.IMFRA_TOOL_CATALOG)?window.IMFRA_TOOL_CATALOG:[];
+  const encontrada=catalogo.find(tool=>tool.titulo.toLowerCase()===nombre || nombre.includes(tool.titulo.toLowerCase()));
+  if(encontrada)return encontrada.id;
+  const hash=(location.hash||'').replace(/^#tool-/,'');
+  return hash && hash!==(location.hash||'') ? hash : '';
+}
+function toolTieneAcceso(toolId){
+  if(toolEsVIP())return true;
+  return !!(toolId && window.IMFRACredits?.isUnlocked('tool-'+toolId));
+}
+window.toolTieneAcceso=toolTieneAcceso;
+// Devuelve true si puede continuar; si no tiene acceso, ofrece canjear la herramienta.
 function toolRequiereVIP(nombreHerramienta){
-  if (toolEsVIP()) return true;
+  const toolId=toolIdDesdeNombre(nombreHerramienta);
+  if (toolTieneAcceso(toolId)) return true;
+  const tool=(window.IMFRA_TOOL_CATALOG||[]).find(item=>item.id===toolId);
+  if(tool && typeof abrirCanjeHerramienta==='function'){
+    abrirCanjeHerramienta(null,tool);
+    return false;
+  }
   if (typeof window.__showPaywallModal === 'function'){
     window.__showPaywallModal({
-      title: 'Función exclusiva para miembros VIP',
-      sub: 'Captura tus datos cuando quieras, pero generar resultados y reportes de ' + (nombreHerramienta||'las Herramientas Pro') + ' requiere una membresía activa. Hazte VIP y desbloquea todas las herramientas.'
+      title: 'Desbloquea esta herramienta',
+      sub: 'Puedes activarla para siempre con Créditos IMFRA o acceder a todas las herramientas con una membresía VIP.'
     });
   } else if (typeof Toast !== 'undefined') {
     Toast.info('Solo VIP','Activa tu membresía para usar esta función.');
@@ -4750,6 +4779,7 @@ const Sections = (function(){
     if (esAdminReal()) return true;
     if (material?.esRecompensa === true) {
       if (window.UserState?.modo !== 'vip') return false;
+      if (material.rewardId && window.IMFRACredits?.isUnlocked(material.rewardId)) return true;
       return cantidadRecompensasMateriales() >= Number(material.rewardOrder || (indexMaterial + 1));
     }
     if (material?.disponibleSiempre === true) return true;
@@ -7142,13 +7172,15 @@ const Sections = (function(){
           cursoId: 'recompensas-imfra',
           materialIndex: Math.max(0, Number(m.rewardOrder || 1) - 1),
           cursoOrden: -1,
-          cursoTitulo: 'Desbloqueado en Retos',
+          cursoTitulo: 'Catálogo de canjes',
           cursoArea: m.area || 'Control de obra',
           cursoDisponibleSiempre: true,
           titulo: m.titulo || m.archivo || 'Herramienta IMFRA',
           url: m.url || '',
           esRecompensa: true,
           rewardOrder: Number(m.rewardOrder || 0),
+          rewardId: m.rewardId || `material-${Number(m.rewardOrder || 0)}`,
+          creditCost: Number(m.creditCost || 0),
           disponibleSiempre: false,
           desbloquearEnDias: null
         });
@@ -7200,6 +7232,30 @@ const Sections = (function(){
     return diasParaDesbloquearMaterial(mat.cursoId, mat.materialIndex, mat);
   }
 
+  function materialCanjeado(mat){return !!(mat.rewardId && window.IMFRACredits?.isUnlocked(mat.rewardId));}
+  function cargarCreditosMateriales(container){
+    if(!window.IMFRACredits){window.addEventListener('imfra:credits-ready',()=>cargarCreditosMateriales(container),{once:true});return;}
+    if(window.IMFRACredits.isLoaded())return;
+    window.IMFRACredits.hydrate().then(()=>{if(container.isConnected && location.hash==='#pdfs')renderPDFs(container);}).catch(error=>console.warn('[materiales] Saldo no disponible',error));
+  }
+
+  async function abrirCanjeMaterial(container,material){
+    if(window.UserState?.modo!=='vip' && !esAdminReal()){
+      window.__showPaywallModal?.({title:'Canjes de material para miembros VIP',sub:'Activa tu membresía para usar Créditos IMFRA en archivos profesionales.',cta:'Activar membresía'});return;
+    }
+    if(materialDesbloqueado(material.cursoId,material.materialIndex,material)){
+      if(material.url && typeof window.abrirVisor==='function')window.abrirVisor(material.url,material.titulo);return;
+    }
+    if(!window.IMFRACredits){Toast.info('Preparando tus créditos','Intenta de nuevo en un momento.');return;}
+    try{await window.IMFRACredits.hydrate();}catch(error){Toast.error('No pudimos cargar tu saldo',error.message||'Intenta de nuevo.');return;}
+    const saldo=window.IMFRACredits.getBalance();const costo=Number(material.creditCost||0);const alcanza=saldo>=costo;
+    const body=`<div style="text-align:center;padding:8px 2px 2px;"><div class="modal__icon" style="margin:0 auto 12px;width:58px;height:58px;"><svg class="ic"><use href="#i-news"/></svg></div><h3 style="font-size:17px;margin:0 0 6px;">${material.titulo}</h3><p style="font-size:12px;color:var(--text-2);line-height:1.55;margin:0;">Este archivo quedará desbloqueado permanentemente en PDFs y material.</p><div class="book-credit-balance"><span>Tu saldo</span><strong>${saldo.toLocaleString('es-MX')} créditos</strong></div><p style="font-size:11px;color:${alcanza?'var(--success)':'var(--danger)'};margin:0;">${alcanza?`Después conservarás ${(saldo-costo).toLocaleString('es-MX')} créditos.`:`Te faltan ${(costo-saldo).toLocaleString('es-MX')} créditos.`}</p></div>`;
+    const footer=`<button class="btn btn--ghost" type="button" onclick="Modal.close('material-credit-redeem')">Cancelar</button>${alcanza?`<button class="btn btn--accent" type="button" id="material-credit-confirm">Canjear por ${costo} créditos</button>`:'<button class="btn btn--accent" type="button" id="material-credit-earn">Ir a Retos</button>'}`;
+    Modal.open({id:'material-credit-redeem',title:'Desbloquear material',subtitle:'Canje VIP con Créditos IMFRA',icon:'i-gift',size:'sm',body,footer,closeOnBackdrop:false});
+    document.querySelector('#material-credit-earn')?.addEventListener('click',()=>{Modal.close('material-credit-redeem');navigateToSection('retos');});
+    document.querySelector('#material-credit-confirm')?.addEventListener('click',async event=>{const button=event.currentTarget;button.disabled=true;button.textContent='Canjeando…';try{await window.IMFRACredits.redeem(material.rewardId);Modal.close('material-credit-redeem');Toast.success('Material desbloqueado',material.titulo+' ya está disponible.');renderPDFs(container);}catch(error){button.disabled=false;button.textContent=`Canjear por ${costo} créditos`;Toast.error('No pudimos completar el canje',error.message||'Intenta de nuevo.');}});
+  }
+
   // Inferir tamaño desde la URL (heurística simple · solo si no hay metadata)
   function _inferirTipoMaterial(url) {
     const u = (url || '').toLowerCase();
@@ -7243,7 +7299,7 @@ const Sections = (function(){
         <div class="sec-hero" data-illus="pdfs">
           <span class="sec-hero__eyebrow">Biblioteca de recompensas</span>
           <h1 class="sec-hero__title">PDFs y material</h1>
-          <p class="sec-hero__sub">Recompensas profesionales para miembros activos. <strong style="color:var(--primary);">Si eres VIP, cada respuesta correcta</strong> en Reto de Obra o Inspector de Obra desbloquea un archivo nuevo.</p>
+          <p class="sec-hero__sub">Recompensas profesionales para miembros VIP. Gana Créditos IMFRA en <strong style="color:var(--primary);">Retos o Referidos</strong> y decide qué archivo desbloquear.</p>
         </div>
         ${total === 0 ? `
           <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
@@ -7334,10 +7390,13 @@ const Sections = (function(){
             });
             return;
           }
-          Toast?.info('Archivo aún bloqueado', 'Responde correctamente en Reto de Obra o Inspector de Obra para ganar tu siguiente herramienta.');
+          const material=materialesTodos.find(item=>String(item.rewardId)===String(card.dataset.rewardId));
+          if(material){abrirCanjeMaterial(container,material);return;}
+          Toast?.info('Archivo aún bloqueado', 'Gana créditos en Retos o Referidos para desbloquearlo.');
         });
       });
     }, 50);
+    cargarCreditosMateriales(container);
   }
 
   function _renderPdfCard(m) {
@@ -7373,10 +7432,11 @@ const Sections = (function(){
     const cursoEsc = (m.cursoTitulo || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 
     return `
-      <article class="pdf-card ${!disponible ? 'pdf-card--soon' : ''}" style="--pdf-color:${c};cursor:pointer;"
+      <article class="pdf-card ${!disponible && !m.esRecompensa ? 'pdf-card--soon' : ''}" style="--pdf-color:${c};cursor:pointer;"
         data-disponible="${disponible}"
         data-free="${m.esRecompensa ? ((window.UserState?.modo === 'vip' || esAdminReal()) ? 'true' : 'false') : gratis}"
         data-reward="${m.esRecompensa === true}"
+        data-reward-id="${m.rewardId||''}"
         data-url="${(m.url||'').replace(/"/g,'&quot;')}"
         data-dias-faltan="${diasFaltan}"
         data-titulo="${tituloEsc}"
@@ -7395,7 +7455,7 @@ const Sections = (function(){
           <div class="pdf-card__tags">
             ${disponible
               ? `<span class="tag tag--soon" style="color:#0D0D0D;border-color:#34D399;background:#34D399;font-weight:700;">Desbloqueado</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;background:linear-gradient(135deg, var(--primary), var(--highlight));color:#0D0D0D;cursor:pointer;" onclick="event.stopPropagation();if(typeof window.descargarMaterialIMFRA==='function'){window.descargarMaterialIMFRA('${(m.url||'').replace(/'/g,'%27')}','${tituloEsc.replace(/'/g,'&apos;')}');}"><svg class="ic"><use href="#i-download"/></svg>Descargar</button>`
-              : `<span class="tag tag--soon">Bloqueado</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;opacity:.68;cursor:not-allowed;" disabled><svg class="ic"><use href="#i-trophy"/></svg>Gana en Retos</button>`
+              : `<span class="tag tag--soon">Bloqueado</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;" type="button"><svg class="ic"><use href="#i-gift"/></svg>${window.UserState?.modo==='vip'||esAdminReal()?`Canjear · ${Number(m.creditCost||0)} cr`:`VIP · ${Number(m.creditCost||0)} cr`}</button>`
             }
           </div>
         </div>
@@ -8594,6 +8654,7 @@ const Sections = (function(){
     const vipBonus = Number(data.vipBonusCredits || 250);
     const reward = Number(data.rewardPerVip || registrationReward + vipBonus);
     const welcome = Number(data.welcomeCredits || 100);
+    const starterWelcome = Number(data.starterWelcomeCredits || 120);
     return `
       <section class="ref-program" aria-labelledby="ref-program-title">
         <div class="ref-program__main">
@@ -8603,7 +8664,7 @@ const Sections = (function(){
               <span class="ref-program__bonus">Hasta +${reward}</span>
             </div>
             <h2 class="ref-program__title" id="ref-program-title">Comparte. Ambos ganan.</h2>
-            <p class="ref-program__desc">Ganas ${registrationReward} al registrarse y ${vipBonus} extra si activa VIP. Tu colega inicia con ${welcome} créditos al hacerse VIP.</p>
+            <p class="ref-program__desc">Ganas ${registrationReward} al registrarse y ${vipBonus} extra si activa VIP. Tu colega recibe ${starterWelcome} al iniciar y ${welcome} adicionales al hacerse VIP.</p>
           </div>
           <div class="ref-program__wallet">
             <div>
@@ -8644,7 +8705,9 @@ const Sections = (function(){
       const registrationReward = Number(data.rewardPerRegistration || 50);
       const vipBonus = Number(data.vipBonusCredits || 250);
       const reward = Number(data.rewardPerVip || 300);
-      const text = `Te invito a IMFRA, una plataforma profesional para ingeniería y construcción. Regístrate con mi enlace. Yo recibo ${registrationReward} créditos por tu registro y ${vipBonus} adicionales si activas VIP (${reward} en total). Tú recibes créditos de bienvenida al hacerte VIP.\n\n${link}`;
+      const starterWelcome = Number(data.starterWelcomeCredits || 120);
+      const vipWelcome = Number(data.welcomeCredits || 100);
+      const text = `Te invito a IMFRA, una plataforma profesional para ingeniería y construcción. Regístrate con mi enlace. Yo recibo ${registrationReward} créditos por tu registro y ${vipBonus} adicionales si activas VIP (${reward} en total). Tú recibes ${starterWelcome} créditos al iniciar y ${vipWelcome} extra al hacerte VIP.\n\n${link}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     });
   }
@@ -8653,7 +8716,7 @@ const Sections = (function(){
     const mount = container.querySelector('[data-referral-program]');
     if (!mount) return;
     if (S.modo === 'demo' || window.__isDemoMode) {
-      const demo = {code:'IMFRA-DEMO2026',balance:620,registeredCount:4,convertedCount:2,pendingCount:2,rewardPerRegistration:50,vipBonusCredits:250,rewardPerVip:300,welcomeCredits:100};
+      const demo = {code:'IMFRA-DEMO2026',balance:620,registeredCount:4,convertedCount:2,pendingCount:2,rewardPerRegistration:50,vipBonusCredits:250,rewardPerVip:300,welcomeCredits:100,starterWelcomeCredits:120};
       window.__referralSummary = demo;
       mount.innerHTML = referralProgramMarkup(demo);
       bindReferralProgram(mount, demo);
@@ -9239,17 +9302,60 @@ const Sections = (function(){
 
   /* ============================ CENTRO DE HERRAMIENTAS ============================ */
   const HERRAMIENTAS_PRO = [
-    {id:'concreto',icon:'i-cube',image:'assets/tool-icons/concrete-volume.png',tag:'Volumetría',titulo:'Volumen de concreto',desc:'Calcula volúmenes por elemento, materiales y viajes de revolvedora.'},
-    {id:'acero',icon:'i-rebar',image:'assets/tool-icons/steel-quantity.png',tag:'Estructuras',titulo:'Cuantificación de acero',desc:'Obtén kilos, metros lineales y piezas de varilla por calibre y elemento.'},
-    {id:'muros',icon:'i-wall',image:'assets/tool-icons/masonry.png',tag:'Albañilería',titulo:'Muros y albañilería',desc:'Estima piezas, mortero, cemento, arena y jornales para tus muros.'},
-    {id:'retenciones',icon:'i-percent',image:'assets/tool-icons/retentions.png',tag:'Estimaciones',titulo:'Retenciones en estimaciones',desc:'Controla amortizaciones, retenciones, garantías, IVA y neto a cobrar.'},
-    {id:'curvas',icon:'i-trend',image:'assets/tool-icons/s-curve.png',tag:'Control de obra',titulo:'Curva S',desc:'Compara avance programado contra real y detecta desviaciones a tiempo.'},
-    {id:'checklist',icon:'i-clipboard-check',image:'assets/tool-icons/supervision-checklist.png',tag:'Supervisión',titulo:'Checklist de supervisión',desc:'Documenta inspecciones, hallazgos, acciones correctivas y responsables.'},
-    {id:'bitacora',icon:'i-notebook',image:'assets/tool-icons/site-log.png',tag:'Seguimiento',titulo:'Bitácora de obra',desc:'Registra personal, clima, maquinaria, actividades e incidencias por día.'},
-    {id:'generadores',icon:'i-ruler',image:'assets/tool-icons/quantity-generators.png',tag:'Cuantificación',titulo:'Números generadores',desc:'Genera cantidades por concepto y prepara el soporte de tus estimaciones.'}
+    {id:'concreto',rewardId:'tool-concreto',cost:120,starter:true,icon:'i-cube',image:'assets/tool-icons/concrete-volume.png',tag:'Volumetría',titulo:'Volumen de concreto',desc:'Calcula volúmenes por elemento, materiales y viajes de revolvedora.'},
+    {id:'acero',rewardId:'tool-acero',cost:180,icon:'i-rebar',image:'assets/tool-icons/steel-quantity.png',tag:'Estructuras',titulo:'Cuantificación de acero',desc:'Obtén kilos, metros lineales y piezas de varilla por calibre y elemento.'},
+    {id:'muros',rewardId:'tool-muros',cost:200,icon:'i-wall',image:'assets/tool-icons/masonry.png',tag:'Albañilería',titulo:'Muros y albañilería',desc:'Estima piezas, mortero, cemento, arena y jornales para tus muros.'},
+    {id:'retenciones',rewardId:'tool-retenciones',cost:220,icon:'i-percent',image:'assets/tool-icons/retentions.png',tag:'Estimaciones',titulo:'Retenciones en estimaciones',desc:'Controla amortizaciones, retenciones, garantías, IVA y neto a cobrar.'},
+    {id:'curvas',rewardId:'tool-curvas',cost:240,icon:'i-trend',image:'assets/tool-icons/s-curve.png',tag:'Control de obra',titulo:'Curva S',desc:'Compara avance programado contra real y detecta desviaciones a tiempo.'},
+    {id:'checklist',rewardId:'tool-checklist',cost:260,icon:'i-clipboard-check',image:'assets/tool-icons/supervision-checklist.png',tag:'Supervisión',titulo:'Checklist de supervisión',desc:'Documenta inspecciones, hallazgos, acciones correctivas y responsables.'},
+    {id:'bitacora',rewardId:'tool-bitacora',cost:280,icon:'i-notebook',image:'assets/tool-icons/site-log.png',tag:'Seguimiento',titulo:'Bitácora de obra',desc:'Registra personal, clima, maquinaria, actividades e incidencias por día.'},
+    {id:'generadores',rewardId:'tool-generadores',cost:300,icon:'i-ruler',image:'assets/tool-icons/quantity-generators.png',tag:'Cuantificación',titulo:'Números generadores',desc:'Genera cantidades por concepto y prepara el soporte de tus estimaciones.'}
   ];
+  window.IMFRA_TOOL_CATALOG=HERRAMIENTAS_PRO;
+
+  function herramientaCanjeada(tool){return !!window.IMFRACredits?.isUnlocked(tool.rewardId);}
+  function herramientaTieneAcceso(tool){return toolEsVIP() || herramientaCanjeada(tool);}
+  function cargarCreditosHerramientas(container){
+    if(!window.IMFRACredits){window.addEventListener('imfra:credits-ready',()=>cargarCreditosHerramientas(container),{once:true});return;}
+    if(window.IMFRACredits.isLoaded())return;
+    window.IMFRACredits.hydrate().then(()=>{if(container.isConnected && location.hash==='#herramientas')renderHerramientas(container);}).catch(error=>console.warn('[herramientas] Saldo no disponible',error));
+  }
+
+  async function abrirCanjeHerramienta(container,tool){
+    if(toolEsVIP() || herramientaCanjeada(tool)){navigateToSection('tool-'+tool.id);return;}
+    if(!window.IMFRACredits){Toast.info('Preparando tus créditos','Intenta de nuevo en un momento.');return;}
+    try{await window.IMFRACredits.hydrate();}catch(error){Toast.error('No pudimos cargar tu saldo',error.message||'Intenta de nuevo.');return;}
+    const saldo=window.IMFRACredits.getBalance();
+    const alcanza=saldo>=tool.cost;
+    const body=`<div style="text-align:center;padding:7px 2px 2px;"><img src="${tool.image}" alt="" style="width:74px;height:74px;object-fit:contain;margin-bottom:10px;"><h3 style="font-size:17px;margin:0 0 6px;">${tool.titulo}</h3><p style="font-size:12px;color:var(--text-2);line-height:1.55;margin:0;">El canje es permanente. Si eres VIP, todas las herramientas ya están incluidas.</p><div class="book-credit-balance"><span>Tu saldo</span><strong>${saldo.toLocaleString('es-MX')} créditos</strong></div><p style="font-size:11px;color:${alcanza?'var(--success)':'var(--danger)'};margin:0;">${alcanza?`Después conservarás ${(saldo-tool.cost).toLocaleString('es-MX')} créditos.`:`Te faltan ${(tool.cost-saldo).toLocaleString('es-MX')} créditos.`}</p></div>`;
+    const footer=`<button class="btn btn--ghost" type="button" onclick="Modal.close('tool-credit-redeem')">Cancelar</button>${alcanza?`<button class="btn btn--accent" type="button" id="tool-credit-confirm">Canjear por ${tool.cost} créditos</button>`:'<button class="btn btn--accent" type="button" id="tool-credit-earn">Ganar créditos</button>'}`;
+    Modal.open({id:'tool-credit-redeem',title:'Desbloquear herramienta',subtitle:tool.starter?'Tu canje inicial':'Créditos IMFRA',icon:'i-gift',size:'sm',body,footer,closeOnBackdrop:false});
+    document.querySelector('#tool-credit-earn')?.addEventListener('click',()=>{Modal.close('tool-credit-redeem');navigateToSection('retos');});
+    document.querySelector('#tool-credit-confirm')?.addEventListener('click',async event=>{
+      const button=event.currentTarget;button.disabled=true;button.textContent='Canjeando…';
+      try{
+        await window.IMFRACredits.redeem(tool.rewardId);
+        Modal.close('tool-credit-redeem');
+        Toast.success('Herramienta desbloqueada',tool.titulo+' ya es tuya.');
+        navigateToSection('tool-'+tool.id);
+      }catch(error){button.disabled=false;button.textContent=`Canjear por ${tool.cost} créditos`;Toast.error('No pudimos completar el canje',error.message||'Intenta de nuevo.');}
+    });
+  }
+
+  function mostrarGuiaCreditosInicial(){
+    window.IMFRACelebrate?.('big');
+    const body=`<div class="credit-guide"><div class="credit-guide__success"><div class="credit-guide__success-icon"><svg class="ic"><use href="#i-check-circle"/></svg></div><h3>Tu primera herramienta ya es tuya</h3><p>Ahora tú decides dónde usar cada crédito: más herramientas, libros o materiales profesionales.</p></div><div class="credit-guide__ways"><div class="credit-guide__way"><em>+25</em><b>Acierta en Retos</b><span>Cada respuesta correcta y única suma créditos.</span></div><div class="credit-guide__way"><em>+50</em><b>Invita a registrarse</b><span>Recibes créditos cuando alguien usa tu enlace.</span></div><div class="credit-guide__way"><em>+250</em><b>Tu invitado se hace VIP</b><span>Obtienes el bono mayor al activarse su membresía.</span></div></div></div>`;
+    const footer='<button class="btn btn--ghost" type="button" id="credit-guide-referrals">Ver mi enlace</button><button class="btn btn--accent" type="button" onclick="Modal.close(\'credit-first-guide\')">Continuar</button>';
+    Modal.open({id:'credit-first-guide',title:'Así ganas más Créditos IMFRA',subtitle:'Una sola cartera para tus recompensas',icon:'i-gift',body,footer,closeOnBackdrop:false});
+    document.querySelector('#credit-guide-referrals')?.addEventListener('click',()=>{Modal.close('credit-first-guide');navigateToSection('suscripcion');});
+  }
+  window.addEventListener('imfra:first-tool-redemption',()=>setTimeout(mostrarGuiaCreditosInicial,480));
 
   function renderHerramientas(container){
+    const creditosListos=!!window.IMFRACredits?.isLoaded();
+    const saldo=creditosListos?window.IMFRACredits.getBalance():0;
+    const tieneCanjeTool=creditosListos && window.IMFRACredits.snapshot().redemptions.some(item=>item.type==='tool' && item.status==='active');
+    const vip=toolEsVIP();
     container.innerHTML = `
       <section class="tools-hub fade-up" aria-labelledby="tools-hub-title">
         <header class="tools-hub__hero">
@@ -9265,33 +9371,44 @@ const Sections = (function(){
           </div>
         </header>
 
+        <aside class="credit-welcome" aria-label="Cartera de Créditos IMFRA">
+          <span class="credit-welcome__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
+          <div class="credit-welcome__copy">
+            <div class="credit-welcome__eyebrow">${!tieneCanjeTool&&!vip?'Bono de bienvenida':'Tu cartera IMFRA'}</div>
+            <strong>${!tieneCanjeTool&&!vip?'Te regalamos 120 créditos para tu primera herramienta.':vip?'Tus herramientas están incluidas con VIP. Conserva tus créditos para otros recursos.':'Elige dónde usar tus créditos.'}</strong>
+            <p>${!tieneCanjeTool&&!vip?'Alcanzan exactamente para Volumen de concreto. Los demás recursos se ganan paso a paso.':'Gana más en Retos o compartiendo tu enlace de invitación.'}</p>
+          </div>
+          <div class="credit-welcome__balance"><small>Saldo disponible</small><b>${creditosListos?saldo.toLocaleString('es-MX'):'…'} cr</b></div>
+        </aside>
+
         <div class="tools-hub__heading">
           <div>
             <h2>Selecciona una herramienta</h2>
             <p>Cada módulo conserva tus datos y abre su flujo completo de trabajo.</p>
           </div>
-          <span class="tools-hub__count">8 disponibles</span>
+          <span class="tools-hub__count">8 herramientas</span>
         </div>
 
         <div class="tools-hub__grid">
-          ${HERRAMIENTAS_PRO.map(tool=>`
-            <button class="tools-hub-card" type="button" data-open-tool="${tool.id}" aria-label="Abrir ${tool.titulo}">
+          ${HERRAMIENTAS_PRO.map(tool=>{const acceso=herramientaTieneAcceso(tool);const canjeada=herramientaCanjeada(tool);return `
+            <button class="tools-hub-card ${tool.starter&&!acceso?'is-starter':''} ${canjeada?'is-owned':''}" type="button" data-open-tool="${tool.id}" aria-label="${acceso?'Abrir':'Desbloquear'} ${tool.titulo}">
               <span class="tools-hub-card__icon"><img src="${tool.image}" alt="" width="52" height="52" loading="lazy" decoding="async"></span>
-              <span class="tools-hub-card__top"><span class="tools-hub-card__tag">${tool.tag}</span></span>
+              <span class="tools-hub-card__top"><span class="tools-hub-card__tag">${tool.tag}</span><span class="tools-hub-card__price ${vip?'is-included':canjeada?'is-owned':''}">${vip?'Incluida con VIP':canjeada?'Tuya':tool.cost+' créditos'}</span></span>
               <strong class="tools-hub-card__title">${tool.titulo}</strong>
               <span class="tools-hub-card__desc">${tool.desc}</span>
               <span class="tools-hub-card__foot">
-                <span class="tools-hub-card__access">Herramienta profesional</span>
-                <span class="tools-hub-card__open">Abrir <svg class="ic"><use href="#i-arrow-right"/></svg></span>
+                <span class="tools-hub-card__access">${tool.starter&&!acceso?'Canje inicial recomendado':canjeada?'Acceso permanente':'Herramienta profesional'}</span>
+                <span class="tools-hub-card__open">${acceso?'Abrir':'Desbloquear'} <svg class="ic"><use href="#i-arrow-right"/></svg></span>
               </span>
             </button>
-          `).join('')}
+          `}).join('')}
         </div>
       </section>`;
 
     container.querySelectorAll('[data-open-tool]').forEach(card=>{
-      card.addEventListener('click',()=>navigateToSection('tool-'+card.dataset.openTool));
+      card.addEventListener('click',()=>{const tool=HERRAMIENTAS_PRO.find(item=>item.id===card.dataset.openTool);if(tool)abrirCanjeHerramienta(container,tool);});
     });
+    cargarCreditosHerramientas(container);
   }
 
   /* ============================ VIDEOTECA · agrupa todos los meses ============================ */

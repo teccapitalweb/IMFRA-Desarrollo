@@ -39,6 +39,21 @@ declare global {
 }
 
 const DEMO_COSTS: Record<string, number> = {
+  "tool-concreto": 120,
+  "tool-acero": 180,
+  "tool-muros": 200,
+  "tool-retenciones": 220,
+  "tool-curvas": 240,
+  "tool-checklist": 260,
+  "tool-bitacora": 280,
+  "tool-generadores": 300,
+  "material-1": 160,
+  "material-2": 175,
+  "material-3": 190,
+  "material-4": 205,
+  "material-5": 220,
+  "material-6": 240,
+  "material-7": 260,
   "book-advanced-mechanics": 220,
   "book-advanced-strength": 200,
   "book-resistencia-materiales": 150
@@ -54,7 +69,7 @@ function isDemo() {
 }
 
 function currentIdentity() {
-  return isDemo() ? "demo-preview-v7" : (window.UserState?.uid || window.UserState?.email || "guest");
+  return isDemo() ? "demo-preview-v8" : (window.UserState?.uid || window.UserState?.email || "guest");
 }
 
 function demoStorageKey() {
@@ -63,9 +78,9 @@ function demoStorageKey() {
 
 function readDemoState(): DemoRewardState {
   try {
-    return JSON.parse(localStorage.getItem(demoStorageKey()) || "null") || { points: 620 };
+    return JSON.parse(localStorage.getItem(demoStorageKey()) || "null") || { points: 120 };
   } catch {
-    return { points: 620 };
+    return { points: 120 };
   }
 }
 
@@ -73,10 +88,16 @@ function demoSnapshot() {
   const saved = readDemoState();
   const unlocks = Array.isArray(saved.creditUnlocks) ? [...new Set(saved.creditUnlocks.map(String))] : [];
   return {
-    balance: Math.max(0, Number(saved.points ?? 620) || 0),
-    lifetimeEarned: 0,
+    balance: Math.max(0, Number(saved.points ?? 120) || 0),
+    lifetimeEarned: 120,
     lifetimeSpent: 0,
-    redemptions: unlocks.map((rewardId) => ({ id: `demo-${rewardId}`, rewardId, type: "book", points: DEMO_COSTS[rewardId] || 0, status: "active" }))
+    redemptions: unlocks.map((rewardId) => ({
+      id: `demo-${rewardId}`,
+      rewardId,
+      type: rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
+      points: DEMO_COSTS[rewardId] || 0,
+      status: "active"
+    }))
   } satisfies CreditSnapshot;
 }
 
@@ -138,14 +159,24 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
     const cost = DEMO_COSTS[rewardId];
     if (!cost) throw new Error("Este recurso todavía no está disponible para canje.");
     if (current.balance < cost) throw new Error(`Te faltan ${cost - current.balance} créditos.`);
+    const firstToolRedemption = rewardId.startsWith("tool-") && !current.redemptions.some((item) => item.type === "tool");
     const next = {
       ...current,
       balance: current.balance - cost,
       lifetimeSpent: current.lifetimeSpent + cost,
-      redemptions: [...current.redemptions, { id: `demo-${rewardId}`, rewardId, type: "book", points: cost, status: "active", createdAt: new Date().toISOString() }]
+      redemptions: [...current.redemptions, {
+        id: `demo-${rewardId}`,
+        rewardId,
+        type: rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
+        points: cost,
+        status: "active",
+        createdAt: new Date().toISOString()
+      }]
     };
     writeDemo(next);
-    return publish(next);
+    const published = publish(next);
+    if (firstToolRedemption) window.dispatchEvent(new CustomEvent("imfra:first-tool-redemption", { detail: { rewardId } }));
+    return published;
   }
   const response = await fetch(apiUrl("/credits/redeem"), {
     method: "POST",
@@ -154,7 +185,11 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "No pudimos completar el canje.");
-  return loadCredits(true);
+  const snapshot = await loadCredits(true);
+  if (data.firstToolRedemption === true) {
+    window.dispatchEvent(new CustomEvent("imfra:first-tool-redemption", { detail: { rewardId } }));
+  }
+  return snapshot;
 }
 
 export async function awardCreditForCorrect(activityId: string, source: "quiz" | "inspector", selected: number): Promise<CreditSnapshot> {
