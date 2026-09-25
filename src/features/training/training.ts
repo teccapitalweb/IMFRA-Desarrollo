@@ -4,7 +4,7 @@ import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
 import { celebrate } from "../shared/celebration";
-import { awardCreditForCorrect } from "../credits/credits";
+import { awardCreditForCorrect, canEarnChallengeCredits } from "../credits/credits";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -225,6 +225,7 @@ function mount(container: HTMLElement) {
         ${renderLeague()}
         <section class="tr-rewards">
           <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Usa tus créditos donde tú decidas</h2></div><div class="tr-rewards__balance"><span>Créditos disponibles</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
+          ${canEarnChallengeCredits() ? "" : `<p class="tr-rewards__note">${icon("i-shield-check")}<span>Solo los miembros VIP ganan créditos en Retos.</span></p>`}
           <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} créditos</small></div></button>`).join("")}
             <button class="tr-chip tr-chip--more" data-training-action="rewards"><img class="tr-chip__icon" src="assets/icons/chip-catalogo.png" alt="" loading="lazy"><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
           </div>
@@ -233,7 +234,7 @@ function mount(container: HTMLElement) {
       </main>
       <aside class="tr-side">
         <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}" data-training-action="${item.action}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong></span><button aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>
-        <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>El XP mide tu práctica. Cada respuesta correcta validada suma 25 Créditos IMFRA para canjear donde tú elijas.</p></section>
+        <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>${canEarnChallengeCredits() ? "El XP mide tu práctica. Cada respuesta correcta validada suma 25 Créditos IMFRA para canjear donde tú elijas." : "El XP mide tu práctica. Solo los miembros VIP ganan Créditos IMFRA por cada acierto."}</p></section>
       </aside>
     </div>`);
   }

@@ -66,3 +66,12 @@ Para reemplazar el catálogo provisional harán falta:
 - Método de entrega.
 - Restricciones por usuario.
 - Vigencia de la recompensa.
+
+## Reglas vigentes de Créditos IMFRA (materiales, libros y herramientas)
+
+- Toda cuenta recibe 120 créditos de bienvenida al consultar su saldo por primera vez.
+- El primer material de **PDFs y material** y la primera herramienta cuestan 120: el bono alcanza para uno de los dos.
+- Cualquier cuenta (VIP o no) puede canjear materiales, libros y herramientas con créditos. El backend ya no exige VIP para materiales.
+- Al tocar un material o libro bloqueado se muestra un popup breve: «¿Canjear N créditos?». Al aceptar se descuenta el saldo y se abre el archivo.
+- Sin saldo suficiente el popup dice «Créditos insuficientes… Gánalos en Retos» con botón «Ir a Retos».
+- En **Retos** solo los miembros VIP suman créditos por acierto (validado en servidor con 403 para cuentas sin membresía). La sección lo indica a las cuentas sin VIP.
