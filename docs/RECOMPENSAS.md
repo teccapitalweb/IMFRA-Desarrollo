@@ -69,9 +69,11 @@ Para reemplazar el catálogo provisional harán falta:
 
 ## Reglas vigentes de Créditos IMFRA (materiales, libros y herramientas)
 
-- Toda cuenta recibe 120 créditos de bienvenida al consultar su saldo por primera vez.
+- Toda cuenta, con o sin membresía, recibe 120 créditos de cortesía al consultar su saldo por primera vez.
 - El primer material de **PDFs y material** y la primera herramienta cuestan 120: el bono alcanza para uno de los dos.
 - Cualquier cuenta (VIP o no) puede canjear materiales, libros y herramientas con créditos. El backend ya no exige VIP para materiales.
 - Al tocar un material o libro bloqueado se muestra un popup breve: «¿Canjear N créditos?». Al aceptar se descuenta el saldo y se abre el archivo.
 - Sin saldo suficiente el popup dice «Créditos insuficientes… Gánalos en Retos» con botón «Ir a Retos».
+- Los libros cuestan más que cualquier material (300, 320 y 350 frente a un máximo de 260).
 - En **Retos** solo los miembros VIP suman créditos por acierto (validado en servidor con 403 para cuentas sin membresía). La sección lo indica a las cuentas sin VIP.
+- Desde el panel admin (`vip-admin.html` → detalle del miembro → **Créditos IMFRA**) se pueden regalar o vender créditos. El backend expone `GET /admin/creditos/:uid` y `POST /admin/creditos` y registra cada movimiento en `referral_ledger` como `admin_gift` o `admin_sale`.

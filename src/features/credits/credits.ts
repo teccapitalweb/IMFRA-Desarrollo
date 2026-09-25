@@ -55,9 +55,9 @@ const DEMO_COSTS: Record<string, number> = {
   "material-5": 220,
   "material-6": 240,
   "material-7": 260,
-  "book-advanced-mechanics": 220,
-  "book-advanced-strength": 200,
-  "book-resistencia-materiales": 150
+  "book-advanced-mechanics": 350,
+  "book-advanced-strength": 320,
+  "book-resistencia-materiales": 300
 };
 const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [] };
 let current: CreditSnapshot = { ...EMPTY };
