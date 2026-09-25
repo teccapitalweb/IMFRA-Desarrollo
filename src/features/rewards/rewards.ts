@@ -2,7 +2,6 @@ import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
 import { isRewardsDemo, loadRewardBalance, submitQuizAttempt, submitRewardRequest } from "./cloud";
 import { celebrate } from "../shared/celebration";
-import { awardMaterialForCorrect } from "../material-rewards/material-rewards";
 
 interface Redemption {
   id: string;
@@ -180,13 +179,13 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         <section class="rw-hero">
           <div class="rw-hero__copy">
             <span class="rw-eyebrow">${mode === "quiz" ? "Retos · Quiz técnico" : "Retos · Recompensas"}</span>
-            <h1>${mode === "quiz" ? (demoMode ? "Responde y <em>gana puntos.</em>" : "Pon a prueba tu <em>criterio técnico.</em>") : "Tus puntos, tus <em>recompensas.</em>"}</h1>
-            <p>${mode === "quiz" ? "12 desafíos en 3 rondas." : (demoMode ? "Canjea los puntos que ganas en Retos." : "Consulta tu saldo y los beneficios disponibles.")}</p>
+            <h1>${mode === "quiz" ? (demoMode ? "Responde y <em>gana créditos.</em>" : "Pon a prueba tu <em>criterio técnico.</em>") : "Tus créditos, tus <em>recompensas.</em>"}</h1>
+            <p>${mode === "quiz" ? "Cada acierto validado suma 25 créditos." : (demoMode ? "Canjea los créditos que ganas en Retos y Referidos." : "Consulta tu saldo y los beneficios disponibles.")}</p>
           </div>
-          <div class="rw-balance" aria-label="Saldo de Puntos IMFRA">
+          <div class="rw-balance" aria-label="Saldo de Créditos IMFRA">
             <span>Tu saldo</span>
             <strong>${state.points.toLocaleString("es-MX")}</strong>
-            <small>Puntos IMFRA</small>
+            <small>Créditos IMFRA</small>
           </div>
         </section>
 
@@ -206,14 +205,14 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             <p>${escapeHtml(featuredReward.description)}</p>
             <div class="rw-featured__facts">
               <div><span>Duración</span><strong>${featuredReward.durationDays} días</strong></div>
-              <div><span>Inversión</span><strong>${featuredReward.points.toLocaleString("es-MX")} pts</strong></div>
+              <div><span>Inversión</span><strong>${featuredReward.points.toLocaleString("es-MX")} créditos</strong></div>
               <div><span>Proveedor</span><strong>${escapeHtml(featuredReward.brand || "IMDAC")}</strong></div>
             </div>
           </div>
           <div class="rw-featured__side">
             ${featuredPending ? `<div class="rw-access-ready rw-access-ready--pending">
               <span class="rw-access-ready__icon"><svg class="ic"><use href="#i-clock"/></svg></span>
-              <div><span>Solicitud registrada</span><strong>Validación pendiente</strong><small>El servidor comprobará saldo, vigencia e inventario antes de descontar puntos.</small></div>
+              <div><span>Solicitud registrada</span><strong>Validación pendiente</strong><small>El servidor comprobará saldo, vigencia e inventario antes de descontar créditos.</small></div>
             </div>` : featuredAccess ? `<div class="rw-access-ready">
               <span class="rw-access-ready__icon"><svg class="ic"><use href="#i-check-circle"/></svg></span>
               <div><span>Beneficio activado</span><strong>Tu acceso está listo</strong><small>${featuredAccess.validUntil ? `Válido hasta el ${formatDate(featuredAccess.validUntil)}` : "Acceso piloto registrado"}</small></div>
@@ -221,8 +220,8 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             </div>` : `<div class="rw-feature-list">
               <span>Incluye</span>
               <ul>${(featuredReward.features || []).map((feature) => `<li><svg class="ic"><use href="#i-check-circle"/></svg>${escapeHtml(feature)}</li>`).join("")}</ul>
-              <button type="button" class="btn btn--accent rw-featured__cta" data-redeem="${featuredReward.id}" ${state.points >= featuredReward.points ? "" : "disabled"}>${state.points >= featuredReward.points ? `Canjear por ${featuredReward.points} puntos` : `Te faltan ${(featuredReward.points - state.points).toLocaleString("es-MX")} puntos`}</button>
-              <small>Se solicitará confirmación antes de descontar tus puntos.</small>
+              <button type="button" class="btn btn--accent rw-featured__cta" data-redeem="${featuredReward.id}" ${state.points >= featuredReward.points ? "" : "disabled"}>${state.points >= featuredReward.points ? `Canjear por ${featuredReward.points} créditos` : `Te faltan ${(featuredReward.points - state.points).toLocaleString("es-MX")} créditos`}</button>
+              <small>Se solicitará confirmación antes de descontar tus créditos.</small>
             </div>`}
           </div>
         </section>` : ""}
@@ -231,7 +230,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
           <div class="rw-redemption-flow__intro"><span class="rw-eyebrow">Así funciona el beneficio</span><h2>Del aprendizaje a una herramienta real</h2></div>
           <ol>
             <li><b>01</b><div><strong>Acumulas</strong><span>Participa en cursos, evaluaciones y retos técnicos.</span></div></li>
-            <li><b>02</b><div><strong>Canjeas</strong><span>Confirmas el uso de tus puntos y activas el beneficio.</span></div></li>
+            <li><b>02</b><div><strong>Canjeas</strong><span>Confirmas el uso de tus créditos y activas el beneficio.</span></div></li>
             <li><b>03</b><div><strong>Accedes</strong><span>IMFRA genera tu acceso y te dirige al software IMDAC.</span></div></li>
           </ol>
         </section>
@@ -239,7 +238,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         <section class="rw-level-card">
           <div class="rw-level-card__head"><div><span>Nivel actual</span><strong>${currentLevel.name}</strong></div><b>${progress}%</b></div>
           <div class="rw-progress"><span style="width:${progress}%"></span></div>
-          <small>${currentLevel.next > state.points ? `${currentLevel.next - state.points} puntos para el siguiente nivel` : "Nivel máximo alcanzado"}</small>
+          <small>${currentLevel.next > state.points ? `${currentLevel.next - state.points} créditos para el siguiente nivel` : "Nivel máximo alcanzado"}</small>
         </section>
 
         <button type="button" class="rw-quiz-back" data-hub-back><span aria-hidden="true">←</span> Retos</button>
@@ -259,10 +258,10 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             </div>
             ${showQuizSummary ? `<div class="rw-quiz-summary">
               <div class="rw-quiz-summary__score"><strong>${Math.round((correctCount / quizQuestions.length) * 100)}%</strong><span>Precisión técnica</span></div>
-              <div class="rw-quiz-summary__copy"><span class="rw-eyebrow">Programa completado</span><h3>${correctCount >= 9 ? "Criterio técnico sólido" : "La práctica fortalece el criterio"}</h3><p>Terminaste las tres rondas y respondiste correctamente <strong>${correctCount} de ${quizQuestions.length}</strong> desafíos.${demoMode ? ` Sumaste <strong>${quizPoints} Puntos IMFRA</strong>.` : " Tu avance quedó registrado."}</p><small>Mañana encontrarás una nueva combinación de casos, fotografías y ejercicios.</small></div>
+              <div class="rw-quiz-summary__copy"><span class="rw-eyebrow">Programa completado</span><h3>${correctCount >= 9 ? "Criterio técnico sólido" : "La práctica fortalece el criterio"}</h3><p>Terminaste las tres rondas y respondiste correctamente <strong>${correctCount} de ${quizQuestions.length}</strong> desafíos. Sumaste <strong>${quizPoints} Créditos IMFRA</strong>.</p><small>Mañana encontrarás una nueva combinación de casos, fotografías y ejercicios.</small></div>
             </div>` : showRoundSummary ? `<div class="rw-round-summary">
               <span class="rw-round-summary__number">${activeRoundIndex + 1}</span>
-              <div><span class="rw-eyebrow">Ronda completada</span><h3>${roundInfo.name}</h3><p>Lograste <strong>${roundCorrect} de ${activeRound.length}</strong> respuestas correctas.${demoMode ? ` Sumaste <strong>${roundPoints} puntos</strong>.` : " Tu avance quedó registrado."}</p><button type="button" class="btn btn--accent" data-start-next-round>${activeRoundIndex === quizRounds.length - 1 ? "Ver resultado final" : `Comenzar ronda ${activeRoundIndex + 2}`} <span aria-hidden="true">→</span></button></div>
+              <div><span class="rw-eyebrow">Ronda completada</span><h3>${roundInfo.name}</h3><p>Lograste <strong>${roundCorrect} de ${activeRound.length}</strong> respuestas correctas. Sumaste <strong>${roundPoints} créditos</strong>.</p><button type="button" class="btn btn--accent" data-start-next-round>${activeRoundIndex === quizRounds.length - 1 ? "Ver resultado final" : `Comenzar ronda ${activeRoundIndex + 2}`} <span aria-hidden="true">→</span></button></div>
             </div>` : `<div class="rw-question-stage">
               <div class="rw-round-intro"><span>Ronda ${activeRoundIndex + 1} de ${quizRounds.length}</span><strong>${roundInfo.name}</strong><small>${roundInfo.description}</small></div>
               <div class="rw-question-meta"><span>${questionTypeLabel(question.type)}</span><span>${question.difficulty}</span><span>${escapeHtml(question.area)}</span></div>
@@ -282,7 +281,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
                   </button>`;
                 }).join("")}
               </div>
-              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${demoMode ? (answered.correct ? `Correcto · +${answered.earned} puntos` : `Respuesta registrada · +${answered.earned} puntos`) : (answered.correct ? "Correcto · avance registrado" : "Respuesta registrada")}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${roundAnswers.length === activeRound.length ? "Ver resultado de la ronda" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
+              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? `Correcto · +${answered.earned} créditos` : "Respuesta registrada · 0 créditos"}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${roundAnswers.length === activeRound.length ? "Ver resultado de la ronda" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
             </div>`}
           </section>
 
@@ -296,7 +295,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
               <li><b>03</b><span>Identificación mediante imágenes</span></li>
               <li><b>04</b><span>Explicación técnica de cada respuesta</span></li>
             </ul>
-            <div class="rw-how__points"><span>Programa diario</span><strong>${demoMode ? "12 desafíos · hasta 300 pts" : "12 desafíos · 3 rondas"}</strong><small>${demoMode ? "25 por acierto · 5 por participación" : "Casos, imágenes, medidas y decisiones"}</small></div>
+            <div class="rw-how__points"><span>Programa diario</span><strong>12 desafíos · hasta 300 créditos</strong><small>25 por acierto · sin premio por error</small></div>
             <p>${demoMode ? "Vista de prueba: el saldo es una simulación." : "Tus respuestas se guardan en tu cuenta."}</p>
           </aside>
         </div>` : ""}
@@ -311,7 +310,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
                 <img class="rw-reward__icon" src="${rewardIcon(reward)}" alt="" loading="lazy">
                 <span class="rw-reward__type">${reward.category}</span>
                 <h3>${escapeHtml(reward.name)}</h3>
-                <div class="rw-reward__meta"><strong>${reward.points.toLocaleString("es-MX")} puntos</strong><span>${reward.availability}</span></div>
+                <div class="rw-reward__meta"><strong>${reward.points.toLocaleString("es-MX")} créditos</strong><span>${reward.availability}</span></div>
                 <button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? "Canjear beneficio" : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>
               </article>`;
             }).join("")}
@@ -320,7 +319,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
 
         ${state.redemptions.length ? `<section class="rw-history"><div class="rw-section-head"><div><span class="rw-eyebrow">Tu actividad</span><h2>Historial de beneficios</h2></div></div>${state.redemptions.map((entry) => {
           const reward = rewardCatalog.find((item) => item.id === entry.rewardId);
-          return `<div class="rw-history__row"><span><svg class="ic"><use href="${entry.status === "pending" ? "#i-clock" : "#i-check-circle"}"/></svg><span><strong>${escapeHtml(reward?.name || entry.rewardId)}</strong><small>${formatDate(entry.createdAt)} · ${entry.status === "active" ? "Acceso activado" : "Solicitud en validación"}</small></span></span><b>${entry.status === "pending" ? "Sin descuento" : `−${entry.points} puntos`}</b></div>`;
+          return `<div class="rw-history__row"><span><svg class="ic"><use href="${entry.status === "pending" ? "#i-clock" : "#i-check-circle"}"/></svg><span><strong>${escapeHtml(reward?.name || entry.rewardId)}</strong><small>${formatDate(entry.createdAt)} · ${entry.status === "active" ? "Acceso activado" : "Solicitud en validación"}</small></span></span><b>${entry.status === "pending" ? "Sin descuento" : `−${entry.points} créditos`}</b></div>`;
         }).join("")}</section>` : ""}
       </div>
 
@@ -330,9 +329,9 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             <span class="rw-dialog__icon"><img src="${rewardIcon(pendingReward)}" alt="" loading="lazy"></span>
             <span class="rw-eyebrow">Confirmar beneficio</span>
             <h2 id="rw-dialog-title">${escapeHtml(pendingReward.name)}</h2>
-            <p>Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} puntos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}</p>
+            <p>Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}</p>
             <div class="rw-dialog__balance"><span>Saldo actual <b>${state.points.toLocaleString("es-MX")}</b></span><i>→</i><span>Saldo restante <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>
-            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "En esta vista privada la activación es una simulación segura. No se enviarán datos ni se creará una cuenta externa." : "Primero se registrará una solicitud. El saldo solo cambiará después de que el servidor valide puntos, vigencia e inventario."}</span></div>
+            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "En esta vista privada la activación es una simulación segura. No se enviarán datos ni se creará una cuenta externa." : "Primero se registrará una solicitud. El saldo solo cambiará después de que el servidor valide créditos, vigencia e inventario."}</span></div>
             ${redemptionError ? `<div class="rw-dialog__error" role="alert">${escapeHtml(redemptionError)}</div>` : ""}
             <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">Confirmar canje</button></div>
           </section>
@@ -350,15 +349,16 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         if (state.answered[key]) return;
         const selected = Number(button.dataset.answer);
         const correct = selected === answeredQuestion.correct;
-        const earned = isRewardsDemo() ? (correct ? 25 : 5) : 0;
-        if (isRewardsDemo()) state.points += earned;
+        const earned = correct ? 25 : 0;
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
-        if (correct) {
-          const unlocked = awardMaterialForCorrect(`reto:${key}`, "Reto de Obra");
-          if (!unlocked) celebrate("subtle");
-        }
-        if (!isRewardsDemo()) void submitQuizAttempt(answeredQuestion.id, correct).catch((error) => console.warn("[rewards] Intento pendiente de sincronización", error));
+        if (correct) celebrate("subtle");
+        void submitQuizAttempt(answeredQuestion.id, correct, selected).then((snapshot) => {
+          if (!snapshot) return;
+          state.points = snapshot.balance;
+          saveState(state);
+          render();
+        }).catch((error) => console.warn("[rewards] Intento pendiente de sincronización", error));
         render();
       });
     });

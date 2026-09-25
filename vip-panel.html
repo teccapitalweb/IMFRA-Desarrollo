@@ -1913,6 +1913,8 @@ body::after{
 .shelf__cover .chip--lock{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
 .shelf__cover .chip--lock svg{width:14px;height:14px;color:#fff}
 .shelf__cover .chip--free{position:absolute;bottom:8px;left:8px;background:var(--success);color:#0D0D0D;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.5px;text-transform:uppercase}
+.shelf__cover .chip--credits{position:absolute;right:8px;bottom:8px;padding:5px 8px;border:1px solid rgba(255,255,255,.22);border-radius:7px;background:rgba(13,13,13,.82);color:#fff;font:700 9px/1 'JetBrains Mono',monospace;backdrop-filter:blur(8px)}
+.shelf__cover .chip--owned{position:absolute;right:8px;bottom:8px;padding:5px 8px;border-radius:7px;background:var(--success);color:#0d0d0d;font:800 9px/1 'JetBrains Mono',monospace;text-transform:uppercase}
 .shelf__title{font-size:13px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .shelf__meta{font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace}
 .book-detail{display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px}
@@ -1925,7 +1927,18 @@ body::after{
 .book-detail__facts{display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:16px}
 .book-detail__facts h4{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);margin:0 0 2px;font-weight:700}
 .book-detail__facts p{margin:0;color:var(--text)}
-@media(max-width:600px){.shelf{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:14px}.book-detail{grid-template-columns:140px 1fr;gap:18px;padding:18px}.book-detail__title{font-size:19px}}
+.book-credit-note{display:flex;align-items:center;gap:9px;margin:-6px 0 18px;color:var(--text-2);font-size:11px}.book-credit-note strong{color:var(--primary);font-family:'JetBrains Mono',monospace}.book-credit-balance{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:16px 0;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)}.book-credit-balance span{color:var(--text-2);font-size:11px}.book-credit-balance strong{font:800 18px 'JetBrains Mono',monospace;color:var(--primary)}
+@media(max-width:600px){
+  .shelf{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .book-detail{grid-template-columns:minmax(0,1fr);gap:22px;padding:18px 16px;overflow:hidden}
+  .book-detail__cover{width:min(52vw,170px);justify-self:center;transform:none}
+  .book-detail:hover .book-detail__cover{transform:none}
+  .book-detail__title{font-size:22px;line-height:1.18}
+  .book-detail__desc{font-size:13px;line-height:1.58}
+  .book-detail__facts{gap:14px 16px;font-size:12px}
+  .book-detail .btn{width:100%;min-width:0;justify-content:center;white-space:normal;text-align:center;line-height:1.35}
+  .book-credit-note{align-items:flex-start;margin-top:-4px;line-height:1.5}
+}
 
 /* =========================================================
    BIBLIOTECA POR MES · timeline
@@ -3885,7 +3898,7 @@ window.__setDisplayName = async (nombre) => {
             <span class="command-card__index">03 / RETOS</span>
             <span class="command-card__icon"><svg class="ic"><use href="#i-bolt"/></svg></span>
             <strong>Entrena y canjea recompensas</strong>
-            <span>Resuelve expedientes, repasa conceptos y usa tus Puntos IMFRA.</span>
+            <span>Resuelve expedientes, repasa conceptos y usa tus Créditos IMFRA.</span>
             <small>Abrir centro <svg class="ic"><use href="#i-arrow-right"/></svg></small>
           </a>
         </div>
@@ -7394,35 +7407,81 @@ const Sections = (function(){
   // ═══ BIBLIOTECA DE LIBROS ═══
   const IMFRA_LIBROS = [
     {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:148,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://imfrabooks.b-cdn.net/Gu%C3%ADa%20De%20Hidrolog%C3%ADa%20B%C3%A1sica.pdf',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:true},
-    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:611,portada:'assets/libros/advanced_mechanics.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20Mechanics%20of%20Materials%20-%20Boresi.%20Schmidt.pdf',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false},
-    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:559,portada:'assets/libros/advanced_strength.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20strength%20and%20applied%20elasticity%20-%20Ugural.%20Fenster.pdf',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false},
-    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:180,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://imfrabooks.b-cdn.net/Resistencia%20de%20materiales%20-%20S.%20Timoshenko.pdf',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false}
+    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:611,portada:'assets/libros/advanced_mechanics.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20Mechanics%20of%20Materials%20-%20Boresi.%20Schmidt.pdf',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false,rewardId:'book-advanced-mechanics',creditCost:220},
+    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:559,portada:'assets/libros/advanced_strength.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20strength%20and%20applied%20elasticity%20-%20Ugural.%20Fenster.pdf',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false,rewardId:'book-advanced-strength',creditCost:200},
+    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:180,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://imfrabooks.b-cdn.net/Resistencia%20de%20materiales%20-%20S.%20Timoshenko.pdf',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false,rewardId:'book-resistencia-materiales',creditCost:150}
   ];
   var _libroDetalle = null;
 
+  function libroEsVip(){return window.UserState?.modo === 'vip' || esAdminReal();}
+  function libroCanjeado(libro){return !!(libro.rewardId && window.IMFRACredits?.isUnlocked(libro.rewardId));}
+  function libroTieneAcceso(libro){return !!(libro.gratis || libroEsVip() || libroCanjeado(libro));}
+  function libroBadge(libro){
+    if(libro.gratis)return '<span class="chip--free">Gratis</span>';
+    if(libroCanjeado(libro))return '<span class="chip--owned">Canjeado</span>';
+    if(!libroEsVip())return '<span class="chip--credits">'+Number(libro.creditCost||0)+' créditos</span>';
+    return '';
+  }
+  function cargarCreditosLibros(container){
+    if(!window.IMFRACredits){
+      window.addEventListener('imfra:credits-ready',function(){cargarCreditosLibros(container);},{once:true});
+      return;
+    }
+    if(window.IMFRACredits.isLoaded())return;
+    window.IMFRACredits.hydrate().then(function(){
+      if(!container.isConnected)return;
+      if(_libroDetalle)_renderLibroDetalle(container,_libroDetalle);else renderLibros(container);
+    }).catch(function(error){console.warn('[libros] No se pudo cargar el saldo',error);});
+  }
+
   function renderLibros(container) {
     if (_libroDetalle) { _renderLibroDetalle(container, _libroDetalle); return; }
-    var esVip = window.UserState?.modo === 'vip' || esAdminReal();
-    container.innerHTML = '<div class="fade-up"><div class="sec-hero" data-illus="libros"><span class="sec-hero__eyebrow">Biblioteca</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">'+IMFRA_LIBROS.length+' libros de referencia para tu formación. <strong style="color:var(--primary);">El primero es gratis</strong>; el resto es exclusivo para miembros VIP.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){var acc=libro.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+(libro.gratis?'<span class="chip--free">Gratis</span>':'')+(!acc?'<span class="chip--lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' \u00b7 '+libro.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>';
-    var intro=container.querySelector('.sec-hero__sub');if(intro)intro.textContent='Toca una portada para abrir el libro.';
+    container.innerHTML = '<div class="fade-up"><div class="sec-hero" data-illus="libros"><span class="sec-hero__eyebrow">Biblioteca</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">El primero es gratis. Los demás están incluidos con VIP o puedes desbloquearlos para siempre con tus Créditos IMFRA.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){var acc=libroTieneAcceso(libro);return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+libroBadge(libro)+(!acc?'<span class="chip--lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' \u00b7 '+libro.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>';
     container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;renderLibros(container);window.scrollTo({top:0,behavior:'smooth'});});});
+    cargarCreditosLibros(container);
   }
   function _renderLibroDetalle(container, libroId) {
     var libro = IMFRA_LIBROS.find(function(l){return l.id===libroId;});
     if (!libro) { _libroDetalle = null; renderLibros(container); return; }
-    var esVip = window.UserState?.modo === 'vip' || esAdminReal();
-    var acc = libro.gratis || esVip;
+    var esVip = libroEsVip();
+    var canjeado = libroCanjeado(libro);
+    var acc = libroTieneAcceso(libro);
     var rel = IMFRA_LIBROS.filter(function(l){return l.id!==libro.id;}).slice(0,3);
     var lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
     var openSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-    var btnHtml = acc ? '<button type="button" class="btn btn--accent" data-read-book="'+libro.id+'" style="gap:8px;">'+openSvg+'Leer dentro de IMFRA</button>' : '<button class="btn btn--accent" style="gap:8px;opacity:.7;cursor:not-allowed;" disabled>'+lockSvg+'Solo VIP</button>';
-    var relHtml = rel.length ? '<div style="margin-top:32px;"><h3 style="font-size:16px;font-weight:700;margin-bottom:14px;">M\u00e1s libros</h3><div class="shelf">'+rel.map(function(r){var ra=r.gratis||esVip;return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+r.id+'"><div class="shelf__cover"><img src="'+r.portada+'" alt="" loading="lazy">'+(r.gratis?'<span class="chip--free">Gratis</span>':'')+(!ra?'<span class="chip--lock">'+lockSvg+'</span>':'')+'</div><div class="shelf__title">'+r.titulo+'</div><div class="shelf__meta">'+r.autor+' \u00b7 '+r.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>' : '';
-    container.innerHTML = '<div class="fade-up"><div style="margin-bottom:20px;"><a href="javascript:void(0)" id="libros-back" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Biblioteca</a></div><div class="book-detail"><div class="book-detail__cover"><img src="'+libro.portada+'" alt=""></div><div><div class="book-detail__eyebrow">'+libro.area+' \u00b7 Libro</div><h2 class="book-detail__title">'+libro.titulo+'</h2><p class="book-detail__author">'+libro.autor+'</p><p class="book-detail__desc">'+libro.descripcion+'</p><div style="display:flex;gap:10px;margin-bottom:20px;">'+btnHtml+'</div><div class="book-detail__facts"><div><h4>Formato</h4><p>PDF \u00b7 '+libro.paginas+' p\u00e1ginas</p></div><div><h4>\u00c1rea</h4><p>'+libro.area+'</p></div><div><h4>Autor</h4><p>'+libro.autor+'</p></div><div><h4>Acceso</h4><p>'+(libro.gratis?'Gratis para todos':'Exclusivo VIP')+'</p></div></div></div></div>'+relHtml+'</div>';
+    var btnHtml = acc ? '<button type="button" class="btn btn--accent" data-read-book="'+libro.id+'" style="gap:8px;">'+openSvg+'Leer dentro de IMFRA</button>' : '<button type="button" class="btn btn--accent" data-redeem-book="'+libro.id+'" style="gap:8px;">'+lockSvg+'Desbloquear · '+Number(libro.creditCost||0)+' créditos</button>';
+    var accessLabel = libro.gratis ? 'Gratis para todos' : esVip ? 'Incluido con VIP' : canjeado ? 'Desbloqueado con créditos' : Number(libro.creditCost||0)+' Créditos IMFRA o membresía VIP';
+    var creditNote = !acc ? '<div class="book-credit-note"><svg class="ic"><use href="#i-gift"/></svg><span>Gana créditos en <strong>Retos</strong> y con tu <strong>enlace de referidos</strong>.</span></div>' : '';
+    var relHtml = rel.length ? '<div style="margin-top:32px;"><h3 style="font-size:16px;font-weight:700;margin-bottom:14px;">M\u00e1s libros</h3><div class="shelf">'+rel.map(function(r){var ra=libroTieneAcceso(r);return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+r.id+'"><div class="shelf__cover"><img src="'+r.portada+'" alt="" loading="lazy">'+libroBadge(r)+(!ra?'<span class="chip--lock">'+lockSvg+'</span>':'')+'</div><div class="shelf__title">'+r.titulo+'</div><div class="shelf__meta">'+r.autor+' \u00b7 '+r.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>' : '';
+    container.innerHTML = '<div class="fade-up"><div style="margin-bottom:20px;"><a href="javascript:void(0)" id="libros-back" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Biblioteca</a></div><div class="book-detail"><div class="book-detail__cover"><img src="'+libro.portada+'" alt=""></div><div><div class="book-detail__eyebrow">'+libro.area+' \u00b7 Libro</div><h2 class="book-detail__title">'+libro.titulo+'</h2><p class="book-detail__author">'+libro.autor+'</p><p class="book-detail__desc">'+libro.descripcion+'</p>'+creditNote+'<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">'+btnHtml+'</div><div class="book-detail__facts"><div><h4>Formato</h4><p>PDF \u00b7 '+libro.paginas+' p\u00e1ginas</p></div><div><h4>\u00c1rea</h4><p>'+libro.area+'</p></div><div><h4>Autor</h4><p>'+libro.autor+'</p></div><div><h4>Acceso</h4><p>'+accessLabel+'</p></div></div></div></div>'+relHtml+'</div>';
     container.querySelector('#libros-back')?.addEventListener('click',function(){_libroDetalle=null;renderLibros(container);});
     container.querySelector('[data-read-book]')?.addEventListener('click',function(){navigateToSection('libro/'+encodeURIComponent(libro.id));});
+    container.querySelector('[data-redeem-book]')?.addEventListener('click',function(){abrirCanjeLibro(container,libro);});
     var portada=container.querySelector('.book-detail__cover');
     if(portada&&acc){portada.setAttribute('role','link');portada.setAttribute('tabindex','0');portada.setAttribute('aria-label','Leer '+libro.titulo);portada.addEventListener('click',function(){navigateToSection('libro/'+encodeURIComponent(libro.id));});portada.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();navigateToSection('libro/'+encodeURIComponent(libro.id));}});}
     container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;_renderLibroDetalle(container,el.dataset.libroId);window.scrollTo({top:0,behavior:'smooth'});});});
+    cargarCreditosLibros(container);
+  }
+
+  async function abrirCanjeLibro(container,libro){
+    if(!window.IMFRACredits){Toast.info('Preparando tus créditos','Intenta de nuevo en un momento.');return;}
+    try{await window.IMFRACredits.hydrate();}catch(error){Toast.error('No pudimos cargar tu saldo',error.message||'Intenta de nuevo.');return;}
+    var saldo=window.IMFRACredits.getBalance();
+    var costo=Number(libro.creditCost||0);
+    var alcanza=saldo>=costo;
+    var body='<div style="text-align:center;padding:8px 4px 2px;"><img src="'+libro.portada+'" alt="" style="width:82px;aspect-ratio:3/4;object-fit:cover;border-radius:8px;box-shadow:0 12px 26px rgba(0,0,0,.22);margin-bottom:14px;"><h3 style="font-size:17px;margin-bottom:6px;">'+libro.titulo+'</h3><p style="font-size:12px;color:var(--text-2);line-height:1.55;">El desbloqueo es permanente y el libro se leerá dentro de IMFRA.</p><div class="book-credit-balance"><span>Tu saldo</span><strong>'+saldo.toLocaleString('es-MX')+' créditos</strong></div><p style="font-size:11px;color:'+(alcanza?'var(--success)':'var(--danger)')+';">'+(alcanza?'Después del canje conservarás '+(saldo-costo).toLocaleString('es-MX')+' créditos.':'Te faltan '+(costo-saldo).toLocaleString('es-MX')+' créditos. Gánalos en Retos o Referidos.')+'</p></div>';
+    var footer='<button class="btn btn--ghost" type="button" onclick="Modal.close(\'book-credit-redeem\')">Cancelar</button>'+(alcanza?'<button class="btn btn--accent" type="button" id="book-credit-confirm">Canjear por '+costo+' créditos</button>':'<button class="btn btn--accent" type="button" id="book-credit-challenges">Ir a Retos</button>');
+    Modal.open({id:'book-credit-redeem',title:'Desbloquear con créditos',subtitle:'Créditos IMFRA',icon:'i-gift',size:'sm',body:body,footer:footer,closeOnBackdrop:false});
+    document.querySelector('#book-credit-challenges')?.addEventListener('click',function(){Modal.close('book-credit-redeem');navigateToSection('retos');});
+    document.querySelector('#book-credit-confirm')?.addEventListener('click',async function(e){
+      var button=e.currentTarget;button.disabled=true;button.textContent='Procesando…';
+      try{
+        await window.IMFRACredits.redeem(libro.rewardId);
+        Modal.close('book-credit-redeem');
+        Toast.success('Libro desbloqueado','Ya puedes leer '+libro.titulo+' dentro de IMFRA.');
+        _renderLibroDetalle(container,libro.id);
+      }catch(error){button.disabled=false;button.textContent='Canjear por '+costo+' créditos';Toast.error('No se pudo completar el canje',error.message||'Intenta de nuevo.');}
+    });
   }
 
   function renderLibroVisor(container, libroId) {
@@ -7431,11 +7490,16 @@ const Sections = (function(){
       container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Libro no encontrado</h3><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'libros\')">Volver a la biblioteca</button></div>';
       return;
     }
-    var esVip = window.UserState?.modo === 'vip' || esAdminReal();
-    if (!libro.gratis && !esVip) {
-      window.__showPaywallModal?.({title:'Biblioteca exclusiva para miembros',sub:'Activa tu membresía VIP para leer la biblioteca completa de ingeniería.',cta:'Activar membresía'});
+    if (!window.IMFRACredits?.isLoaded() && !libro.gratis && !libroEsVip()) {
+      container.innerHTML='<div class="sub-loading"><div class="sub-loading__spin"></div><span>Verificando tu acceso…</span></div>';
+      if(window.IMFRACredits){window.IMFRACredits.hydrate().then(function(){renderLibroVisor(container,libroId);}).catch(function(){_libroDetalle=libro.id;renderLibros(container);});}
+      else window.addEventListener('imfra:credits-ready',function(){renderLibroVisor(container,libroId);},{once:true});
+      return;
+    }
+    if (!libroTieneAcceso(libro)) {
       _libroDetalle=libro.id;
-      renderLibros(container);
+      _renderLibroDetalle(container,libro.id);
+      setTimeout(function(){abrirCanjeLibro(container,libro);},0);
       return;
     }
     var pdfUrl=libro.url;
@@ -8526,7 +8590,9 @@ const Sections = (function(){
     const code = String(data.code || '');
     const link = `${location.origin}/vip-auth.html?tab=register&ref=${encodeURIComponent(code)}`;
     const balance = Number(data.balance || 0);
-    const reward = Number(data.rewardPerVip || 300);
+    const registrationReward = Number(data.rewardPerRegistration || 50);
+    const vipBonus = Number(data.vipBonusCredits || 250);
+    const reward = Number(data.rewardPerVip || registrationReward + vipBonus);
     const welcome = Number(data.welcomeCredits || 100);
     return `
       <section class="ref-program" aria-labelledby="ref-program-title">
@@ -8534,10 +8600,10 @@ const Sections = (function(){
           <div>
             <div class="ref-program__topline">
               <div class="ref-program__eyebrow"><svg class="ic"><use href="#i-gift"/></svg>Invita y gana</div>
-              <span class="ref-program__bonus">+${reward} por VIP</span>
+              <span class="ref-program__bonus">Hasta +${reward}</span>
             </div>
             <h2 class="ref-program__title" id="ref-program-title">Comparte. Ambos ganan.</h2>
-            <p class="ref-program__desc">Tú recibes ${reward} créditos y tu colega ${welcome} al activar su membresía VIP.</p>
+            <p class="ref-program__desc">Ganas ${registrationReward} al registrarse y ${vipBonus} extra si activa VIP. Tu colega inicia con ${welcome} créditos al hacerse VIP.</p>
           </div>
           <div class="ref-program__wallet">
             <div>
@@ -8575,8 +8641,10 @@ const Sections = (function(){
       }
     });
     container.querySelector('#ref-program-share')?.addEventListener('click', ()=>{
+      const registrationReward = Number(data.rewardPerRegistration || 50);
+      const vipBonus = Number(data.vipBonusCredits || 250);
       const reward = Number(data.rewardPerVip || 300);
-      const text = `Te invito a IMFRA, una plataforma profesional para ingeniería y construcción. Regístrate con mi enlace y, al activar VIP, ambos recibimos Créditos IMFRA.\n\n${link}\n\nYo recibo ${reward} créditos por tu activación.`;
+      const text = `Te invito a IMFRA, una plataforma profesional para ingeniería y construcción. Regístrate con mi enlace. Yo recibo ${registrationReward} créditos por tu registro y ${vipBonus} adicionales si activas VIP (${reward} en total). Tú recibes créditos de bienvenida al hacerte VIP.\n\n${link}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     });
   }
@@ -8585,7 +8653,7 @@ const Sections = (function(){
     const mount = container.querySelector('[data-referral-program]');
     if (!mount) return;
     if (S.modo === 'demo' || window.__isDemoMode) {
-      const demo = {code:'IMFRA-DEMO2026',balance:600,registeredCount:4,convertedCount:2,pendingCount:2,rewardPerVip:300,welcomeCredits:100};
+      const demo = {code:'IMFRA-DEMO2026',balance:620,registeredCount:4,convertedCount:2,pendingCount:2,rewardPerRegistration:50,vipBonusCredits:250,rewardPerVip:300,welcomeCredits:100};
       window.__referralSummary = demo;
       mount.innerHTML = referralProgramMarkup(demo);
       bindReferralProgram(mount, demo);
@@ -11843,6 +11911,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <script src="onboarding-tour.js?v=2" defer></script>
 <script src="assets/imfra-tools.js?v=20260925-1"></script>
+<script type="module" src="./src/features/credits/credits.ts"></script>
 <script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>

@@ -4,7 +4,7 @@ import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
 import { celebrate } from "../shared/celebration";
-import { awardMaterialForCorrect } from "../material-rewards/material-rewards";
+import { awardCreditForCorrect } from "../credits/credits";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -95,6 +95,7 @@ function quizProgressToday() {
 }
 
 function rewardsSnapshot() {
+  if (window.IMFRACredits?.isLoaded()) return { points: window.IMFRACredits.getBalance() };
   const demo = window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
   const account = demo ? "demo-preview-v7" : (window.UserState?.uid || window.UserState?.email || "guest");
   try {
@@ -223,8 +224,8 @@ function mount(container: HTMLElement) {
         </div>
         ${renderLeague()}
         <section class="tr-rewards">
-          <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Cambia tus puntos por herramientas reales</h2></div><div class="tr-rewards__balance"><span>Tu saldo</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
-          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} pts</small></div></button>`).join("")}
+          <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Usa tus créditos donde tú decidas</h2></div><div class="tr-rewards__balance"><span>Créditos disponibles</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
+          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} créditos</small></div></button>`).join("")}
             <button class="tr-chip tr-chip--more" data-training-action="rewards"><img class="tr-chip__icon" src="assets/icons/chip-catalogo.png" alt="" loading="lazy"><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
           </div>
         </section>
@@ -232,7 +233,7 @@ function mount(container: HTMLElement) {
       </main>
       <aside class="tr-side">
         <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}" data-training-action="${item.action}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong></span><button aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>
-        <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>El XP formativo mide práctica. Los Puntos IMFRA canjeables se obtienen únicamente en actividades validadas.</p></section>
+        <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>El XP mide tu práctica. Cada respuesta correcta validada suma 25 Créditos IMFRA para canjear donde tú elijas.</p></section>
       </aside>
     </div>`);
   }
@@ -337,8 +338,9 @@ function mount(container: HTMLElement) {
       caseAnswer = Number(button.dataset.caseAnswer);
       if (caseAnswer === selectedCase.steps[caseStep].correct) {
         caseScore += 1;
-        const unlocked = awardMaterialForCorrect(`inspector:${selectedCase.id}:${caseStep}`, "Inspector de Obra");
-        if (!unlocked) celebrate("subtle");
+        void awardCreditForCorrect(`inspector:${selectedCase.id}:${caseStep}`, "inspector", caseAnswer)
+          .catch((error) => console.warn("[training] Crédito pendiente de sincronización", error));
+        celebrate("subtle");
       }
       renderCase();
     }));
@@ -376,6 +378,8 @@ function mount(container: HTMLElement) {
   else if (initialView === "cases") renderCases();
   else if (initialView === "flashcards") { rebuildDeck(); renderFlashcards(); }
   else renderHub();
+  void window.IMFRACredits?.hydrate().then(() => { if (view === "hub") renderHub(); })
+    .catch((error) => console.warn("[training] No se pudo cargar el saldo", error));
   if (initialCaseId || initialView === "cases" || initialView === "flashcards") requestAnimationFrame(() => container.querySelector(initialCaseId ? ".tr-case-run" : ".tr-back")?.scrollIntoView({ behavior: "auto", block: "start" }));
   void loadTrainingProgress().then((remote) => {
     if (!remote) return;
