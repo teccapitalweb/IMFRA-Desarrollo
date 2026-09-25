@@ -185,7 +185,7 @@ HT.debounce = (fn, ms=180) => { let t; return (...a) => { clearTimeout(t); t = s
 
 /* Cabecera estándar de la herramienta */
 HT.shell = (container, o) => {
-  const {icon, titulo, sub, acciones=[]} = o;
+  const {icon, image, titulo, sub, acciones=[]} = o;
   container.innerHTML = `
     <div class="tool-section">
       <button class="tool-section__back" type="button" data-tools-back>
@@ -193,7 +193,9 @@ HT.shell = (container, o) => {
       </button>
       <div class="tool-section__head">
         <div class="tool-section__title">
-          <div class="tool-section__icon"><svg class="ic"><use href="#${icon}"/></svg></div>
+          <div class="tool-section__icon">${image
+            ? `<img src="${image}" alt="" width="46" height="46" decoding="async">`
+            : `<svg class="ic"><use href="#${icon}"/></svg>`}</div>
           <div><h1>${titulo}</h1><p>${sub}</p></div>
         </div>
         <div class="tool-section__actions">${acciones.map(a =>
@@ -526,7 +528,7 @@ Tools.concreto = (function(){
     HT.icons();
     S = st.get(null) || def();
     if (!S.folio) S.folio = HT.folio('CON');
-    root = HT.shell(container,{icon:'i-cube',titulo:'Volumen de concreto',sub:'m³ por elemento, cemento, arena, grava y viajes de revolvedora'});
+    root = HT.shell(container,{icon:'i-cube',image:'assets/tool-icons/concrete-volume.png',titulo:'Volumen de concreto',sub:'m³ por elemento, cemento, arena, grava y viajes de revolvedora'});
     render();
   }
   return { mount };
@@ -711,7 +713,7 @@ Tools.acero = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!S.folio) S.folio = HT.folio('ACE');
-    root = HT.shell(container,{icon:'i-rebar',titulo:'Cuantificación de acero',sub:'kg por elemento, piezas de varilla a comprar y resumen por calibre'});
+    root = HT.shell(container,{icon:'i-rebar',image:'assets/tool-icons/steel-quantity.png',titulo:'Cuantificación de acero',sub:'kg por elemento, piezas de varilla a comprar y resumen por calibre'});
     render();
   }
   return { mount };
@@ -880,7 +882,7 @@ Tools.muros = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!S.folio) S.folio = HT.folio('MUR');
-    root = HT.shell(container,{icon:'i-wall',titulo:'Muros y albañilería',sub:'Piezas, mortero, cemento, arena y jornales por m² de muro'});
+    root = HT.shell(container,{icon:'i-wall',image:'assets/tool-icons/masonry.png',titulo:'Muros y albañilería',sub:'Piezas, mortero, cemento, arena y jornales por m² de muro'});
     render();
   }
   return { mount };
@@ -1012,7 +1014,7 @@ Tools.retenciones = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!S.folio) S.folio = HT.folio('EST');
-    root = HT.shell(container,{icon:'i-percent',titulo:'Retenciones en estimaciones',sub:'Amortización de anticipo, IVA, 5 y 2 al millar, garantía y neto a cobrar'});
+    root = HT.shell(container,{icon:'i-percent',image:'assets/tool-icons/retentions.png',titulo:'Retenciones en estimaciones',sub:'Amortización de anticipo, IVA, 5 y 2 al millar, garantía y neto a cobrar'});
     render();
   }
   return { mount };
@@ -1184,7 +1186,7 @@ Tools.curvas = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!S.folio) S.folio = HT.folio('CRV'); ajustarN();
-    root = HT.shell(container,{icon:'i-trend',titulo:'Curva S',sub:'Avance programado contra real, físico y financiero, con desviación por periodo'});
+    root = HT.shell(container,{icon:'i-trend',image:'assets/tool-icons/s-curve.png',titulo:'Curva S',sub:'Avance programado contra real, físico y financiero, con desviación por periodo'});
     render();
   }
   return { mount };
@@ -1366,7 +1368,7 @@ Tools.checklist = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!S.folio) S.folio = HT.folio('SUP'); if (!S.resp) S.resp={}; if (!S.obs) S.obs={};
-    root = HT.shell(container,{icon:'i-clipboard-check',titulo:'Checklist de supervisión',sub:'Revisión por etapa con hallazgos, acciones correctivas y firmas'});
+    root = HT.shell(container,{icon:'i-clipboard-check',image:'assets/tool-icons/supervision-checklist.png',titulo:'Checklist de supervisión',sub:'Revisión por etapa con hallazgos, acciones correctivas y firmas'});
     render();
   }
   return { mount };
@@ -1526,7 +1528,7 @@ Tools.bitacora = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!Array.isArray(S.entradas)) S.entradas=[];
-    root = HT.shell(container,{icon:'i-notebook',titulo:'Bitácora de obra',sub:'Registro diario foliado: clima, personal, maquinaria, actividades e incidencias'});
+    root = HT.shell(container,{icon:'i-notebook',image:'assets/tool-icons/site-log.png',titulo:'Bitácora de obra',sub:'Registro diario foliado: clima, personal, maquinaria, actividades e incidencias'});
     render();
   }
   return { mount };
@@ -1664,7 +1666,7 @@ Tools.generadores = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!S.folio) S.folio = HT.folio('GEN');
-    root = HT.shell(container,{icon:'i-ruler',titulo:'Números generadores',sub:'Hoja de cuantificación por concepto: piezas × largo × ancho × alto, con resumen para estimación'});
+    root = HT.shell(container,{icon:'i-ruler',image:'assets/tool-icons/quantity-generators.png',titulo:'Números generadores',sub:'Hoja de cuantificación por concepto: piezas × largo × ancho × alto, con resumen para estimación'});
     render();
   }
   return { mount };

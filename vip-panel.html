@@ -1191,13 +1191,15 @@ body::after{
   appearance:none;width:100%;min-height:176px;padding:22px;border:1px solid var(--border);border-radius:20px;
   background:linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--primary) 2.5%,var(--surface)));
   color:var(--text);text-align:left;cursor:pointer;box-shadow:var(--shadow-card);display:grid;
-  grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto;column-gap:16px;row-gap:8px;
+  grid-template-columns:auto 1fr auto;grid-template-rows:auto auto 1fr auto;column-gap:18px;row-gap:8px;
   transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease,background .22s ease;
 }
 .tools-hub-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--primary) 44%,var(--border));box-shadow:0 20px 40px -30px rgba(25,18,10,.55);background:linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--primary) 6%,var(--surface)))}
 .tools-hub-card:focus-visible{outline:3px solid var(--primary-glow);outline-offset:3px;border-color:var(--primary)}
-.tools-hub-card__icon{grid-column:1;grid-row:1/3;width:50px;height:50px;border-radius:15px;background:color-mix(in srgb,var(--primary) 11%,var(--surface));border:1px solid color-mix(in srgb,var(--primary) 18%,var(--border));display:flex;align-items:center;justify-content:center;color:var(--primary)}
+.tools-hub-card__icon{grid-column:1;grid-row:1/3;width:64px;height:64px;border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 12%,var(--surface)),color-mix(in srgb,var(--primary) 4%,var(--surface)));border:1px solid color-mix(in srgb,var(--primary) 24%,var(--border));display:flex;align-items:center;justify-content:center;color:var(--primary);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 10px 24px -18px rgba(245,157,26,.8)}
 .tools-hub-card__icon .ic{width:23px;height:23px}
+.tools-hub-card__icon img{width:52px;height:52px;object-fit:contain;display:block;filter:drop-shadow(0 5px 7px rgba(138,82,0,.18));transition:transform .22s ease,filter .22s ease}
+.tools-hub-card:hover .tools-hub-card__icon img{transform:scale(1.06);filter:drop-shadow(0 7px 9px rgba(138,82,0,.24))}
 .tools-hub-card__top{grid-column:2/4;grid-row:1;display:flex;align-items:center;justify-content:space-between;gap:10px;min-width:0}
 .tools-hub-card__tag{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:1.15px;text-transform:uppercase;color:var(--primary)}
 .tools-hub-card__title{grid-column:2/4;grid-row:2;font-size:17px;line-height:1.2;letter-spacing:-.32px;font-weight:750;margin:0;color:var(--text)}
@@ -1215,7 +1217,8 @@ body::after{
   .tools-hub__heading{align-items:flex-start}
   .tools-hub__grid{grid-template-columns:1fr;gap:11px}
   .tools-hub-card{min-height:162px;padding:18px;border-radius:17px;column-gap:13px}
-  .tools-hub-card__icon{width:46px;height:46px;border-radius:14px}
+  .tools-hub-card__icon{width:58px;height:58px;border-radius:16px}
+  .tools-hub-card__icon img{width:46px;height:46px}
 }
 @media(max-width:430px){
   .tools-hub__hero{min-height:248px;padding:27px 20px}
@@ -1232,8 +1235,9 @@ body::after{
 .tool-section__back .ic{width:15px;height:15px;transform:rotate(180deg)}
 .tool-section__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-bottom:16px;border-bottom:0.5px solid var(--border-2)}
 .tool-section__title{display:flex;align-items:center;gap:14px}
-.tool-section__icon{width:46px;height:46px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;box-shadow:0 6px 20px -6px var(--primary-glow)}
+.tool-section__icon{width:58px;height:58px;flex-shrink:0;border-radius:17px;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 13%,var(--surface)),color-mix(in srgb,var(--primary) 5%,var(--surface)));border:1px solid color-mix(in srgb,var(--primary) 24%,var(--border));color:var(--primary);box-shadow:inset 0 1px 0 rgba(255,255,255,.72),0 12px 26px -20px rgba(245,157,26,.9);overflow:hidden}
 .tool-section__icon .ic{width:22px;height:22px}
+.tool-section__icon img{width:46px;height:46px;object-fit:contain;display:block;filter:drop-shadow(0 5px 7px rgba(138,82,0,.2))}
 .tool-section__title h1{font-size:21px;font-weight:800;letter-spacing:-.4px;color:var(--text);margin:0;line-height:1.15}
 .tool-section__title p{font-size:12.5px;color:var(--text-3);margin:3px 0 0;line-height:1.4}
 .tool-section__actions{display:flex;gap:8px;flex-wrap:wrap}
@@ -9171,14 +9175,14 @@ const Sections = (function(){
 
   /* ============================ CENTRO DE HERRAMIENTAS ============================ */
   const HERRAMIENTAS_PRO = [
-    {id:'concreto',icon:'i-cube',tag:'Volumetría',titulo:'Volumen de concreto',desc:'Calcula volúmenes por elemento, materiales y viajes de revolvedora.'},
-    {id:'acero',icon:'i-rebar',tag:'Estructuras',titulo:'Cuantificación de acero',desc:'Obtén kilos, metros lineales y piezas de varilla por calibre y elemento.'},
-    {id:'muros',icon:'i-wall',tag:'Albañilería',titulo:'Muros y albañilería',desc:'Estima piezas, mortero, cemento, arena y jornales para tus muros.'},
-    {id:'retenciones',icon:'i-percent',tag:'Estimaciones',titulo:'Retenciones en estimaciones',desc:'Controla amortizaciones, retenciones, garantías, IVA y neto a cobrar.'},
-    {id:'curvas',icon:'i-trend',tag:'Control de obra',titulo:'Curva S',desc:'Compara avance programado contra real y detecta desviaciones a tiempo.'},
-    {id:'checklist',icon:'i-clipboard-check',tag:'Supervisión',titulo:'Checklist de supervisión',desc:'Documenta inspecciones, hallazgos, acciones correctivas y responsables.'},
-    {id:'bitacora',icon:'i-notebook',tag:'Seguimiento',titulo:'Bitácora de obra',desc:'Registra personal, clima, maquinaria, actividades e incidencias por día.'},
-    {id:'generadores',icon:'i-ruler',tag:'Cuantificación',titulo:'Números generadores',desc:'Genera cantidades por concepto y prepara el soporte de tus estimaciones.'}
+    {id:'concreto',icon:'i-cube',image:'assets/tool-icons/concrete-volume.png',tag:'Volumetría',titulo:'Volumen de concreto',desc:'Calcula volúmenes por elemento, materiales y viajes de revolvedora.'},
+    {id:'acero',icon:'i-rebar',image:'assets/tool-icons/steel-quantity.png',tag:'Estructuras',titulo:'Cuantificación de acero',desc:'Obtén kilos, metros lineales y piezas de varilla por calibre y elemento.'},
+    {id:'muros',icon:'i-wall',image:'assets/tool-icons/masonry.png',tag:'Albañilería',titulo:'Muros y albañilería',desc:'Estima piezas, mortero, cemento, arena y jornales para tus muros.'},
+    {id:'retenciones',icon:'i-percent',image:'assets/tool-icons/retentions.png',tag:'Estimaciones',titulo:'Retenciones en estimaciones',desc:'Controla amortizaciones, retenciones, garantías, IVA y neto a cobrar.'},
+    {id:'curvas',icon:'i-trend',image:'assets/tool-icons/s-curve.png',tag:'Control de obra',titulo:'Curva S',desc:'Compara avance programado contra real y detecta desviaciones a tiempo.'},
+    {id:'checklist',icon:'i-clipboard-check',image:'assets/tool-icons/supervision-checklist.png',tag:'Supervisión',titulo:'Checklist de supervisión',desc:'Documenta inspecciones, hallazgos, acciones correctivas y responsables.'},
+    {id:'bitacora',icon:'i-notebook',image:'assets/tool-icons/site-log.png',tag:'Seguimiento',titulo:'Bitácora de obra',desc:'Registra personal, clima, maquinaria, actividades e incidencias por día.'},
+    {id:'generadores',icon:'i-ruler',image:'assets/tool-icons/quantity-generators.png',tag:'Cuantificación',titulo:'Números generadores',desc:'Genera cantidades por concepto y prepara el soporte de tus estimaciones.'}
   ];
 
   function renderHerramientas(container){
@@ -9208,7 +9212,7 @@ const Sections = (function(){
         <div class="tools-hub__grid">
           ${HERRAMIENTAS_PRO.map(tool=>`
             <button class="tools-hub-card" type="button" data-open-tool="${tool.id}" aria-label="Abrir ${tool.titulo}">
-              <span class="tools-hub-card__icon"><svg class="ic"><use href="#${tool.icon}"/></svg></span>
+              <span class="tools-hub-card__icon"><img src="${tool.image}" alt="" width="52" height="52" loading="lazy" decoding="async"></span>
               <span class="tools-hub-card__top"><span class="tools-hub-card__tag">${tool.tag}</span></span>
               <strong class="tools-hub-card__title">${tool.titulo}</strong>
               <span class="tools-hub-card__desc">${tool.desc}</span>
@@ -11842,7 +11846,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <script src="onboarding-tour.js?v=2" defer></script>
-<script src="assets/imfra-tools.js?v=20260924-1"></script>
+<script src="assets/imfra-tools.js?v=20260925-1"></script>
 <script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>
