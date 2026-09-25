@@ -100,8 +100,9 @@ body::after{
 .brand__logo{width:38px;height:38px;border-radius:10px;background:#0D0D0D;border:0.5px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
 .brand__logo svg{width:28px;height:28px}
 .brand__logo img{width:32px;height:32px;object-fit:contain;display:block}
-.brand__name{font-size:14px;font-weight:600;letter-spacing:-.2px;line-height:1.1}
-.brand__plan{display:inline-block;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--primary);font-weight:700;margin-top:3px;padding:2px 7px;border-radius:100px;background:color-mix(in srgb,var(--primary) 12%,transparent);border:0.5px solid color-mix(in srgb,var(--primary) 30%,transparent)}
+.brand__wordmark{display:flex;flex-direction:column;gap:3px;min-width:0}
+.brand__name{font-family:'Plus Jakarta Sans','Inter',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.35px;line-height:1}
+.brand__descriptor{font-family:'JetBrains Mono',monospace;font-size:7.5px;line-height:1;font-weight:700;letter-spacing:1.85px;color:var(--text-3);text-transform:uppercase}
 
 .nav-section{padding:0 10px;margin-top:10px}
 .nav-label{font-size:9px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--text-3);padding:8px 10px 6px}
@@ -3731,6 +3732,9 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12h-14"/><path d="M11 18l-6 -6"/><path d="M11 6l-6 6"/></symbol>
 <symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3h-5v5"/><path d="M16 3h5v5"/><path d="M8 21h-5v-5"/><path d="M16 21h5v-5"/></symbol>
 <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4v12"/></symbol>
+<symbol id="i-help-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.7 9a2.5 2.5 0 1 1 3.25 2.38c-.65 .28-.95 .75-.95 1.62"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-install-app" viewBox="0 0 24 24"><path d="M12 3v11"/><path d="M8 10l4 4l4 -4"/><path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-2"/></symbol>
+<symbol id="i-notification" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0 -12 0c0 7 -3 7 -3 9h18c0 -2 -3 -2 -3 -9"/><path d="M10 21h4"/></symbol>
 <symbol id="i-close" viewBox="0 0 24 24"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></symbol>
 <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
 <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2l4 -4"/></symbol>
@@ -3750,9 +3754,9 @@ window.__setDisplayName = async (nombre) => {
       <div class="brand__logo">
         <img src="assets/imfra-app-icon-512.png" alt="IMFRA">
       </div>
-      <div>
+      <div class="brand__wordmark">
         <div class="brand__name">IMFRA</div>
-        <div class="brand__plan" id="brand-plan-badge">VIP Anual</div>
+        <div class="brand__descriptor">Desarrollo</div>
       </div>
     </div>
 
@@ -3812,10 +3816,10 @@ window.__setDisplayName = async (nombre) => {
       </div>
       <div class="topbar__right">
         <button class="install-app-btn" id="install-app-btn" type="button" aria-label="Instalar IMFRA en este dispositivo" hidden>
-          <svg class="ic"><use href="#i-download"/></svg><span>Instalar</span>
+          <span class="topbar-control__icon"><svg class="ic"><use href="#i-install-app"/></svg></span><span>Instalar</span>
         </button>
         <button class="icon-btn" id="btn-notif" aria-label="Notificaciones">
-          <svg class="ic"><use href="#i-bell"/></svg>
+          <svg class="ic"><use href="#i-notification"/></svg>
           <span class="dot"></span>
         </button>
         <button class="theme-toggle" id="theme-toggle">
@@ -3979,9 +3983,9 @@ window.__setDisplayName = async (nombre) => {
         <div class="brand__logo" style="width:42px;height:42px;border-radius:10px;background:#0D0D0D;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-2);flex-shrink:0;">
           <img src="assets/imfra-app-icon-512.png" alt="IMFRA" style="width:30px;height:30px;object-fit:contain;display:block;">
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
-          <div class="brand__name" style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:800;letter-spacing:-.3px;line-height:1;">IMFRA</div>
-          <div class="brand__plan" id="drawer-plan-badge" style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3);font-weight:700;line-height:1;">Sin membresía</div>
+        <div class="brand__wordmark">
+          <div class="brand__name">IMFRA</div>
+          <div class="brand__descriptor">Desarrollo</div>
         </div>
       </div>
       <button class="mobile-drawer__close" id="mobile-drawer-close" aria-label="Cerrar">
@@ -10403,28 +10407,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const el = document.getElementById(id); if (el) el.textContent = accountCta;
     });
 
-    // ─── Brand badge del sidebar (IMFRA · estado real) ───
-    const brandPlan = document.getElementById('brand-plan-badge');
-    const drawerPlan = document.getElementById('drawer-plan-badge');
-    [brandPlan, drawerPlan].forEach(el => {
-      if (!el) return;
-      // Texto plano (sin chip/background/border) para mantener alineación vertical con "IMFRA"
-      el.style.background = 'transparent';
-      el.style.padding = '0';
-      el.style.border = 'none';
-      if (S.modo === 'vip') {
-        const planLabel = (PLAN_LABELS[S.plan] || PLAN_LABELS.mensual).name;
-        el.textContent = planLabel;
-        el.style.color = 'var(--primary)';
-      } else if (S.modo === 'invitado') {
-        el.textContent = 'Modo demo';
-        el.style.color = '#FFCF7A';
-      } else { // sin-membresia
-        el.textContent = 'Sin membresía';
-        el.style.color = 'var(--text-3)';
-      }
-    });
-
     // La cabecera se mantiene silenciosa, como en Élite: contexto a la izquierda
     // y controles personales a la derecha. El modo demo ya aparece en el perfil.
     const topbarPill = document.getElementById('topbar-pill');
@@ -11279,7 +11261,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   .topbar__right .theme-toggle span{display:none}
   .theme-toggle{padding:0;width:44px}
   .install-app-btn{padding:0;width:44px}
-  .install-app-btn span{display:none}
+  .install-app-btn>span:last-child{display:none}
   .topbar .pill{font-size:9px;padding:5px 8px;letter-spacing:.8px}
 
   #dynamic-section .tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;padding:4px;overflow:visible}
@@ -11323,6 +11305,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   .topbar__right>.icon-btn,.topbar__right>.theme-toggle,.topbar__right>.install-app-btn{width:42px;min-width:42px;height:42px;min-height:42px}
   .topbar__right>.theme-toggle{padding:0;justify-content:center}
   .topbar__right>.theme-toggle #theme-label{display:none}
+  .topbar__right>.install-app-btn{padding:4px!important;justify-content:center}
+  .topbar__right>.install-app-btn .topbar-control__icon{width:32px;height:32px;background:transparent}
   .banner{padding:18px 16px}
   .banner__stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%}
   .banner__stat{min-width:0}
@@ -11351,14 +11335,17 @@ body{letter-spacing:-.05px}
   background:var(--surface)!important;
   border-right:1px solid var(--border)!important;
 }
-.brand{border-bottom:1px solid var(--border)!important}
+.brand{border-bottom:1px solid var(--border)!important;padding:7px 16px 17px!important;gap:12px!important}
 .brand__logo{
   background:var(--surface-2)!important;
   border:1px solid var(--border-2)!important;
-  border-radius:9px!important;
+  width:42px!important;height:42px!important;
+  border-radius:11px!important;
   box-shadow:none!important;
 }
-.brand__plan,.pill{
+.brand__logo img{width:34px!important;height:34px!important}
+.brand__descriptor{color:color-mix(in srgb,var(--primary) 78%,var(--text-3))!important}
+.pill{
   background:var(--surface-2)!important;
   color:var(--text-2)!important;
   border:1px solid var(--border-2)!important;
@@ -11384,13 +11371,25 @@ body{letter-spacing:-.05px}
 .icon-btn,.theme-toggle,.install-app-btn,.avatar{
   background:var(--surface)!important;
   border:1px solid var(--border-2)!important;
-  border-radius:9px!important;
-  box-shadow:none!important;
+  border-radius:11px!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.035)!important;
 }
-.install-app-btn{color:var(--text)!important}
+.topbar__right{gap:7px!important}
+.icon-btn{width:38px!important;height:38px!important;color:var(--text-2)!important}
+.icon-btn .ic{width:17px!important;height:17px!important;stroke-width:1.75}
+.icon-btn .dot{top:7px!important;right:7px!important;width:5px!important;height:5px!important}
+.install-app-btn{min-height:38px!important;padding:4px 12px 4px 5px!important;gap:8px!important;color:var(--text)!important}
+.topbar-control__icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:var(--surface-2);color:var(--primary)}
+.topbar-control__icon .ic{width:15px!important;height:15px!important;stroke-width:1.85}
+.theme-toggle{min-height:38px!important;padding:6px 12px 6px 9px!important;gap:8px!important}
+.theme-toggle .ic{width:16px!important;height:16px!important;stroke-width:1.7}
+.avatar{min-height:38px!important;padding:4px 11px 4px 4px!important;gap:8px!important}
+.avatar__circle{width:30px!important;height:30px!important;border:1px solid color-mix(in srgb,var(--primary) 30%,transparent)}
+.avatar__name{font-size:11.5px!important;font-weight:650!important}
 .install-app-btn:hover,.theme-toggle:hover,.icon-btn:hover{
   background:var(--surface-2)!important;
-  border-color:var(--border-strong)!important;
+  border-color:color-mix(in srgb,var(--primary) 42%,var(--border-strong))!important;
+  color:var(--primary)!important;
   transform:none!important;
 }
 .avatar__circle,.perfil-hero__avatar{

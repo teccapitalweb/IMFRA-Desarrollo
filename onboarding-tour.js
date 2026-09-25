@@ -327,7 +327,7 @@
       button.className = 'icon-btn onboarding-tour-launcher';
       button.setAttribute('aria-label', 'Ver recorrido guiado');
       button.title = 'Recorrido guiado';
-      button.innerHTML = '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.6 9a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.7"/><path d="M12 17h.01"/></svg>';
+      button.innerHTML = '<svg class="ic"><use href="#i-help-circle"></use></svg>';
       button.addEventListener('click', () => start({ automatic: false }));
       actions.insertBefore(button, actions.firstChild);
     }
