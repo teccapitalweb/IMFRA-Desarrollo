@@ -428,6 +428,14 @@ body{display:block}
 }
 .auth-free b{color:var(--primary);font-weight:800}
 .auth-free svg{width:16px;height:16px;flex:none;stroke:#1B0F05;background:var(--primary);border-radius:50%;padding:3px}
+.referral-invite{
+  display:none;align-items:flex-start;gap:10px;margin:-2px 0 14px;padding:11px 12px;
+  border:1px solid rgba(251,157,0,.28);border-radius:12px;background:rgba(251,157,0,.08);
+  color:var(--text-2);font-size:.76rem;line-height:1.45;
+}
+.referral-invite.is-visible{display:flex}
+.referral-invite__coin{display:grid;place-items:center;flex:0 0 28px;height:28px;border-radius:9px;background:var(--primary);color:#1b0f05;font-weight:900}
+.referral-invite strong{display:block;color:var(--text);font-size:.8rem}
 
 /* MÓVIL: el panel YA NO se oculta — versión compacta que vende antes del form */
 @media (max-width:920px){
@@ -556,6 +564,10 @@ body{display:block}
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
       Regístrate <b>completamente gratis</b>
     </p>
+    <div class="referral-invite" id="referral-invite" role="status">
+      <span class="referral-invite__coin">C</span>
+      <span><strong>Invitación IMFRA activa</strong>Al convertirte en miembro VIP recibirás 100 Créditos IMFRA.</span>
+    </div>
     <div class="tabs">
       <button class="tab" data-tab="login">Iniciar sesión</button>
       <button class="tab is-active" data-tab="register">Crear cuenta</button>
@@ -800,6 +812,30 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence);
 
+const WEBHOOK_URL = 'https://imfra-backend-production.up.railway.app';
+const referralFromUrl = String(new URLSearchParams(location.search).get('ref') || '').trim().toUpperCase();
+if (/^IMFRA-[A-Z0-9]{8,14}$/.test(referralFromUrl)) {
+  localStorage.setItem('imfra_pending_referral', referralFromUrl);
+  document.getElementById('referral-invite')?.classList.add('is-visible');
+}
+
+async function claimPendingReferral(user) {
+  const code = String(localStorage.getItem('imfra_pending_referral') || '').trim().toUpperCase();
+  if (!user || !/^IMFRA-[A-Z0-9]{8,14}$/.test(code)) return;
+  try {
+    const token = await user.getIdToken();
+    const response = await fetch(`${WEBHOOK_URL}/referrals/claim`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', Authorization:`Bearer ${token}` },
+      body: JSON.stringify({ code })
+    });
+    if (response.ok) localStorage.setItem('imfra_referral_claimed', code);
+    else if (response.status === 400) localStorage.removeItem('imfra_pending_referral');
+  } catch (error) {
+    console.warn('[referrals] Código guardado para reintentar:', error.message);
+  }
+}
+
 /* =========================================================
    Crear o actualizar documento del miembro en Firestore
    Se llama tanto al REGISTRARSE (crear) como al hacer LOGIN
@@ -868,6 +904,7 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     // Asegurar que existe el doc (si entró por login y no tenía uno, lo creamos)
     await ensureMiembroDoc(user, user.displayName, 'login-web');
+    await claimPendingReferral(user);
     // Recordar quién entró (para el "Hola de nuevo" si cierra sesión)
     try { localStorage.setItem('imfra_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}
     const isAdmin = ADMINS.includes((user.email || "").toLowerCase());

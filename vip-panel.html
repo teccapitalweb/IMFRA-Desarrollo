@@ -3147,6 +3147,62 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 }
 .plan-picker__price-sub{font-size:10.5px;color:var(--text-3);margin-top:3px;letter-spacing:.4px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600}
 
+/* ─── Programa de referidos · Créditos IMFRA ─── */
+.ref-program{position:relative;overflow:hidden;margin:18px 0 24px;border:1px solid color-mix(in srgb,var(--primary) 22%,var(--border));border-radius:22px;background:linear-gradient(145deg,var(--surface),color-mix(in srgb,var(--primary) 5%,var(--surface)));box-shadow:var(--shadow-card)}
+.ref-program::before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;right:-130px;top:-180px;background:radial-gradient(circle,color-mix(in srgb,var(--primary) 24%,transparent),transparent 69%);pointer-events:none}
+.ref-program__main{position:relative;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:28px;padding:28px}
+.ref-program__eyebrow{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1.35px;text-transform:uppercase;color:var(--primary)}
+.ref-program__eyebrow .ic{width:14px;height:14px}
+.ref-program__title{font-family:'Plus Jakarta Sans',sans-serif;font-size:25px;line-height:1.1;letter-spacing:-.7px;margin:10px 0 9px;color:var(--text)}
+.ref-program__desc{max-width:620px;font-size:13px;line-height:1.6;color:var(--text-2);margin:0}
+.ref-program__reward{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding:15px 16px;border:1px solid var(--border);border-radius:15px;background:color-mix(in srgb,var(--primary) 5%,var(--surface-2))}
+.ref-program__reward strong{display:block;font-size:13px;color:var(--text)}
+.ref-program__reward span{display:block;font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.4}
+.ref-program__reward b{flex:0 0 auto;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;letter-spacing:-.8px;color:var(--primary)}
+.ref-program__wallet{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:190px;padding:21px;border-radius:18px;background:linear-gradient(135deg,#12100D,#2D2114);color:#fff;box-shadow:0 18px 35px -28px rgba(0,0,0,.9)}
+.ref-program__wallet-label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.58)}
+.ref-program__wallet-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1.6px;line-height:1;margin-top:8px}
+.ref-program__wallet-value small{font-size:12px;letter-spacing:.2px;color:#FFB23E;margin-left:4px}
+.ref-program__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.12)}
+.ref-program__stat b{display:block;font-size:14px;color:#fff}
+.ref-program__stat span{display:block;margin-top:2px;font-size:8px;letter-spacing:.55px;text-transform:uppercase;color:rgba(255,255,255,.48)}
+.ref-program__share{position:relative;padding:0 28px 28px}
+.ref-program__share-label{font-size:11px;font-weight:700;color:var(--text);margin-bottom:8px}
+.ref-program__link{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px}
+.ref-program__input{width:100%;min-height:46px;border:1px solid var(--border-2);border-radius:12px;background:var(--surface-2);color:var(--text-2);padding:10px 13px;font-family:'JetBrains Mono',monospace;font-size:10.5px;outline:none;white-space:nowrap;text-overflow:ellipsis}
+.ref-program__copy,.ref-program__wa{min-height:46px;padding:0 15px;border-radius:12px;border:1px solid var(--border-2);display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:11.5px;font-weight:700;cursor:pointer;transition:transform .15s,border-color .15s}
+.ref-program__copy{background:var(--surface);color:var(--text)}
+.ref-program__wa{background:#12A84D;border-color:#12A84D;color:#fff}
+.ref-program__copy:hover,.ref-program__wa:hover{transform:translateY(-1px)}
+.ref-program__copy .ic,.ref-program__wa .ic{width:15px;height:15px}
+.ref-program__steps{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--border);background:color-mix(in srgb,var(--surface-2) 72%,transparent)}
+.ref-program__step{padding:17px 20px;display:flex;align-items:flex-start;gap:10px;border-right:1px solid var(--border)}
+.ref-program__step:last-child{border-right:0}
+.ref-program__step-num{width:24px;height:24px;flex:0 0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--primary) 13%,transparent);color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700}
+.ref-program__step strong{display:block;font-size:11.5px;color:var(--text)}
+.ref-program__step span{display:block;font-size:10.5px;color:var(--text-3);line-height:1.4;margin-top:2px}
+.ref-program__future{margin-top:12px;display:flex;align-items:center;gap:8px;font-size:10.5px;color:var(--text-3)}
+.ref-program__future .ic{width:14px;height:14px;color:var(--primary)}
+.ref-program--guest .ref-program__main{grid-template-columns:1fr auto;align-items:center}
+.ref-program__guest-icon{width:74px;height:74px;border-radius:20px;background:color-mix(in srgb,var(--primary) 12%,transparent);display:flex;align-items:center;justify-content:center;color:var(--primary)}
+.ref-program__guest-icon .ic{width:32px;height:32px}
+.ref-program__loading{min-height:250px;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--text-3);font-size:12px}
+@media(max-width:760px){
+  .ref-program{border-radius:19px}
+  .ref-program__main{grid-template-columns:1fr;gap:18px;padding:22px 18px}
+  .ref-program__title{font-size:22px}
+  .ref-program__wallet{min-height:166px}
+  .ref-program__share{padding:0 18px 20px}
+  .ref-program__link{grid-template-columns:1fr 46px 46px}
+  .ref-program__copy,.ref-program__wa{padding:0}
+  .ref-program__copy span,.ref-program__wa span{display:none}
+  .ref-program__steps{grid-template-columns:1fr}
+  .ref-program__step{border-right:0;border-bottom:1px solid var(--border)}
+  .ref-program__step:last-child{border-bottom:0}
+  .ref-program--guest .ref-program__main{grid-template-columns:1fr}
+  .ref-program__guest-icon{display:none}
+}
+
 /* ─── Stripe Embedded Checkout container ─── */
 #sub-checkout-mount{
   background:var(--surface);
@@ -3277,6 +3333,26 @@ setPersistence(auth, browserLocalPersistence);
 // ⚠️ CAMBIA esta URL por la de tu Railway cuando esté deployado
 const WEBHOOK_URL = 'https://imfra-backend-production.up.railway.app';
 window.WEBHOOK_URL = WEBHOOK_URL;
+const __refFromUrl = String(new URLSearchParams(location.search).get('ref') || '').trim().toUpperCase();
+if (/^IMFRA-[A-Z0-9]{8,14}$/.test(__refFromUrl)) {
+  localStorage.setItem('imfra_pending_referral', __refFromUrl);
+}
+async function claimPendingReferral(user){
+  const code = String(localStorage.getItem('imfra_pending_referral') || '').trim().toUpperCase();
+  if (!user || !/^IMFRA-[A-Z0-9]{8,14}$/.test(code)) return;
+  try {
+    const token = await user.getIdToken();
+    const response = await fetch(`${WEBHOOK_URL}/referrals/claim`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},
+      body:JSON.stringify({code})
+    });
+    if (response.ok) localStorage.setItem('imfra_referral_claimed', code);
+    else if (response.status === 400) localStorage.removeItem('imfra_pending_referral');
+  } catch(error) {
+    console.warn('[referrals] El código se conservará para reintentar:', error.message);
+  }
+}
 // El ID de la biblioteca es público y Bunny lo incluye en sus URLs de
 // reproducción. La API key permanece únicamente en el servidor.
 window.BUNNY_VIDEO_LIBRARY_ID = '755984';
@@ -3309,6 +3385,7 @@ if (window.__isDemoMode) {
     window.UserState.iniciales = calcIniciales(user.displayName || user.email);
     window.UserState.photoURL = user.photoURL || null;
     window.UserState.isAdmin = ADMIN_EMAILS.includes(window.UserState.email);
+    await claimPendingReferral(user);
 
     if (window.UserState.isAdmin) {
       window.UserState.modo = 'vip';
@@ -3376,6 +3453,7 @@ if (window.__isDemoMode) {
     setTimeout(()=>{ if(typeof window.__actualizarWidgetsActividad==='function') window.__actualizarWidgetsActividad(); }, 400);
 
     if (isCheckoutSuccess && window.UserState.modo === 'vip') {
+      localStorage.removeItem('imfra_pending_referral');
       window.__pendingWelcomeSplash = {};
     }
 
@@ -8403,6 +8481,119 @@ const Sections = (function(){
   }
 
   /* ============================ SUSCRIPCIÓN ============================ */
+  function referralGuestMarkup(){
+    return `
+      <section class="ref-program ref-program--guest">
+        <div class="ref-program__main">
+          <div>
+            <div class="ref-program__eyebrow"><svg class="ic"><use href="#i-gift"/></svg>Programa de referidos</div>
+            <h2 class="ref-program__title">Invita colegas. Gana Créditos IMFRA.</h2>
+            <p class="ref-program__desc">Crea tu cuenta para obtener un enlace personal. Cuando uno de tus invitados active su membresía VIP, recibirás créditos para desbloquear futuras herramientas especializadas.</p>
+            <div class="ref-program__future"><svg class="ic"><use href="#i-shield-check"/></svg>Los créditos se acreditan únicamente después de un pago VIP confirmado.</div>
+          </div>
+          <div class="ref-program__guest-icon"><svg class="ic"><use href="#i-users"/></svg></div>
+        </div>
+      </section>`;
+  }
+
+  function referralProgramMarkup(data){
+    const code = String(data.code || '');
+    const link = `${location.origin}/vip-auth.html?tab=register&ref=${encodeURIComponent(code)}`;
+    const balance = Number(data.balance || 0);
+    const reward = Number(data.rewardPerVip || 300);
+    const welcome = Number(data.welcomeCredits || 100);
+    return `
+      <section class="ref-program" aria-labelledby="ref-program-title">
+        <div class="ref-program__main">
+          <div>
+            <div class="ref-program__eyebrow"><svg class="ic"><use href="#i-gift"/></svg>Invita y gana</div>
+            <h2 class="ref-program__title" id="ref-program-title">Tu red también construye valor.</h2>
+            <p class="ref-program__desc">Comparte tu enlace personal. Cuando un colega se registre y complete su primera activación VIP, ambos reciben Créditos IMFRA.</p>
+            <div class="ref-program__reward">
+              <div><strong>Recompensa por cada nuevo VIP</strong><span>Tú recibes ${reward}; tu colega inicia con ${welcome} créditos.</span></div>
+              <b>+${reward}</b>
+            </div>
+            <div class="ref-program__future"><svg class="ic"><use href="#i-tools"/></svg>Próximamente podrás canjearlos por herramientas técnicas avanzadas. No son dinero y no expiran.</div>
+          </div>
+          <div class="ref-program__wallet">
+            <div>
+              <div class="ref-program__wallet-label">Saldo disponible</div>
+              <div class="ref-program__wallet-value">${balance.toLocaleString('es-MX')}<small>créditos</small></div>
+            </div>
+            <div class="ref-program__stats">
+              <div class="ref-program__stat"><b>${Number(data.registeredCount || 0)}</b><span>Registros</span></div>
+              <div class="ref-program__stat"><b>${Number(data.convertedCount || 0)}</b><span>VIP</span></div>
+              <div class="ref-program__stat"><b>${Number(data.pendingCount || 0)}</b><span>Pendientes</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="ref-program__share">
+          <div class="ref-program__share-label">Tu enlace personal · ${escapeHtml(code)}</div>
+          <div class="ref-program__link">
+            <input class="ref-program__input" id="ref-program-link" value="${escapeHtml(link)}" readonly aria-label="Enlace personal de referido">
+            <button class="ref-program__copy" id="ref-program-copy" type="button" data-bypass-paywall="true"><svg class="ic"><use href="#i-link"/></svg><span>Copiar enlace</span></button>
+            <button class="ref-program__wa" id="ref-program-share" type="button" data-bypass-paywall="true"><svg class="ic"><use href="#i-whatsapp"/></svg><span>Compartir</span></button>
+          </div>
+        </div>
+        <div class="ref-program__steps">
+          <div class="ref-program__step"><span class="ref-program__step-num">1</span><div><strong>Comparte tu enlace</strong><span>Cada cuenta queda vinculada una sola vez.</span></div></div>
+          <div class="ref-program__step"><span class="ref-program__step-num">2</span><div><strong>Tu colega se vuelve VIP</strong><span>El registro queda pendiente hasta confirmar el pago.</span></div></div>
+          <div class="ref-program__step"><span class="ref-program__step-num">3</span><div><strong>Reciben sus créditos</strong><span>El saldo se acredita automáticamente y sin duplicados.</span></div></div>
+        </div>
+      </section>`;
+  }
+
+  function bindReferralProgram(container, data){
+    const link = container.querySelector('#ref-program-link')?.value || '';
+    container.querySelector('#ref-program-copy')?.addEventListener('click', async ()=>{
+      try {
+        await navigator.clipboard.writeText(link);
+        Toast.success('Enlace copiado', 'Ya puedes compartirlo con tus colegas.');
+      } catch(e) {
+        const input = container.querySelector('#ref-program-link');
+        input?.select?.();
+        Toast.info('Copia el enlace', 'Seleccionamos el enlace para ti.');
+      }
+    });
+    container.querySelector('#ref-program-share')?.addEventListener('click', ()=>{
+      const reward = Number(data.rewardPerVip || 300);
+      const text = `Te invito a IMFRA, una plataforma profesional para ingeniería y construcción. Regístrate con mi enlace y, al activar VIP, ambos recibimos Créditos IMFRA.\n\n${link}\n\nYo recibo ${reward} créditos por tu activación.`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+    });
+  }
+
+  async function hydrateReferralProgram(container, S){
+    const mount = container.querySelector('[data-referral-program]');
+    if (!mount) return;
+    if (S.modo === 'demo' || window.__isDemoMode) {
+      const demo = {code:'IMFRA-DEMO2026',balance:600,registeredCount:4,convertedCount:2,pendingCount:2,rewardPerVip:300,welcomeCredits:100};
+      window.__referralSummary = demo;
+      mount.innerHTML = referralProgramMarkup(demo);
+      bindReferralProgram(mount, demo);
+      return;
+    }
+    if (S.modo === 'invitado') {
+      mount.innerHTML = referralGuestMarkup();
+      return;
+    }
+    mount.innerHTML = '<section class="ref-program"><div class="ref-program__loading"><div class="sub-loading__spin"></div>Cargando tus Créditos IMFRA…</div></section>';
+    try {
+      const token = await window.__currentUser?.getIdToken?.();
+      if (!token) throw new Error('Sesión no disponible');
+      const response = await fetch(`${window.WEBHOOK_URL || 'https://imfra-backend-production.up.railway.app'}/referrals/me`, {
+        headers:{ Authorization:`Bearer ${token}` }
+      });
+      const data = await response.json().catch(()=>({}));
+      if (!response.ok) throw new Error(data.error || 'No pudimos cargar el programa');
+      window.__referralSummary = data;
+      mount.innerHTML = referralProgramMarkup(data);
+      bindReferralProgram(mount, data);
+    } catch(error) {
+      mount.innerHTML = `<section class="ref-program"><div class="ref-program__main" style="grid-template-columns:1fr"><div><div class="ref-program__eyebrow"><svg class="ic"><use href="#i-gift"/></svg>Programa de referidos</div><h2 class="ref-program__title">Tus Créditos IMFRA estarán aquí.</h2><p class="ref-program__desc">No pudimos consultar tu saldo en este momento. Intenta nuevamente en unos minutos; tus créditos permanecen seguros en tu cuenta.</p></div></div></section>`;
+      console.warn('[referrals]', error.message);
+    }
+  }
+
   function renderSuscripcion(container){
     const S = window.UserState || { modo:'cargando' };
 
@@ -8479,6 +8670,8 @@ const Sections = (function(){
           ` : ''}
         </div>
 
+        <div data-referral-program></div>
+
         ${!isInvitado ? `
           <!-- Selector de plan -->
           <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.2px;margin:28px 0 14px;text-align:center">
@@ -8519,6 +8712,8 @@ const Sections = (function(){
       </div>
     `;
 
+    hydrateReferralProgram(container, S);
+
     if (isInvitado) {
       document.getElementById('btn-crear-cuenta-sub')?.addEventListener('click', () => {
         window.location.href = 'vip-auth.html?plan=' + (localStorage.getItem('imfra_intent_plan') || 'anual');
@@ -8557,13 +8752,16 @@ const Sections = (function(){
       }
       mountEl.innerHTML = `<div class="sub-loading"><div class="sub-loading__spin"></div><div>Cargando plan ${selectedPlan}…</div></div>`;
       try {
+        const idToken = await window.__currentUser?.getIdToken?.();
+        if (!idToken) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
         const res = await fetch(`${window.WEBHOOK_URL || 'https://imfra-backend-production.up.railway.app'}/stripe/checkout`, {
           method:'POST',
-          headers:{'Content-Type':'application/json'},
+          headers:{'Content-Type':'application/json', Authorization:`Bearer ${idToken}`},
           body: JSON.stringify({
             plan: selectedPlan,
             uid: S.uid,
-            email: S.email
+            email: S.email,
+            referralCode: localStorage.getItem('imfra_pending_referral') || ''
           })
         });
         if (!res.ok) {
@@ -8676,6 +8874,8 @@ const Sections = (function(){
           </div>
         </section>
 
+        <div data-referral-program></div>
+
         <div class="perfil-grid">
           <div class="perfil-card">
             <div class="perfil-card__title">Método de pago</div>
@@ -8728,6 +8928,7 @@ const Sections = (function(){
     `;
 
     // ─── Bind de los botones reales ───
+    hydrateReferralProgram(container, S);
     bindSuscripcionButtons(container);
   }
 
@@ -9804,47 +10005,18 @@ window.crearNotificacion = async function(opts) {
 };
 
 // ═══════════════════════════════════════════════════════════════════
-// Sistema de referidos · código + copiar + compartir
+// Sistema de referidos · acceso al programa real de Créditos IMFRA
 // ═══════════════════════════════════════════════════════════════════
 function getReferralCode(){
-  let code=localStorage.getItem('imfra_referral');
-  if(!code){
-    const rand=Math.random().toString(36).slice(2,7).toUpperCase().replace(/[01OIL]/g,'X');
-    code='IMFRA-'+rand;
-    localStorage.setItem('imfra_referral',code);
-  }
-  return code;
+  return window.__referralSummary?.code || '';
 }
 
 function openReferralModal(){
-  const code=getReferralCode();
-  const refLink=IMFRA_CONTACT.sitio+'/?ref='+code;
-  const shareTxt=`🦺 Conoce IMFRA · cursos de ingeniería civil y construcción con certificación oficial.\n\nUsa mi código ${code} y obtén un descuento especial.\n\nMás info: ${refLink}`;
-  Modal.open({
-    id:'referral',
-    title:'Tu código de referidos',
-    subtitle:'Comparte y gana beneficios',
-    icon:'i-trophy',
-    size:'sm',
-    body:`
-      <div style="background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 16%,transparent),color-mix(in srgb,var(--highlight) 8%,transparent));border:0.5px solid color-mix(in srgb,var(--primary) 30%,transparent);border-radius:14px;padding:18px 16px;text-align:center;margin-bottom:14px;">
-        <div style="font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--primary);font-weight:700;">Tu código personal</div>
-        <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;letter-spacing:1.5px;color:var(--text);margin-top:8px;">${code}</div>
-      </div>
-      <p style="font-size:13px;color:var(--text-2);line-height:1.6;margin:0;">Cuando alguien se registre con tu código en IMFRA, ambos reciben beneficios. Comparte por WhatsApp, redes o copia el enlace.</p>
-    `,
-    footer:`<button class="btn btn--ghost" id="ref-copy"><svg class="ic"><use href="#i-download"/></svg>Copiar código</button><button class="btn btn--accent" id="ref-share"><svg class="ic"><use href="#i-whatsapp"/></svg>Compartir por WhatsApp</button>`
-  });
-  document.getElementById('ref-copy')?.addEventListener('click',()=>{
-    navigator.clipboard?.writeText(code).then(
-      ()=>Toast.success('Código copiado',code),
-      ()=>Toast.info('Copia manual',code)
-    );
-  });
-  document.getElementById('ref-share')?.addEventListener('click',()=>{
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareTxt)}`,'_blank');
-    Toast.success('Abriendo WhatsApp…','Comparte con tus colegas');
-  });
+  navigateToSection('suscripcion');
+  window.setTimeout(()=>{
+    const program=document.querySelector('.ref-program');
+    program?.scrollIntoView({behavior:'smooth',block:'center'});
+  },180);
 }
 
 // ═══════════════════════════════════════════════════════════════════
