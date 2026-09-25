@@ -3153,13 +3153,15 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .ref-program__main{position:relative;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(250px,.7fr);gap:28px;padding:28px}
 .ref-program__eyebrow{display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:1.35px;text-transform:uppercase;color:var(--primary)}
 .ref-program__eyebrow .ic{width:14px;height:14px}
+.ref-program__topline{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.ref-program__bonus{padding:7px 10px;border-radius:999px;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);font:800 10px 'JetBrains Mono',monospace;white-space:nowrap}
 .ref-program__title{font-family:'Plus Jakarta Sans',sans-serif;font-size:25px;line-height:1.1;letter-spacing:-.7px;margin:10px 0 9px;color:var(--text)}
 .ref-program__desc{max-width:620px;font-size:13px;line-height:1.6;color:var(--text-2);margin:0}
 .ref-program__reward{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;padding:15px 16px;border:1px solid var(--border);border-radius:15px;background:color-mix(in srgb,var(--primary) 5%,var(--surface-2))}
 .ref-program__reward strong{display:block;font-size:13px;color:var(--text)}
 .ref-program__reward span{display:block;font-size:11px;color:var(--text-3);margin-top:3px;line-height:1.4}
 .ref-program__reward b{flex:0 0 auto;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;letter-spacing:-.8px;color:var(--primary)}
-.ref-program__wallet{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:190px;padding:21px;border-radius:18px;background:linear-gradient(135deg,#12100D,#2D2114);color:#fff;box-shadow:0 18px 35px -28px rgba(0,0,0,.9)}
+.ref-program__wallet{position:relative;display:flex;flex-direction:column;justify-content:space-between;min-height:154px;padding:21px;border-radius:18px;background:linear-gradient(135deg,#12100D,#2D2114);color:#fff;box-shadow:0 18px 35px -28px rgba(0,0,0,.9)}
 .ref-program__wallet-label{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.58)}
 .ref-program__wallet-value{font-family:'Plus Jakarta Sans',sans-serif;font-size:42px;font-weight:800;letter-spacing:-1.6px;line-height:1;margin-top:8px}
 .ref-program__wallet-value small{font-size:12px;letter-spacing:.2px;color:#FFB23E;margin-left:4px}
@@ -3191,7 +3193,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
   .ref-program{border-radius:19px}
   .ref-program__main{grid-template-columns:1fr;gap:18px;padding:22px 18px}
   .ref-program__title{font-size:22px}
-  .ref-program__wallet{min-height:166px}
+  .ref-program__wallet{min-height:146px}
   .ref-program__share{padding:0 18px 20px}
   .ref-program__link{grid-template-columns:1fr 46px 46px}
   .ref-program__copy,.ref-program__wa{padding:0}
@@ -8487,9 +8489,8 @@ const Sections = (function(){
         <div class="ref-program__main">
           <div>
             <div class="ref-program__eyebrow"><svg class="ic"><use href="#i-gift"/></svg>Programa de referidos</div>
-            <h2 class="ref-program__title">Invita colegas. Gana Créditos IMFRA.</h2>
-            <p class="ref-program__desc">Crea tu cuenta para obtener un enlace personal. Cuando uno de tus invitados active su membresía VIP, recibirás créditos para desbloquear futuras herramientas especializadas.</p>
-            <div class="ref-program__future"><svg class="ic"><use href="#i-shield-check"/></svg>Los créditos se acreditan únicamente después de un pago VIP confirmado.</div>
+            <h2 class="ref-program__title">Comparte IMFRA y gana créditos.</h2>
+            <p class="ref-program__desc">Crea tu cuenta para obtener tu enlace personal.</p>
           </div>
           <div class="ref-program__guest-icon"><svg class="ic"><use href="#i-users"/></svg></div>
         </div>
@@ -8506,14 +8507,12 @@ const Sections = (function(){
       <section class="ref-program" aria-labelledby="ref-program-title">
         <div class="ref-program__main">
           <div>
-            <div class="ref-program__eyebrow"><svg class="ic"><use href="#i-gift"/></svg>Invita y gana</div>
-            <h2 class="ref-program__title" id="ref-program-title">Tu red también construye valor.</h2>
-            <p class="ref-program__desc">Comparte tu enlace personal. Cuando un colega se registre y complete su primera activación VIP, ambos reciben Créditos IMFRA.</p>
-            <div class="ref-program__reward">
-              <div><strong>Recompensa por cada nuevo VIP</strong><span>Tú recibes ${reward}; tu colega inicia con ${welcome} créditos.</span></div>
-              <b>+${reward}</b>
+            <div class="ref-program__topline">
+              <div class="ref-program__eyebrow"><svg class="ic"><use href="#i-gift"/></svg>Invita y gana</div>
+              <span class="ref-program__bonus">+${reward} por VIP</span>
             </div>
-            <div class="ref-program__future"><svg class="ic"><use href="#i-tools"/></svg>Próximamente podrás canjearlos por herramientas técnicas avanzadas. No son dinero y no expiran.</div>
+            <h2 class="ref-program__title" id="ref-program-title">Comparte. Ambos ganan.</h2>
+            <p class="ref-program__desc">Tú recibes ${reward} créditos y tu colega ${welcome} al activar su membresía VIP.</p>
           </div>
           <div class="ref-program__wallet">
             <div>
@@ -8528,17 +8527,12 @@ const Sections = (function(){
           </div>
         </div>
         <div class="ref-program__share">
-          <div class="ref-program__share-label">Tu enlace personal · ${escapeHtml(code)}</div>
+          <div class="ref-program__share-label">Tu enlace · ${escapeHtml(code)}</div>
           <div class="ref-program__link">
             <input class="ref-program__input" id="ref-program-link" value="${escapeHtml(link)}" readonly aria-label="Enlace personal de referido">
             <button class="ref-program__copy" id="ref-program-copy" type="button" data-bypass-paywall="true"><svg class="ic"><use href="#i-link"/></svg><span>Copiar enlace</span></button>
             <button class="ref-program__wa" id="ref-program-share" type="button" data-bypass-paywall="true"><svg class="ic"><use href="#i-whatsapp"/></svg><span>Compartir</span></button>
           </div>
-        </div>
-        <div class="ref-program__steps">
-          <div class="ref-program__step"><span class="ref-program__step-num">1</span><div><strong>Comparte tu enlace</strong><span>Cada cuenta queda vinculada una sola vez.</span></div></div>
-          <div class="ref-program__step"><span class="ref-program__step-num">2</span><div><strong>Tu colega se vuelve VIP</strong><span>El registro queda pendiente hasta confirmar el pago.</span></div></div>
-          <div class="ref-program__step"><span class="ref-program__step-num">3</span><div><strong>Reciben sus créditos</strong><span>El saldo se acredita automáticamente y sin duplicados.</span></div></div>
         </div>
       </section>`;
   }
@@ -8670,7 +8664,7 @@ const Sections = (function(){
           ` : ''}
         </div>
 
-        <div data-referral-program></div>
+        ${isInvitado ? '<div data-referral-program></div>' : ''}
 
         ${!isInvitado ? `
           <!-- Selector de plan -->
@@ -8708,6 +8702,8 @@ const Sections = (function(){
               <div>Preparando tu plan…</div>
             </div>
           </div>
+
+          <div data-referral-program></div>
         ` : ''}
       </div>
     `;
