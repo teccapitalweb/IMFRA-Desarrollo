@@ -4549,6 +4549,16 @@ const Pages={
           </button>
         `}
 
+        <!-- ─── CRÉDITOS IMFRA · siempre disponible (con o sin membresía) ─── -->
+        <button class="mb-action-btn" data-act="creditos" style="--c:#10B981;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5a2.5 2.5 0 0 0-2.5-1.5c-1.5 0-2.5.9-2.5 2s1 1.6 2.5 2 2.5.9 2.5 2-1 2-2.5 2a2.5 2.5 0 0 1-2.5-1.5"/><line x1="12" y1="6" x2="12" y2="8"/><line x1="12" y1="16" x2="12" y2="18"/></svg>
+          <div class="mb-action-btn__body">
+            <div class="mb-action-btn__title">Créditos IMFRA</div>
+            <div class="mb-action-btn__sub">Regalar o vender créditos para materiales, libros y herramientas</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
         <!-- ─── ELIMINAR · siempre disponible ─── -->
         <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-2);"></div>
 
@@ -4642,6 +4652,7 @@ const Pages={
     if (accion === 'activar-mensual') return Pages._modalActivar(m, 'mensual', 30);
     if (accion === 'activar-anual')   return Pages._modalActivar(m, 'anual', 365);
     if (accion === 'regalar')         return Pages._modalRegalar(m);
+    if (accion === 'creditos')        return Pages._modalCreditos(m);
     if (accion === 'renovar')         return Pages._modalRenovar(m);
     if (accion === 'cancelar')        return Pages._modalCancelar(m);
     if (accion === 'eliminar')        return Pages._modalEliminar(m);
@@ -4770,6 +4781,76 @@ const Pages={
           body.querySelectorAll('[data-days]').forEach(b => { b.disabled = false; b.style.opacity = '1'; b.style.cursor = 'pointer'; });
         }
       });
+    });
+  },
+
+  // Modal Créditos IMFRA · regalar (cortesía) o vender (cobro fuera de Stripe)
+  async _modalCreditos(m) {
+    const uid = m.uid || m.id;
+    const nombre = (m.nombre || m.email || 'Este miembro').replace(/</g,'&lt;');
+    const C = '#10B981';
+    const body = document.createElement('div');
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;">
+        <div><div style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:.6px;text-transform:uppercase;">Saldo actual</div><div style="font-size:14px;color:var(--text-2);font-weight:600;">${nombre}</div></div>
+        <div id="mb-cr-saldo" style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:800;color:${C};">…</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <button type="button" class="mb-cr-tipo is-on" data-tipo="regalo" style="padding:10px;border-radius:10px;border:1.5px solid ${C};background:color-mix(in srgb, ${C} 12%, var(--surface-2));color:var(--text);font-family:inherit;font-weight:700;cursor:pointer;">🎁 Regalar</button>
+        <button type="button" class="mb-cr-tipo" data-tipo="venta" style="padding:10px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-2);color:var(--text);font-family:inherit;font-weight:700;cursor:pointer;">💵 Vender</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px;">
+        ${[120,250,500,1000].map(n => `<button type="button" class="mb-cr-monto" data-monto="${n}" style="padding:10px 6px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface-2);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;cursor:pointer;">${n}</button>`).join('')}
+      </div>
+      <label style="display:block;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px;">Cantidad de créditos</label>
+      <input id="mb-cr-monto" type="number" min="1" max="100000" step="1" placeholder="Ej. 120" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-family:inherit;font-size:14px;margin-bottom:10px;">
+      <div id="mb-cr-precio-wrap" style="display:none;">
+        <label style="display:block;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px;">Precio cobrado (MXN)</label>
+        <input id="mb-cr-precio" type="number" min="0" step="0.01" placeholder="Ej. 149" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-family:inherit;font-size:14px;margin-bottom:10px;">
+      </div>
+      <label style="display:block;font-size:12px;font-weight:700;color:var(--text-2);margin-bottom:4px;">Nota (opcional)</label>
+      <input id="mb-cr-nota" type="text" maxlength="200" placeholder="Ej. Cortesía por webinar" style="width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);font-family:inherit;font-size:13px;margin-bottom:12px;">
+      <div style="font-size:11.5px;color:var(--text-3);padding:10px 12px;background:color-mix(in srgb, ${C} 8%, var(--surface-2));border-left:3px solid ${C};border-radius:6px;line-height:1.55;">
+        Los créditos se suman al saldo del miembro y quedan registrados en el libro mayor. Sirven para canjear materiales, libros y herramientas con o sin membresía.
+      </div>
+    `;
+    const footer = document.createElement('div');
+    footer.innerHTML = `<button class="btn btn--ghost" id="mb-cancel">Cancelar</button><button class="btn btn--accent" id="mb-cr-confirm">Regalar créditos</button>`;
+    Modal.open({ title: 'Créditos IMFRA', subtitle: 'Regalar o vender', icon: 'i-users', body, footer });
+    footer.querySelector('#mb-cancel').addEventListener('click', () => Modal.close());
+
+    let tipo = 'regalo';
+    const saldoEl = body.querySelector('#mb-cr-saldo');
+    const montoEl = body.querySelector('#mb-cr-monto');
+    const precioEl = body.querySelector('#mb-cr-precio');
+    const notaEl = body.querySelector('#mb-cr-nota');
+    const confirmBtn = footer.querySelector('#mb-cr-confirm');
+
+    const saldo = await Pages._llamarCreditos('GET', { uid });
+    saldoEl.textContent = saldo.ok ? Number(saldo.data.balance || 0).toLocaleString('es-MX') + ' cr' : '—';
+
+    body.querySelectorAll('.mb-cr-tipo').forEach(btn => btn.addEventListener('click', () => {
+      tipo = btn.dataset.tipo;
+      body.querySelectorAll('.mb-cr-tipo').forEach(b => { const on = b === btn; b.style.borderColor = on ? C : 'var(--border)'; b.style.background = on ? `color-mix(in srgb, ${C} 12%, var(--surface-2))` : 'var(--surface-2)'; });
+      body.querySelector('#mb-cr-precio-wrap').style.display = tipo === 'venta' ? 'block' : 'none';
+      confirmBtn.textContent = tipo === 'venta' ? 'Registrar venta' : 'Regalar créditos';
+    }));
+    body.querySelectorAll('.mb-cr-monto').forEach(btn => btn.addEventListener('click', () => { montoEl.value = btn.dataset.monto; montoEl.focus(); }));
+
+    confirmBtn.addEventListener('click', async () => {
+      const amount = parseInt(montoEl.value, 10);
+      if (!amount || amount < 1) { Toast.error('Cantidad inválida', 'Escribe cuántos créditos otorgar'); montoEl.focus(); return; }
+      const precio = tipo === 'venta' ? Number(precioEl.value) : 0;
+      if (tipo === 'venta' && (!Number.isFinite(precio) || precio < 0)) { Toast.error('Precio inválido', 'Escribe el monto cobrado en MXN'); precioEl.focus(); return; }
+      confirmBtn.disabled = true; confirmBtn.textContent = 'Procesando…';
+      const r = await Pages._llamarCreditos('POST', { uid, amount, tipo, precio, nota: notaEl.value });
+      if (r.ok) {
+        Toast.success(tipo === 'venta' ? '💵 Venta registrada' : '🎁 Créditos regalados', `${nombre} ahora tiene ${Number(r.data.balance || 0).toLocaleString('es-MX')} créditos`);
+        Modal.close();
+      } else {
+        Toast.error('No se pudieron otorgar', r.error || 'Error desconocido');
+        confirmBtn.disabled = false; confirmBtn.textContent = tipo === 'venta' ? 'Registrar venta' : 'Regalar créditos';
+      }
     });
   },
 
@@ -4938,6 +5019,26 @@ const Pages={
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ uid, atPeriodEnd })
+      });
+      const data = await res.json();
+      if (!res.ok) return { ok: false, error: data.error || res.statusText };
+      return { ok: true, data };
+    } catch (e) {
+      return { ok: false, error: e.message };
+    }
+  },
+
+  // GET → saldo · POST → regalar/vender { uid, amount, tipo, precio, nota }
+  async _llamarCreditos(method, payload) {
+    try {
+      const token = await Pages._getAuthToken();
+      const url = method === 'GET'
+        ? `${Pages._webhookUrl}/admin/creditos/${encodeURIComponent(payload.uid)}`
+        : `${Pages._webhookUrl}/admin/creditos`;
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        ...(method === 'GET' ? {} : { body: JSON.stringify(payload) })
       });
       const data = await res.json();
       if (!res.ok) return { ok: false, error: data.error || res.statusText };

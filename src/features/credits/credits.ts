@@ -29,6 +29,7 @@ declare global {
       getBalance(): number;
       isLoaded(): boolean;
       isUnlocked(rewardId: string): boolean;
+      canEarn(): boolean;
       redeem(rewardId: string): Promise<CreditSnapshot>;
       awardCorrect(activityId: string, source: "quiz" | "inspector", selected: number): Promise<CreditSnapshot>;
     };
@@ -47,16 +48,16 @@ const DEMO_COSTS: Record<string, number> = {
   "tool-checklist": 260,
   "tool-bitacora": 280,
   "tool-generadores": 300,
-  "material-1": 160,
+  "material-1": 120,
   "material-2": 175,
   "material-3": 190,
   "material-4": 205,
   "material-5": 220,
   "material-6": 240,
   "material-7": 260,
-  "book-advanced-mechanics": 220,
-  "book-advanced-strength": 200,
-  "book-resistencia-materiales": 150
+  "book-advanced-mechanics": 350,
+  "book-advanced-strength": 320,
+  "book-resistencia-materiales": 300
 };
 const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [] };
 let current: CreditSnapshot = { ...EMPTY };
@@ -66,6 +67,16 @@ let identity = "";
 
 function isDemo() {
   return window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
+}
+
+/** VIP activo o administrador. Solo estas cuentas ganan créditos en Retos. */
+export function hasVipAccess() {
+  const state = window.UserState as (typeof window.UserState & { plan?: string; isAdmin?: boolean }) | undefined;
+  return state?.modo === "vip" || state?.plan === "admin" || state?.isAdmin === true;
+}
+
+export function canEarnChallengeCredits() {
+  return isDemo() || hasVipAccess();
 }
 
 function currentIdentity() {
@@ -194,6 +205,7 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
 
 export async function awardCreditForCorrect(activityId: string, source: "quiz" | "inspector", selected: number): Promise<CreditSnapshot> {
   await loadCredits();
+  if (!canEarnChallengeCredits()) return current;
   if (isDemo()) {
     const saved = readDemoState();
     const events = Array.isArray(saved.creditEvents) ? [...new Set(saved.creditEvents.map(String))] : [];
@@ -219,6 +231,7 @@ window.IMFRACredits = {
   getBalance: () => current.balance,
   isLoaded: () => loaded,
   isUnlocked: (rewardId: string) => current.redemptions.some((item) => item.rewardId === rewardId && item.status === "active"),
+  canEarn: canEarnChallengeCredits,
   redeem: redeemCreditReward,
   awardCorrect: awardCreditForCorrect
 };

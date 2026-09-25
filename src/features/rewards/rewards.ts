@@ -2,6 +2,7 @@ import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
 import { isRewardsDemo, loadRewardBalance, submitQuizAttempt, submitRewardRequest } from "./cloud";
 import { celebrate } from "../shared/celebration";
+import { canEarnChallengeCredits } from "../credits/credits";
 
 interface Redemption {
   id: string;
@@ -180,7 +181,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
           <div class="rw-hero__copy">
             <span class="rw-eyebrow">${mode === "quiz" ? "Retos · Quiz técnico" : "Retos · Recompensas"}</span>
             <h1>${mode === "quiz" ? (demoMode ? "Responde y <em>gana créditos.</em>" : "Pon a prueba tu <em>criterio técnico.</em>") : "Tus créditos, tus <em>recompensas.</em>"}</h1>
-            <p>${mode === "quiz" ? "Cada acierto validado suma 25 créditos." : (demoMode ? "Canjea los créditos que ganas en Retos y Referidos." : "Consulta tu saldo y los beneficios disponibles.")}</p>
+            <p>${mode === "quiz" ? (canEarnChallengeCredits() ? "Cada acierto validado suma 25 créditos." : "Solo los miembros VIP ganan créditos en Retos.") : (demoMode ? "Canjea los créditos que ganas en Retos y Referidos." : "Consulta tu saldo y los beneficios disponibles.")}</p>
           </div>
           <div class="rw-balance" aria-label="Saldo de Créditos IMFRA">
             <span>Tu saldo</span>
@@ -281,7 +282,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
                   </button>`;
                 }).join("")}
               </div>
-              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? `Correcto · +${answered.earned} créditos` : "Respuesta registrada · 0 créditos"}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${roundAnswers.length === activeRound.length ? "Ver resultado de la ronda" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
+              ${answered ? `<div class="rw-feedback ${answered.correct ? "is-success" : "is-learning"}"><strong>${answered.correct ? (answered.earned > 0 ? `Correcto · +${answered.earned} créditos` : "Correcto · Solo VIP suma créditos") : "Respuesta registrada · 0 créditos"}</strong><p>${escapeHtml(question.explanation)}</p><button type="button" class="btn btn--ghost rw-next-question" data-next-question>${roundAnswers.length === activeRound.length ? "Ver resultado de la ronda" : "Siguiente desafío"} <span aria-hidden="true">→</span></button></div>` : ""}
             </div>`}
           </section>
 
@@ -349,7 +350,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         if (state.answered[key]) return;
         const selected = Number(button.dataset.answer);
         const correct = selected === answeredQuestion.correct;
-        const earned = correct ? 25 : 0;
+        const earned = correct && canEarnChallengeCredits() ? 25 : 0;
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
         if (correct) celebrate("subtle");
