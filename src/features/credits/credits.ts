@@ -10,11 +10,22 @@ export interface CreditRedemption {
   validUntil?: string | null;
 }
 
+export interface CreditNotification {
+  id: string;
+  kind: "gift" | "purchase";
+  amount: number;
+  balanceAfter: number;
+  note?: string;
+  createdAt?: string | null;
+  readAt?: string | null;
+}
+
 export interface CreditSnapshot {
   balance: number;
   lifetimeEarned: number;
   lifetimeSpent: number;
   redemptions: CreditRedemption[];
+  notifications: CreditNotification[];
 }
 
 interface DemoRewardState {
@@ -36,6 +47,7 @@ declare global {
       canEarn(): boolean;
       redeem(rewardId: string): Promise<CreditSnapshot>;
       awardCorrect(activityId: string, source: "quiz" | "inspector", selected: number): Promise<CreditSnapshot>;
+      markNotificationsRead(ids: string[]): Promise<void>;
     };
     WEBHOOK_URL?: string;
     __currentUser?: { getIdToken(): Promise<string> };
@@ -66,11 +78,13 @@ const DEMO_COSTS: Record<string, number> = {
   "imdac-control-obra-30d": 600,
   "pack-plantillas-pro": 500
 };
-const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [] };
+const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [], notifications: [] };
 let current: CreditSnapshot = { ...EMPTY };
 let loaded = false;
 let loading: Promise<CreditSnapshot> | null = null;
 let identity = "";
+let displayedNotifications = new Set<string>();
+let pollTimer = 0;
 
 function isDemo() {
   return window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
@@ -117,7 +131,8 @@ function demoSnapshot() {
     balance: Math.max(0, Number(saved.points ?? 620) || 0),
     lifetimeEarned: 620,
     lifetimeSpent: redemptions.reduce((total, item) => total + Math.max(0, Number(item.points) || 0), 0),
-    redemptions
+    redemptions,
+    notifications: []
   } satisfies CreditSnapshot;
 }
 
@@ -138,15 +153,49 @@ function writeDemo(snapshot: CreditSnapshot, eventIds?: string[]) {
   localStorage.setItem(demoStorageKey(), JSON.stringify(saved));
 }
 
+function popupStorageKey() {
+  return `imfra:credit-popups:${identity}`;
+}
+
+function restoreDisplayedNotifications() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(popupStorageKey()) || "[]");
+    displayedNotifications = new Set(Array.isArray(stored) ? stored.map(String) : []);
+  } catch {
+    displayedNotifications = new Set();
+  }
+}
+
+function notifyPrivateMovements(notifications: CreditNotification[]) {
+  const pending = notifications.filter((item) => !item.readAt && !displayedNotifications.has(item.id));
+  pending.reverse().forEach((notification) => {
+    displayedNotifications.add(notification.id);
+    window.dispatchEvent(new CustomEvent("imfra:credit-notification", { detail: notification }));
+  });
+  if (!pending.length) return;
+  try {
+    localStorage.setItem(popupStorageKey(), JSON.stringify([...displayedNotifications].slice(-100)));
+  } catch {}
+}
+
 function publish(snapshot: CreditSnapshot) {
-  current = {
+  const next = {
     balance: Math.max(0, Number(snapshot.balance) || 0),
     lifetimeEarned: Math.max(0, Number(snapshot.lifetimeEarned) || 0),
     lifetimeSpent: Math.max(0, Number(snapshot.lifetimeSpent) || 0),
-    redemptions: Array.isArray(snapshot.redemptions) ? snapshot.redemptions : []
+    redemptions: Array.isArray(snapshot.redemptions) ? snapshot.redemptions : [],
+    notifications: Array.isArray(snapshot.notifications) ? snapshot.notifications : []
   };
+  const changed = !loaded
+    || current.balance !== next.balance
+    || current.lifetimeEarned !== next.lifetimeEarned
+    || current.lifetimeSpent !== next.lifetimeSpent
+    || current.redemptions.map((item) => `${item.id}:${item.status}`).join("|") !== next.redemptions.map((item) => `${item.id}:${item.status}`).join("|");
+  current = next;
   loaded = true;
-  window.dispatchEvent(new CustomEvent("imfra:credits-changed", { detail: current }));
+  if (changed) window.dispatchEvent(new CustomEvent("imfra:credits-changed", { detail: current }));
+  window.dispatchEvent(new CustomEvent("imfra:credit-notifications-sync", { detail: current.notifications }));
+  notifyPrivateMovements(current.notifications);
   return current;
 }
 
@@ -167,18 +216,48 @@ export async function loadCredits(force = false): Promise<CreditSnapshot> {
     loaded = false;
     loading = null;
     current = { ...EMPTY };
+    restoreDisplayedNotifications();
   }
   if (!force && loaded) return current;
   if (!force && loading) return loading;
   loading = (async () => {
     if (isDemo()) return publish(demoSnapshot());
     if (nextIdentity === "guest" || window.UserState?.modo === "invitado") return publish({ ...EMPTY });
-    const response = await fetch(apiUrl("/credits/me"), { headers: { Authorization: `Bearer ${await token()}` } });
+    const response = await fetch(apiUrl("/credits/me"), { cache: "no-store", headers: { Authorization: `Bearer ${await token()}` } });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "No pudimos cargar tus Créditos IMFRA.");
     return publish(data as CreditSnapshot);
   })().finally(() => { loading = null; });
   return loading;
+}
+
+export async function markCreditNotificationsRead(ids: string[]) {
+  const normalized = [...new Set(ids.map(String).filter(Boolean))].slice(0, 50);
+  if (!normalized.length || isDemo()) return;
+  const response = await fetch(apiUrl("/credits/notifications/read"), {
+    method: "POST",
+    cache: "no-store",
+    headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ ids: normalized })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "No pudimos actualizar tus notificaciones.");
+  const readAt = new Date().toISOString();
+  current = { ...current, notifications: current.notifications.map((item) => normalized.includes(item.id) ? { ...item, readAt } : item) };
+}
+
+async function pollCredits() {
+  if (document.visibilityState === "hidden" || isDemo()) return;
+  if (!window.__currentUser || window.UserState?.modo === "invitado" || currentIdentity() === "guest") return;
+  try { await loadCredits(true); } catch (error) { console.warn("[credits] Sincronización pendiente", error); }
+}
+
+function startCreditPolling() {
+  if (pollTimer) window.clearInterval(pollTimer);
+  pollTimer = window.setInterval(pollCredits, 15000);
+  window.setTimeout(pollCredits, 2500);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void pollCredits(); });
+  window.addEventListener("online", () => void pollCredits());
 }
 
 export async function redeemCreditReward(rewardId: string): Promise<CreditSnapshot> {
@@ -256,6 +335,8 @@ window.IMFRACredits = {
   isUnlocked: (rewardId: string) => current.redemptions.some((item) => item.rewardId === rewardId && item.status === "active"),
   canEarn: canEarnChallengeCredits,
   redeem: redeemCreditReward,
-  awardCorrect: awardCreditForCorrect
+  awardCorrect: awardCreditForCorrect,
+  markNotificationsRead: markCreditNotificationsRead
 };
 window.dispatchEvent(new CustomEvent("imfra:credits-ready"));
+startCreditPolling();

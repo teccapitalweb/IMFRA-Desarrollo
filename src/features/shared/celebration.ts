@@ -37,7 +37,7 @@ export function celebrate(intensity: CelebrationIntensity = "normal") {
   lastCelebration = now;
 
   document.querySelector(".imfra-confetti")?.remove();
-  const quantity = { subtle: 22, normal: 38, big: 58 }[intensity];
+  const quantity = { subtle: 24, normal: 44, big: 84 }[intensity];
   const colors = ["#f59d1a", "#ffcf7a", "#ff7a2d", "#2f865f", "#60a5fa", "#f87171", "#ffffff"];
   const host = document.createElement("div");
   host.className = `imfra-confetti is-${intensity}`;
@@ -81,6 +81,7 @@ function stableVariant(value: string) {
 export function celebrateRedemption(rewardId: string, type = "digital") {
   const profile = redemptionProfile(rewardId, type);
   const variant = stableVariant(rewardId);
+  celebrate("big");
   document.querySelector(".imfra-reward-celebration")?.remove();
 
   const host = document.createElement("div");

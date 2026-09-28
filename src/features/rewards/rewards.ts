@@ -442,6 +442,16 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
   };
 
   render();
+  const onCreditsChanged = (event: Event) => {
+    if (!container.isConnected) {
+      window.removeEventListener("imfra:credits-changed", onCreditsChanged);
+      return;
+    }
+    mergeCreditSnapshot(state, (event as CustomEvent<CreditSnapshot>).detail);
+    saveState(state);
+    render();
+  };
+  window.addEventListener("imfra:credits-changed", onCreditsChanged);
   void loadCredits().then((snapshot) => {
     mergeCreditSnapshot(state, snapshot);
     saveState(state);

@@ -379,6 +379,14 @@ function mount(container: HTMLElement) {
   else if (initialView === "cases") renderCases();
   else if (initialView === "flashcards") { rebuildDeck(); renderFlashcards(); }
   else renderHub();
+  const onCreditsChanged = () => {
+    if (!container.isConnected) {
+      window.removeEventListener("imfra:credits-changed", onCreditsChanged);
+      return;
+    }
+    if (view === "hub") renderHub();
+  };
+  window.addEventListener("imfra:credits-changed", onCreditsChanged);
   void window.IMFRACredits?.hydrate().then(() => { if (view === "hub") renderHub(); })
     .catch((error) => console.warn("[training] No se pudo cargar el saldo", error));
   if (initialCaseId || initialView === "cases" || initialView === "flashcards") requestAnimationFrame(() => container.querySelector(initialCaseId ? ".tr-case-run" : ".tr-back")?.scrollIntoView({ behavior: "auto", block: "start" }));

@@ -1928,6 +1928,11 @@ body::after{
 .shelf__cover .chip--owned{position:absolute;right:8px;bottom:8px;padding:5px 8px;border-radius:7px;background:var(--success);color:#0d0d0d;font:800 9px/1 'JetBrains Mono',monospace;text-transform:uppercase}
 .shelf__title{font-size:13px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .shelf__meta{font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+.shelf__actions{display:grid;grid-template-columns:1fr;gap:6px;margin-top:auto;padding-top:3px}
+.shelf__action{min-height:34px;padding:7px 9px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text);font:750 10px 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:.18s ease}
+.shelf__action:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px)}
+.shelf__action--redeem{border-color:color-mix(in srgb,var(--primary) 42%,var(--border));background:color-mix(in srgb,var(--primary) 10%,var(--surface));color:var(--primary)}
+.shelf__item:focus-visible{outline:3px solid var(--primary-glow);outline-offset:5px;border-radius:10px}
 .book-detail{display:grid;grid-template-columns:220px 1fr;gap:32px;align-items:start;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px}
 .book-detail__cover{aspect-ratio:2/3;border-radius:10px;overflow:hidden;box-shadow:6px 8px 28px rgba(0,0,0,.3)}
 .book-detail__cover img{width:100%;height:100%;object-fit:cover;display:block}
@@ -7481,8 +7486,22 @@ const Sections = (function(){
   function libroBadge(libro){
     if(libro.gratis)return '<span class="chip--free">Gratis</span>';
     if(libroCanjeado(libro))return '<span class="chip--owned">Canjeado</span>';
-    if(!libroEsVip())return '<span class="chip--credits">'+Number(libro.creditCost||0)+' créditos</span>';
-    return '';
+    return '<span class="chip--credits">'+Number(libro.creditCost||0)+' créditos</span>';
+  }
+  function libroCard(libro,lockSvg){
+    var acc=libroTieneAcceso(libro),canjeado=libroCanjeado(libro),gratis=!!libro.gratis;
+    var leer=acc?'<button type="button" class="shelf__action" data-read-book-card="'+libro.id+'">'+(libroEsVip()&&!gratis&&!canjeado?'Leer con VIP':'Leer ahora')+'</button>':'';
+    var canjear=!gratis&&!canjeado?'<button type="button" class="shelf__action shelf__action--redeem" data-redeem-book-card="'+libro.id+'">Canjear para siempre · '+Number(libro.creditCost||0)+' cr</button>':'';
+    return '<article class="shelf__item" role="link" tabindex="0" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+libroBadge(libro)+(!acc?'<span class="chip--lock">'+lockSvg+'</span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' · '+libro.paginas+' págs</div><div class="shelf__actions">'+leer+canjear+'</div></article>';
+  }
+  function enlazarLibros(container){
+    container.querySelectorAll('[data-libro-id]').forEach(function(el){
+      var abrir=function(){_libroDetalle=el.dataset.libroId;renderLibros(container);window.scrollTo({top:0,behavior:'smooth'});};
+      el.addEventListener('click',function(e){if(e.target.closest('button'))return;abrir();});
+      el.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&!e.target.closest('button')){e.preventDefault();abrir();}});
+    });
+    container.querySelectorAll('[data-read-book-card]').forEach(function(button){button.addEventListener('click',function(e){e.stopPropagation();navigateToSection('libro/'+encodeURIComponent(button.dataset.readBookCard));});});
+    container.querySelectorAll('[data-redeem-book-card]').forEach(function(button){button.addEventListener('click',function(e){e.stopPropagation();var libro=IMFRA_LIBROS.find(function(item){return item.id===button.dataset.redeemBookCard;});if(libro)abrirCanjeLibro(container,libro);});});
   }
   function cargarCreditosLibros(container){
     if(!window.IMFRACredits){
@@ -7498,8 +7517,9 @@ const Sections = (function(){
 
   function renderLibros(container) {
     if (_libroDetalle) { _renderLibroDetalle(container, _libroDetalle); return; }
-    container.innerHTML = '<div class="fade-up"><div class="sec-hero" data-illus="libros"><span class="sec-hero__eyebrow">Biblioteca</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">El primero es gratis. Los demás están incluidos con VIP o puedes desbloquearlos para siempre con tus Créditos IMFRA.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){var acc=libroTieneAcceso(libro);return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+libro.id+'"><div class="shelf__cover"><img src="'+libro.portada+'" alt="" loading="lazy">'+libroBadge(libro)+(!acc?'<span class="chip--lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></span>':'')+'</div><div class="shelf__title">'+libro.titulo+'</div><div class="shelf__meta">'+libro.autor+' \u00b7 '+libro.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>';
-    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;renderLibros(container);window.scrollTo({top:0,behavior:'smooth'});});});
+    var lockSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+    container.innerHTML = '<div class="fade-up"><div class="sec-hero" data-illus="libros"><span class="sec-hero__eyebrow">Biblioteca canjeable</span><h1 class="sec-hero__title">Libros de ingeniería</h1><p class="sec-hero__sub">Lee con tu membresía VIP o usa tus Créditos IMFRA para conservar cada libro desbloqueado en tu cuenta.</p></div><div class="shelf">'+IMFRA_LIBROS.map(function(libro){return libroCard(libro,lockSvg);}).join('')+'</div></div>';
+    enlazarLibros(container);
     cargarCreditosLibros(container);
   }
   function _renderLibroDetalle(container, libroId) {
@@ -7511,17 +7531,19 @@ const Sections = (function(){
     var rel = IMFRA_LIBROS.filter(function(l){return l.id!==libro.id;}).slice(0,3);
     var lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
     var openSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-    var btnHtml = acc ? '<button type="button" class="btn btn--accent" data-read-book="'+libro.id+'" style="gap:8px;">'+openSvg+'Leer dentro de IMFRA</button>' : '<button type="button" class="btn btn--accent" data-redeem-book="'+libro.id+'" style="gap:8px;">'+lockSvg+'Desbloquear · '+Number(libro.creditCost||0)+' créditos</button>';
-    var accessLabel = libro.gratis ? 'Gratis para todos' : esVip ? 'Incluido con VIP' : canjeado ? 'Desbloqueado con créditos' : Number(libro.creditCost||0)+' Créditos IMFRA o membresía VIP';
-    var creditNote = !acc ? '<div class="book-credit-note"><svg class="ic"><use href="#i-gift"/></svg><span>Gana créditos en <strong>Retos</strong> y con tu <strong>enlace de referidos</strong>.</span></div>' : '';
-    var relHtml = rel.length ? '<div style="margin-top:32px;"><h3 style="font-size:16px;font-weight:700;margin-bottom:14px;">M\u00e1s libros</h3><div class="shelf">'+rel.map(function(r){var ra=libroTieneAcceso(r);return '<a class="shelf__item" href="javascript:void(0)" data-libro-id="'+r.id+'"><div class="shelf__cover"><img src="'+r.portada+'" alt="" loading="lazy">'+libroBadge(r)+(!ra?'<span class="chip--lock">'+lockSvg+'</span>':'')+'</div><div class="shelf__title">'+r.titulo+'</div><div class="shelf__meta">'+r.autor+' \u00b7 '+r.paginas+' p\u00e1gs</div></a>';}).join('')+'</div></div>' : '';
+    var readButton=acc?'<button type="button" class="btn '+(canjeado||libro.gratis?'btn--accent':'btn--ghost')+'" data-read-book="'+libro.id+'" style="gap:8px;">'+openSvg+(esVip&&!canjeado&&!libro.gratis?'Leer con VIP':'Leer dentro de IMFRA')+'</button>':'';
+    var redeemButton=!libro.gratis&&!canjeado?'<button type="button" class="btn btn--accent" data-redeem-book="'+libro.id+'" style="gap:8px;">'+lockSvg+'Canjear para siempre · '+Number(libro.creditCost||0)+' créditos</button>':'';
+    var btnHtml=readButton+redeemButton;
+    var accessLabel = libro.gratis ? 'Gratis para todos' : canjeado ? 'Desbloqueado permanentemente' : esVip ? 'Lectura incluida con VIP · canje permanente disponible' : Number(libro.creditCost||0)+' Créditos IMFRA o membresía VIP';
+    var creditNote = !libro.gratis&&!canjeado ? '<div class="book-credit-note"><svg class="ic"><use href="#i-gift"/></svg><span>'+(esVip?'Tu membresía permite leerlo ahora; el canje lo deja <strong>permanentemente</strong> en tu cuenta.':'Gana créditos en <strong>Retos</strong> y con tu <strong>enlace de referidos</strong>.')+'</span></div>' : '';
+    var relHtml = rel.length ? '<div style="margin-top:32px;"><h3 style="font-size:16px;font-weight:700;margin-bottom:14px;">M\u00e1s libros</h3><div class="shelf">'+rel.map(function(r){return libroCard(r,lockSvg);}).join('')+'</div></div>' : '';
     container.innerHTML = '<div class="fade-up"><div style="margin-bottom:20px;"><a href="javascript:void(0)" id="libros-back" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Biblioteca</a></div><div class="book-detail"><div class="book-detail__cover"><img src="'+libro.portada+'" alt=""></div><div><div class="book-detail__eyebrow">'+libro.area+' \u00b7 Libro</div><h2 class="book-detail__title">'+libro.titulo+'</h2><p class="book-detail__author">'+libro.autor+'</p><p class="book-detail__desc">'+libro.descripcion+'</p>'+creditNote+'<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">'+btnHtml+'</div><div class="book-detail__facts"><div><h4>Formato</h4><p>PDF \u00b7 '+libro.paginas+' p\u00e1ginas</p></div><div><h4>\u00c1rea</h4><p>'+libro.area+'</p></div><div><h4>Autor</h4><p>'+libro.autor+'</p></div><div><h4>Acceso</h4><p>'+accessLabel+'</p></div></div></div></div>'+relHtml+'</div>';
     container.querySelector('#libros-back')?.addEventListener('click',function(){_libroDetalle=null;renderLibros(container);});
     container.querySelector('[data-read-book]')?.addEventListener('click',function(){navigateToSection('libro/'+encodeURIComponent(libro.id));});
     container.querySelector('[data-redeem-book]')?.addEventListener('click',function(){abrirCanjeLibro(container,libro);});
     var portada=container.querySelector('.book-detail__cover');
     if(portada&&acc){portada.setAttribute('role','link');portada.setAttribute('tabindex','0');portada.setAttribute('aria-label','Leer '+libro.titulo);portada.addEventListener('click',function(){navigateToSection('libro/'+encodeURIComponent(libro.id));});portada.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();navigateToSection('libro/'+encodeURIComponent(libro.id));}});}
-    container.querySelectorAll('[data-libro-id]').forEach(function(el){el.addEventListener('click',function(e){e.preventDefault();_libroDetalle=el.dataset.libroId;_renderLibroDetalle(container,el.dataset.libroId);window.scrollTo({top:0,behavior:'smooth'});});});
+    enlazarLibros(container);
     cargarCreditosLibros(container);
   }
 
@@ -9906,7 +9928,37 @@ function loadProfileFromLS(){
 // ═══════════════════════════════════════════════════════════════════
 
 // Cache global de notificaciones (se actualiza con onSnapshot)
-window.__notifsState = { items: [], unsubscribe: null, loaded: false };
+window.__notifsState = { items: [], creditItems: [], unsubscribe: null, loaded: false };
+
+function todasLasNotificaciones(){
+  return [...(window.__notifsState.creditItems||[]),...(window.__notifsState.items||[])]
+    .sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0));
+}
+
+window.addEventListener('imfra:credit-notifications-sync',event=>{
+  const rows=Array.isArray(event.detail)?event.detail:[];
+  window.__notifsState.creditItems=rows.map(item=>({
+    id:'credit-'+item.id,
+    creditId:item.id,
+    tipo:item.kind==='purchase'?'credit-purchase':'credit-gift',
+    icono:item.kind==='purchase'?'i-wallet':'i-gift',
+    color:item.kind==='purchase'?'#2F80ED':'#F59D1A',
+    titulo:item.kind==='purchase'?'Compra acreditada':'Créditos de regalo',
+    descripcion:'+'+Number(item.amount||0).toLocaleString('es-MX')+' Créditos IMFRA'+(item.note?' · '+item.note:''),
+    createdAtMs:item.createdAt?new Date(item.createdAt).getTime():Date.now(),
+    readAt:item.readAt||null
+  }));
+  const leidasServidor=window.__notifsState.creditItems.filter(item=>item.readAt).map(item=>item.id);
+  if(leidasServidor.length)marcarNotifsLeidas(leidasServidor,false);
+  actualizarBadgeNotif();
+});
+
+window.addEventListener('imfra:credit-notification',event=>{
+  const item=event.detail||{};
+  const titulo=item.kind==='purchase'?'Compra acreditada':'Créditos de regalo';
+  const detalle='+'+Number(item.amount||0).toLocaleString('es-MX')+' créditos. Nuevo saldo: '+Number(item.balanceAfter||0).toLocaleString('es-MX')+'.';
+  Toast.success(titulo,detalle);
+});
 
 // Notificaciones de fallback para modo demo/sin-membresia (sin Firebase auth)
 const NOTIFS_DEMO = [
@@ -9990,13 +10042,17 @@ function getNotifsLeidas() {
 }
 
 // Marca un array de IDs como leídos
-function marcarNotifsLeidas(ids) {
+function marcarNotifsLeidas(ids, sincronizar = true) {
   const uid = window.UserState?.uid || 'guest';
   const ya = getNotifsLeidas();
   const todas = Array.from(new Set([...ya, ...ids]));
   try {
     localStorage.setItem('imfra_notif_read_' + uid, JSON.stringify(todas));
   } catch(e) {}
+  if(sincronizar){
+    const privadas=ids.filter(id=>String(id).startsWith('credit-')).map(id=>String(id).slice(7));
+    if(privadas.length)window.IMFRACredits?.markNotificationsRead(privadas).catch(error=>console.warn('[notif] No se pudo confirmar lectura',error));
+  }
 }
 
 // Eliminar notif · solo cliente. La colección `notificaciones` de Firestore es
@@ -10018,13 +10074,14 @@ function marcarNotifsEliminadas(ids) {
   try {
     localStorage.setItem('imfra_notif_deleted_' + uid, JSON.stringify(todas));
   } catch(e) {}
+  marcarNotifsLeidas(ids);
 }
 
 // Cuenta cuántas notif son nuevas (no leídas y no eliminadas)
 function contarNotifsNuevas() {
   const leidas = new Set(getNotifsLeidas());
   const eliminadas = new Set(getNotifsEliminadas());
-  return window.__notifsState.items.filter(n => !eliminadas.has(n.id) && !leidas.has(n.id)).length;
+  return todasLasNotificaciones().filter(n => !eliminadas.has(n.id) && !leidas.has(n.id)).length;
 }
 
 // Actualiza el badge (puntito rojo) según haya notif nuevas
@@ -10058,7 +10115,7 @@ function toggleNotifDropdown(){
 
   // excluye del pintado los ids que el usuario eliminó localmente (nunca toca Firestore)
   const eliminadas = new Set(getNotifsEliminadas());
-  const notifs = (window.__notifsState.items || []).filter(n => !eliminadas.has(n.id));
+  const notifs = todasLasNotificaciones().filter(n => !eliminadas.has(n.id));
   const leidas = new Set(getNotifsLeidas());
 
   dd=document.createElement('div');
