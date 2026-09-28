@@ -7551,14 +7551,12 @@ const Sections = (function(){
   ];
   var _libroDetalle = null;
 
-  function libroEsVip(){return window.UserState?.modo === 'vip' || esAdminReal();}
   function libroCanjeado(libro){return !!(libro.rewardId && window.IMFRACredits?.isUnlocked(libro.rewardId));}
-  function libroTieneAcceso(libro){return !!(libro.gratis || libroEsVip() || libroCanjeado(libro));}
+  function libroTieneAcceso(libro){return !!(libro.gratis || libroCanjeado(libro));}
   function libroCard(libro){
     var acc=libroTieneAcceso(libro),canjeado=libroCanjeado(libro),gratis=!!libro.gratis;
-    var vip=libroEsVip()&&!gratis&&!canjeado;
-    var badge=gratis?'<span class="book-tile__badge is-free">Acceso gratis</span>':canjeado?'<span class="book-tile__badge is-owned">En tu biblioteca</span>':vip?'<span class="book-tile__badge is-vip">Incluido con VIP</span>':'<span class="book-tile__badge">Canjeable</span>';
-    var state=canjeado?'<span class="book-tile__state"><svg class="ic"><use href="#i-check-circle"/></svg>Canjeado</span>':gratis?'<span class="book-tile__state"><svg class="ic"><use href="#i-check-circle"/></svg>Gratis</span>':vip?'<span class="book-tile__state"><svg class="ic"><use href="#i-crown"/></svg>Acceso VIP</span>':'<span class="book-tile__price"><span class="book-library__coin">C</span>'+Number(libro.creditCost||0)+' créditos</span>';
+    var badge=gratis?'<span class="book-tile__badge is-free">Gratis</span>':canjeado?'<span class="book-tile__badge is-owned">En tu biblioteca</span>':'<span class="book-tile__badge">Canjeable</span>';
+    var state=canjeado?'<span class="book-tile__state"><svg class="ic"><use href="#i-check-circle"/></svg>Canjeado</span>':gratis?'<span class="book-tile__state"><svg class="ic"><use href="#i-check-circle"/></svg>Gratis</span>':'<span class="book-tile__price"><span class="book-library__coin">C</span>'+Number(libro.creditCost||0)+' créditos</span>';
     var action=acc?'<button type="button" class="book-tile__action" data-read-book-card="'+libro.id+'" aria-label="Leer '+libro.titulo+'" title="Leer ahora"><svg class="ic"><use href="#i-book"/></svg></button>':'<button type="button" class="book-tile__action" data-redeem-book-card="'+libro.id+'" aria-label="Canjear '+libro.titulo+'" title="Canjear libro"><svg class="ic"><use href="#i-arrow-right"/></svg></button>';
     return '<article class="book-tile '+(canjeado||gratis?'is-owned':'')+'" role="link" tabindex="0" data-libro-id="'+libro.id+'" aria-label="Ver '+libro.titulo+'"><div class="book-tile__visual"><div class="book-tile__cover"><img src="'+libro.portada+'" alt="Portada de '+libro.titulo+'" loading="lazy"></div>'+badge+'</div><div class="book-tile__body"><span class="book-tile__area">'+libro.area+'</span><h3 class="book-tile__title">'+libro.titulo+'</h3><p class="book-tile__description">'+libro.descripcion+'</p><div class="book-tile__meta">'+libro.autor+' · '+libro.paginas+' págs</div><div class="book-tile__footer">'+state+action+'</div></div></article>';
   }
@@ -7588,24 +7586,23 @@ const Sections = (function(){
     var saldo=window.IMFRACredits?.getBalance?.()||0;
     var permanentes=IMFRA_LIBROS.filter(function(libro){return libro.gratis||libroCanjeado(libro);}).length;
     var disponibles=IMFRA_LIBROS.length;
-    container.innerHTML = '<div class="fade-up book-library"><section class="book-library__hero"><div class="book-library__hero-copy"><span class="book-library__kicker">Biblioteca técnica IMFRA</span><h1>Conocimiento para <em>construir mejor.</em></h1><p>Consulta referencias profesionales dentro de IMFRA. Tu membresía VIP abre la lectura y tus créditos conservan cada título para siempre.</p><div class="book-library__benefits"><span><svg class="ic"><use href="#i-book"/></svg>Lector interno</span><span><svg class="ic"><use href="#i-shield-check"/></svg>Acceso protegido</span><span><svg class="ic"><use href="#i-gift"/></svg>Canje permanente</span></div></div><aside class="book-library__wallet" aria-label="Saldo de Créditos IMFRA"><span class="book-library__wallet-label">Tu saldo disponible</span><div class="book-library__wallet-value"><span class="book-library__coin">C</span><strong>'+Number(saldo).toLocaleString('es-MX')+'</strong></div><small>Créditos IMFRA · no transferibles</small></aside></section><div class="book-library__catalog-head"><div><span class="book-library__catalog-kicker">Catálogo canjeable</span><h2>Elige tu próxima referencia</h2></div><span class="book-library__count">'+disponibles+' títulos · '+permanentes+' en tu biblioteca</span></div><div class="book-catalog">'+IMFRA_LIBROS.map(function(libro){return libroCard(libro);}).join('')+'</div></div>';
+    container.innerHTML = '<div class="fade-up book-library"><section class="book-library__hero"><div class="book-library__hero-copy"><span class="book-library__kicker">Biblioteca técnica IMFRA</span><h1>Conocimiento para <em>construir mejor.</em></h1><p>Tus primeros créditos son de regalo. Gana más en Retos y con tus referidos, y canjéalos por libros que permanecerán en tu cuenta.</p><div class="book-library__benefits"><span><svg class="ic"><use href="#i-book"/></svg>Lector interno</span><span><svg class="ic"><use href="#i-shield-check"/></svg>Acceso protegido</span><span><svg class="ic"><use href="#i-gift"/></svg>Canje permanente</span></div></div><aside class="book-library__wallet" aria-label="Saldo de Créditos IMFRA"><span class="book-library__wallet-label">Tu saldo disponible</span><div class="book-library__wallet-value"><span class="book-library__coin">C</span><strong>'+Number(saldo).toLocaleString('es-MX')+'</strong></div><small>Créditos IMFRA · no transferibles</small></aside></section><div class="book-library__catalog-head"><div><span class="book-library__catalog-kicker">Catálogo canjeable</span><h2>Elige tu próxima referencia</h2></div><span class="book-library__count">'+disponibles+' disponibles · '+permanentes+' en tu biblioteca</span></div><div class="book-catalog">'+IMFRA_LIBROS.map(function(libro){return libroCard(libro);}).join('')+'</div></div>';
     enlazarLibros(container);
     cargarCreditosLibros(container);
   }
   function _renderLibroDetalle(container, libroId) {
     var libro = IMFRA_LIBROS.find(function(l){return l.id===libroId;});
     if (!libro) { _libroDetalle = null; renderLibros(container); return; }
-    var esVip = libroEsVip();
     var canjeado = libroCanjeado(libro);
     var acc = libroTieneAcceso(libro);
     var rel = IMFRA_LIBROS.filter(function(l){return l.id!==libro.id;}).slice(0,3);
     var lockSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
     var openSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
-    var readButton=acc?'<button type="button" class="btn '+(canjeado||libro.gratis?'btn--accent':'btn--ghost')+'" data-read-book="'+libro.id+'" style="gap:8px;">'+openSvg+(esVip&&!canjeado&&!libro.gratis?'Leer con VIP':'Leer dentro de IMFRA')+'</button>':'';
+    var readButton=acc?'<button type="button" class="btn btn--accent" data-read-book="'+libro.id+'" style="gap:8px;">'+openSvg+'Leer dentro de IMFRA</button>':'';
     var redeemButton=!libro.gratis&&!canjeado?'<button type="button" class="btn btn--accent" data-redeem-book="'+libro.id+'" style="gap:8px;">'+lockSvg+'Canjear para siempre · '+Number(libro.creditCost||0)+' créditos</button>':'';
     var btnHtml=readButton+redeemButton;
-    var accessLabel = libro.gratis ? 'Gratis para todos' : canjeado ? 'Desbloqueado permanentemente' : esVip ? 'Lectura incluida con VIP · canje permanente disponible' : Number(libro.creditCost||0)+' Créditos IMFRA o membresía VIP';
-    var creditNote = !libro.gratis&&!canjeado ? '<div class="book-credit-note"><svg class="ic"><use href="#i-gift"/></svg><span>'+(esVip?'Tu membresía permite leerlo ahora; el canje lo deja <strong>permanentemente</strong> en tu cuenta.':'Gana créditos en <strong>Retos</strong> y con tu <strong>enlace de referidos</strong>.')+'</span></div>' : '';
+    var accessLabel = libro.gratis ? 'Gratis para todos' : canjeado ? 'Desbloqueado permanentemente' : Number(libro.creditCost||0)+' Créditos IMFRA';
+    var creditNote = !libro.gratis&&!canjeado ? '<div class="book-credit-note"><svg class="ic"><use href="#i-gift"/></svg><span>Canjéalo para conservarlo en tu cuenta. Gana créditos en <strong>Retos</strong> y con tu <strong>enlace de referidos</strong>.</span></div>' : '';
     var relHtml = rel.length ? '<div class="book-library__related"><h3>M\u00e1s libros</h3><div class="book-catalog book-catalog--related">'+rel.map(function(r){return libroCard(r);}).join('')+'</div></div>' : '';
     container.innerHTML = '<div class="fade-up"><div style="margin-bottom:20px;"><a href="javascript:void(0)" id="libros-back" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text-2);text-decoration:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>Biblioteca</a></div><div class="book-detail"><div class="book-detail__cover"><img src="'+libro.portada+'" alt=""></div><div><div class="book-detail__eyebrow">'+libro.area+' \u00b7 Libro</div><h2 class="book-detail__title">'+libro.titulo+'</h2><p class="book-detail__author">'+libro.autor+'</p><p class="book-detail__desc">'+libro.descripcion+'</p>'+creditNote+'<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">'+btnHtml+'</div><div class="book-detail__facts"><div><h4>Formato</h4><p>PDF \u00b7 '+libro.paginas+' p\u00e1ginas</p></div><div><h4>\u00c1rea</h4><p>'+libro.area+'</p></div><div><h4>Autor</h4><p>'+libro.autor+'</p></div><div><h4>Acceso</h4><p>'+accessLabel+'</p></div></div></div></div>'+relHtml+'</div>';
     container.querySelector('#libros-back')?.addEventListener('click',function(){_libroDetalle=null;renderLibros(container);});
@@ -7646,7 +7643,7 @@ const Sections = (function(){
       container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Libro no encontrado</h3><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'libros\')">Volver a la biblioteca</button></div>';
       return;
     }
-    if (!window.IMFRACredits?.isLoaded() && !libro.gratis && !libroEsVip()) {
+    if (!window.IMFRACredits?.isLoaded() && !libro.gratis) {
       container.innerHTML='<div class="sub-loading"><div class="sub-loading__spin"></div><span>Verificando tu acceso…</span></div>';
       if(window.IMFRACredits){window.IMFRACredits.hydrate().then(function(){renderLibroVisor(container,libroId);}).catch(function(){_libroDetalle=libro.id;renderLibros(container);});}
       else window.addEventListener('imfra:credits-ready',function(){renderLibroVisor(container,libroId);},{once:true});
