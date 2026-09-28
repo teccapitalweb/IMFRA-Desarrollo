@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="onboarding-tour.css?v=2">
-<link rel="stylesheet" href="assets/imfra-tools.css?v=1">
+<link rel="stylesheet" href="assets/imfra-tools.css?v=2">
 
 <style>
 /* IMFRA VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -4312,19 +4312,16 @@ function toolTieneAcceso(toolId){
   return !!(toolId && window.IMFRACredits?.isUnlocked('tool-'+toolId));
 }
 window.toolTieneAcceso=toolTieneAcceso;
-// Devuelve true si puede continuar; si no tiene acceso, ofrece canjear la herramienta.
+// Devuelve true si puede continuar; si no es VIP, muestra el aviso de membresía.
+// (Quien ya había canjeado una herramienta con créditos conserva su acceso.)
 function toolRequiereVIP(nombreHerramienta){
   const toolId=toolIdDesdeNombre(nombreHerramienta);
   if (toolTieneAcceso(toolId)) return true;
-  const tool=(window.IMFRA_TOOL_CATALOG||[]).find(item=>item.id===toolId);
-  if(tool && typeof abrirCanjeHerramienta==='function'){
-    abrirCanjeHerramienta(null,tool);
-    return false;
-  }
   if (typeof window.__showPaywallModal === 'function'){
     window.__showPaywallModal({
-      title: 'Desbloquea esta herramienta',
-      sub: 'Puedes activarla para siempre con Créditos IMFRA o acceder a todas las herramientas con una membresía VIP.'
+      title: 'Función exclusiva para miembros VIP',
+      sub: 'Las herramientas profesionales son para miembros VIP. Activa tu membresía para ver resultados y descargar tus reportes en PDF.',
+      cta: 'Hazte VIP'
     });
   } else if (typeof Toast !== 'undefined') {
     Toast.info('Solo VIP','Activa tu membresía para usar esta función.');
@@ -9348,10 +9345,6 @@ const Sections = (function(){
   window.addEventListener('imfra:first-tool-redemption',()=>setTimeout(mostrarGuiaCreditosInicial,480));
 
   function renderHerramientas(container){
-    const creditosListos=!!window.IMFRACredits?.isLoaded();
-    const saldo=creditosListos?window.IMFRACredits.getBalance():0;
-    const tieneCanjeTool=creditosListos && window.IMFRACredits.snapshot().redemptions.some(item=>item.status==='active');
-    const vip=toolEsVIP();
     container.innerHTML = `
       <section class="tools-hub fade-up" aria-labelledby="tools-hub-title">
         <header class="tools-hub__hero">
@@ -9367,15 +9360,6 @@ const Sections = (function(){
           </div>
         </header>
 
-        <aside class="credit-welcome" aria-label="Cartera de Créditos IMFRA">
-          <span class="credit-welcome__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
-          <div class="credit-welcome__copy">
-            <div class="credit-welcome__eyebrow">${!tieneCanjeTool&&!vip?'Bono de bienvenida':'Tu cartera IMFRA'}</div>
-            <strong>${!tieneCanjeTool&&!vip?'Te regalamos 120 créditos de bienvenida.':vip?'Tus herramientas están incluidas con VIP. Conserva tus créditos para otros recursos.':'Elige dónde usar tus créditos.'}</strong>
-            <p>${!tieneCanjeTool&&!vip?'Alcanzan para tu primera herramienta o tu primer material en PDFs y material.':'Gana más en Retos o compartiendo tu enlace de invitación.'}</p>
-          </div>
-          <div class="credit-welcome__balance"><small>Saldo disponible</small><b>${creditosListos?saldo.toLocaleString('es-MX'):'…'} cr</b></div>
-        </aside>
 
         <div class="tools-hub__heading">
           <div>
@@ -9386,23 +9370,23 @@ const Sections = (function(){
         </div>
 
         <div class="tools-hub__grid">
-          ${HERRAMIENTAS_PRO.map(tool=>{const acceso=herramientaTieneAcceso(tool);const canjeada=herramientaCanjeada(tool);return `
-            <button class="tools-hub-card ${tool.starter&&!acceso?'is-starter':''} ${canjeada?'is-owned':''}" type="button" data-open-tool="${tool.id}" aria-label="${acceso?'Abrir':'Desbloquear'} ${tool.titulo}">
+          ${HERRAMIENTAS_PRO.map(tool=>`
+            <button class="tools-hub-card" type="button" data-open-tool="${tool.id}" aria-label="Abrir ${tool.titulo}">
               <span class="tools-hub-card__icon"><img src="${tool.image}" alt="" width="52" height="52" loading="lazy" decoding="async"></span>
-              <span class="tools-hub-card__top"><span class="tools-hub-card__tag">${tool.tag}</span><span class="tools-hub-card__price ${vip?'is-included':canjeada?'is-owned':''}">${vip?'Incluida con VIP':canjeada?'Tuya':tool.cost+' créditos'}</span></span>
+              <span class="tools-hub-card__top"><span class="tools-hub-card__tag">${tool.tag}</span></span>
               <strong class="tools-hub-card__title">${tool.titulo}</strong>
               <span class="tools-hub-card__desc">${tool.desc}</span>
               <span class="tools-hub-card__foot">
-                <span class="tools-hub-card__access">${tool.starter&&!acceso?'Canje inicial recomendado':canjeada?'Acceso permanente':'Herramienta profesional'}</span>
-                <span class="tools-hub-card__open">${acceso?'Abrir':'Desbloquear'} <svg class="ic"><use href="#i-arrow-right"/></svg></span>
+                <span class="tools-hub-card__access">Herramienta profesional</span>
+                <span class="tools-hub-card__open">Abrir <svg class="ic"><use href="#i-arrow-right"/></svg></span>
               </span>
             </button>
-          `}).join('')}
+          `).join('')}
         </div>
       </section>`;
 
     container.querySelectorAll('[data-open-tool]').forEach(card=>{
-      card.addEventListener('click',()=>{const tool=HERRAMIENTAS_PRO.find(item=>item.id===card.dataset.openTool);if(tool)abrirCanjeHerramienta(container,tool);});
+      card.addEventListener('click',()=>{const tool=HERRAMIENTAS_PRO.find(item=>item.id===card.dataset.openTool);if(tool)navigateToSection('tool-'+tool.id);});
     });
     cargarCreditosHerramientas(container);
   }
@@ -12023,7 +12007,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <script src="onboarding-tour.js?v=2" defer></script>
-<script src="assets/imfra-tools.js?v=20260925-1"></script>
+<script src="assets/imfra-tools.js?v=20260928-1"></script>
 <script type="module" src="./src/features/credits/credits.ts"></script>
 <script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>
