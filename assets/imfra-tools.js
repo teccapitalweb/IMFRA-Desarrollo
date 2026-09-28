@@ -57,6 +57,11 @@ HT.toast = (type, t, m) => {
 };
 HT.vip = nombre => (typeof window.toolRequiereVIP === 'function') ? window.toolRequiereVIP(nombre) : true;
 HT.esVIP = () => (typeof window.toolEsVIP === 'function') ? window.toolEsVIP() : true;
+/* Acceso a la herramienta abierta: VIP, o quien ya la había canjeado antes con créditos. */
+HT.acceso = () => {
+  const id = (location.hash || '').replace(/^#tool-/, '');
+  return (typeof window.toolTieneAcceso === 'function') ? window.toolTieneAcceso(id) : HT.esVIP();
+};
 
 /* Confirmación propia (modal ligero) */
 HT.confirm = (titulo, desc, okTxt='Confirmar') => new Promise(res => {
@@ -201,13 +206,21 @@ HT.shell = (container, o) => {
         <div class="tool-section__actions">${acciones.map(a =>
           `<button class="btn ${a.cls||'btn--ghost'} btn--sm" id="${a.id}">${a.txt}${a.icon?`<svg class="ic"><use href="#${a.icon}"/></svg>`:''}</button>`).join('')}</div>
       </div>
-      <div class="ht" id="ht-root"></div>
+      ${HT.acceso() ? '' : `<div class="ht-viplock"><span class="ht-viplock__ic"><svg class="ic"><use href="#i-crown"/></svg></span><div class="ht-viplock__txt"><strong>Herramienta exclusiva para miembros VIP</strong><span>Captura tus datos: el resultado y el reporte PDF se abren con tu membresía.</span></div><button class="btn btn--accent btn--sm" type="button" data-ht-paywall>Hazte VIP</button></div>`}
+      <div class="ht ${HT.acceso() ? '' : 'ht--locked'}" id="ht-root"></div>
     </div>`;
   container.querySelector('[data-tools-back]')?.addEventListener('click', () => {
     if (typeof window.navigateToSection === 'function') window.navigateToSection('herramientas');
     else location.hash = '#herramientas';
   });
-  return container.querySelector('#ht-root');
+  const root = container.querySelector('#ht-root');
+  if (root.classList.contains('ht--locked')) {
+    /* Tocar el aviso o un resultado bloqueado muestra el aviso de membresía. */
+    container.addEventListener('click', e => {
+      if (e.target.closest('[data-ht-paywall], .ht--locked .ht-kpis')) { e.preventDefault(); HT.vip(titulo); }
+    });
+  }
+  return root;
 };
 
 /* ── PDF ── */

@@ -310,3 +310,14 @@
 .ht-toggle input:checked + .ht-toggle__sw{background:var(--primary);border-color:var(--primary)}
 .ht-toggle input:checked + .ht-toggle__sw::after{transform:translateX(18px)}
 .ht-toggle__lbl{font-size:13px;font-weight:600;color:var(--text-2)}
+
+/* Herramientas exclusivas VIP · aviso y resultados bloqueados para cuentas sin membresía */
+.ht-viplock{display:flex;align-items:center;gap:14px;margin:0 0 14px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));border-radius:14px;background:color-mix(in srgb,var(--primary) 9%,var(--surface))}
+.ht-viplock__ic{display:flex;align-items:center;justify-content:center;flex:none;width:38px;height:38px;border-radius:11px;background:color-mix(in srgb,var(--primary) 16%,transparent);color:var(--primary)}
+.ht-viplock__ic .ic{width:19px;height:19px}
+.ht-viplock__txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}.ht-viplock__txt strong{font-size:13.5px;color:var(--text)}.ht-viplock__txt span{font-size:12px;line-height:1.5;color:var(--text-2)}
+.ht--locked .ht-kpis{position:relative;cursor:pointer}
+.ht--locked .ht-kpis>*{filter:blur(6px);user-select:none;pointer-events:none}
+.ht--locked .ht-kpis::after{content:"Resultado solo para miembros VIP";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:10px;border-radius:12px;background:color-mix(in srgb,var(--surface) 55%,transparent);font:800 12px 'JetBrains Mono',monospace;letter-spacing:.6px;text-transform:uppercase;color:var(--primary);text-align:center}
+.ht--locked .ht-kpis~*,.ht--locked .ht-row__out b,.ht--locked .ht-meta__txt{filter:blur(5px);user-select:none;pointer-events:none}
+@media(max-width:600px){.ht-viplock{flex-wrap:wrap}.ht-viplock .btn{width:100%}}
