@@ -80,6 +80,7 @@ Para reemplazar el catálogo provisional harán falta:
 - En **Retos** solo los miembros VIP suman créditos por acierto (validado en servidor con 403 para cuentas sin membresía). La sección lo indica a las cuentas sin VIP.
 - Desde el panel admin (`vip-admin.html` → detalle del miembro → **Créditos IMFRA**) se pueden regalar o vender créditos. El backend expone `GET /admin/creditos/:uid` y `POST /admin/creditos` y registra cada movimiento en `referral_ledger` como `admin_gift` o `admin_sale`.
 - Cada regalo o venta nuevo genera, en la misma transacción, una notificación privada del miembro. El panel sincroniza saldo y avisos cada 15 segundos, diferencia **Créditos de regalo** de **Compra acreditada** y conserva el aviso para el siguiente inicio de sesión hasta que el usuario lo lea.
+- El aviso de créditos usa una tarjeta responsive no modal: en escritorio aparece centrada bajo el encabezado y en móvil se adapta al borde inferior. Destaca monto y saldo, permanece visible 5.8 segundos y enlaza a la campana.
 - Los libros de pago pueden canjearse permanentemente con Créditos IMFRA. Una membresía VIP permite leerlos sin ocultar la opción de canje permanente.
 
 ## Software de presupuestos

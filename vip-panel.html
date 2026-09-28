@@ -567,6 +567,47 @@ body::after{
 .toast__title{font-weight:600;font-size:12.5px}
 .toast__msg{font-size:11.5px;color:var(--text-2);margin-top:1px}
 
+/* Aviso privado de créditos · protagonista sin bloquear la navegación */
+.credit-notice-layer{position:fixed;inset:0;z-index:9300;pointer-events:none}
+.credit-notice{--credit-accent:#F59D1A;position:absolute;top:max(82px,calc(env(safe-area-inset-top) + 68px));left:50%;display:grid;grid-template-columns:54px minmax(0,1fr) 30px;gap:14px;align-items:center;width:min(470px,calc(100vw - 32px));padding:16px 17px 15px;overflow:hidden;border:1px solid color-mix(in srgb,var(--credit-accent) 34%,var(--border));border-radius:18px;background:color-mix(in srgb,var(--surface) 95%,var(--credit-accent));color:var(--text);box-shadow:0 24px 70px rgba(13,13,13,.24),0 1px 0 rgba(255,255,255,.18) inset;pointer-events:auto;opacity:0;transform:translate(-50%,-18px) scale(.97);transition:opacity .3s ease,transform .42s cubic-bezier(.2,.8,.2,1);isolation:isolate}
+.credit-notice::before{position:absolute;z-index:-1;inset:0;background:radial-gradient(circle at 5% 5%,color-mix(in srgb,var(--credit-accent) 20%,transparent),transparent 43%),linear-gradient(110deg,transparent 60%,color-mix(in srgb,var(--credit-accent) 6%,transparent));content:""}
+.credit-notice.is-purchase{--credit-accent:#2F80ED}
+.credit-notice.is-show{opacity:1;transform:translate(-50%,0) scale(1)}
+.credit-notice.is-leaving{opacity:0;transform:translate(-50%,-12px) scale(.98)}
+.credit-notice__icon{display:grid;place-items:center;width:54px;height:54px;border-radius:16px;background:var(--credit-accent);color:#fff;box-shadow:0 10px 24px color-mix(in srgb,var(--credit-accent) 31%,transparent)}
+.credit-notice__icon .ic{width:24px;height:24px;stroke-width:2}
+.credit-notice__content{min-width:0}
+.credit-notice__kicker{display:flex;align-items:center;gap:6px;margin-bottom:3px;color:var(--credit-accent);font:800 8px/1.25 'JetBrains Mono',monospace;letter-spacing:.15em;text-transform:uppercase}
+.credit-notice__kicker::before{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px color-mix(in srgb,currentColor 13%,transparent);content:""}
+.credit-notice__headline{display:flex;align-items:baseline;gap:8px;min-width:0}
+.credit-notice__headline strong{font-size:15px;line-height:1.25;letter-spacing:-.15px}
+.credit-notice__amount{color:var(--credit-accent);font:850 19px/1 'JetBrains Mono',monospace;white-space:nowrap}
+.credit-notice__message{margin-top:4px;color:var(--text-2);font-size:11.5px;line-height:1.45}
+.credit-notice__footer{display:flex;align-items:center;gap:10px;margin-top:9px}
+.credit-notice__balance{padding:5px 8px;border:1px solid var(--border);border-radius:8px;background:color-mix(in srgb,var(--surface-2) 85%,transparent);color:var(--text-2);font:650 9px 'JetBrains Mono',monospace}
+.credit-notice__balance strong{color:var(--text);font-weight:800}
+.credit-notice__bell{padding:4px 2px;border:0;background:transparent;color:var(--credit-accent);font:750 10px 'Plus Jakarta Sans',sans-serif;cursor:pointer}
+.credit-notice__bell:hover{text-decoration:underline}
+.credit-notice__close{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--border);border-radius:50%;background:color-mix(in srgb,var(--surface) 82%,transparent);color:var(--text-2);cursor:pointer;align-self:start}
+.credit-notice__close:hover{border-color:var(--credit-accent);color:var(--credit-accent)}
+.credit-notice__close .ic{width:13px;height:13px}
+.credit-notice__progress{position:absolute;right:0;bottom:0;left:0;height:3px;background:color-mix(in srgb,var(--credit-accent) 12%,transparent)}
+.credit-notice__progress::after{display:block;width:100%;height:100%;background:linear-gradient(90deg,var(--credit-accent),color-mix(in srgb,var(--credit-accent) 52%,#fff));transform-origin:left;animation:creditNoticeTimer 5.8s linear forwards;content:""}
+@keyframes creditNoticeTimer{to{transform:scaleX(0)}}
+@media(max-width:768px){
+  .credit-notice{top:auto;right:14px;bottom:max(16px,calc(env(safe-area-inset-bottom) + 12px));left:14px;grid-template-columns:46px minmax(0,1fr) 28px;width:auto;padding:14px 13px 14px;border-radius:17px;transform:translateY(24px) scale(.98)}
+  .credit-notice.is-show{transform:translateY(0) scale(1)}
+  .credit-notice.is-leaving{transform:translateY(16px) scale(.98)}
+  .credit-notice__icon{width:46px;height:46px;border-radius:14px}
+  .credit-notice__icon .ic{width:21px;height:21px}
+  .credit-notice__headline{display:block}
+  .credit-notice__headline strong{display:block;font-size:14px}
+  .credit-notice__amount{display:block;margin-top:3px;font-size:18px}
+  .credit-notice__message{font-size:11px}
+  .credit-notice__footer{gap:8px;flex-wrap:wrap;margin-top:7px}
+}
+@media(prefers-reduced-motion:reduce){.credit-notice{transition:none}.credit-notice__progress::after{animation:none}}
+
 /* =========================================================
    SECCIONES INTERNAS · estilo agri-futurista coherente
    ========================================================= */
@@ -4205,6 +4246,36 @@ const Toast=(function(){
   }
   return{success:(t,m,d)=>show('success',t,m,d),error:(t,m,d)=>show('error',t,m,d),info:(t,m,d)=>show('info',t,m,d)};
 })();
+
+const CreditNotice=(function(){
+  let queue=[];let active=null;let timer=null;
+  function ensureLayer(){let layer=document.querySelector('.credit-notice-layer');if(!layer){layer=document.createElement('div');layer.className='credit-notice-layer';document.body.appendChild(layer);}return layer;}
+  function close(openBell=false){
+    if(!active)return;
+    clearTimeout(timer);const current=active;active=null;current.classList.add('is-leaving');current.classList.remove('is-show');
+    setTimeout(()=>{current.remove();if(openBell)document.getElementById('btn-notif')?.click();showNext();},320);
+  }
+  function showNext(){
+    if(active||!queue.length)return;
+    const item=queue.shift();const purchase=item.kind==='purchase';const amount=Math.max(0,Number(item.amount||0));const balance=Math.max(0,Number(item.balanceAfter||0));
+    const card=document.createElement('section');active=card;card.className='credit-notice '+(purchase?'is-purchase':'is-gift');card.setAttribute('role','status');card.setAttribute('aria-live','polite');card.setAttribute('aria-atomic','true');
+    card.innerHTML='<div class="credit-notice__icon"><svg class="ic"><use href="#'+(purchase?'i-credit-card':'i-gift')+'"/></svg></div><div class="credit-notice__content"><div class="credit-notice__kicker">Movimiento confirmado</div><div class="credit-notice__headline"><strong></strong><span class="credit-notice__amount"></span></div><p class="credit-notice__message"></p><div class="credit-notice__footer"><span class="credit-notice__balance">Nuevo saldo · <strong></strong></span><button type="button" class="credit-notice__bell">Ver en la campana</button></div></div><button type="button" class="credit-notice__close" aria-label="Cerrar aviso"><svg class="ic"><use href="#i-x"/></svg></button><span class="credit-notice__progress" aria-hidden="true"></span>';
+    card.querySelector('.credit-notice__headline strong').textContent=purchase?'Compra acreditada':'Créditos de regalo';
+    card.querySelector('.credit-notice__amount').textContent='+'+amount.toLocaleString('es-MX')+' créditos';
+    card.querySelector('.credit-notice__message').textContent=purchase?'Tu compra fue acreditada correctamente en IMFRA.':'IMFRA agregó créditos de cortesía a tu cuenta.';
+    card.querySelector('.credit-notice__balance strong').textContent=balance.toLocaleString('es-MX')+' cr';
+    card.querySelector('.credit-notice__close').addEventListener('click',()=>close());
+    card.querySelector('.credit-notice__bell').addEventListener('click',()=>close(true));
+    ensureLayer().appendChild(card);requestAnimationFrame(()=>card.classList.add('is-show'));timer=setTimeout(()=>close(),5800);
+  }
+  function show(item){if(!item||!Number(item.amount))return;queue.push(item);showNext();}
+  return{show};
+})();
+window.CreditNotice=CreditNotice;
+if(window.__isDemoMode){
+  const preview=new URLSearchParams(location.search).get('previewCreditNotice');
+  if(preview==='gift'||preview==='purchase')setTimeout(()=>CreditNotice.show({kind:preview,amount:500,balanceAfter:830}),900);
+}
 
 const Modal=(function(){
   const stack=[];let lock=null;
@@ -9941,7 +10012,7 @@ window.addEventListener('imfra:credit-notifications-sync',event=>{
     id:'credit-'+item.id,
     creditId:item.id,
     tipo:item.kind==='purchase'?'credit-purchase':'credit-gift',
-    icono:item.kind==='purchase'?'i-wallet':'i-gift',
+    icono:item.kind==='purchase'?'i-credit-card':'i-gift',
     color:item.kind==='purchase'?'#2F80ED':'#F59D1A',
     titulo:item.kind==='purchase'?'Compra acreditada':'Créditos de regalo',
     descripcion:'+'+Number(item.amount||0).toLocaleString('es-MX')+' Créditos IMFRA'+(item.note?' · '+item.note:''),
@@ -9954,10 +10025,7 @@ window.addEventListener('imfra:credit-notifications-sync',event=>{
 });
 
 window.addEventListener('imfra:credit-notification',event=>{
-  const item=event.detail||{};
-  const titulo=item.kind==='purchase'?'Compra acreditada':'Créditos de regalo';
-  const detalle='+'+Number(item.amount||0).toLocaleString('es-MX')+' créditos. Nuevo saldo: '+Number(item.balanceAfter||0).toLocaleString('es-MX')+'.';
-  Toast.success(titulo,detalle);
+  CreditNotice.show(event.detail||{});
 });
 
 // Notificaciones de fallback para modo demo/sin-membresia (sin Firebase auth)
