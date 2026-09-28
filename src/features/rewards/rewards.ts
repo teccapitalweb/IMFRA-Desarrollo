@@ -1,8 +1,8 @@
 import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
-import { isRewardsDemo, loadRewardBalance, submitQuizAttempt, submitRewardRequest } from "./cloud";
+import { isRewardsDemo, submitQuizAttempt, submitRewardRequest } from "./cloud";
 import { celebrate } from "../shared/celebration";
-import { canEarnChallengeCredits } from "../credits/credits";
+import { canEarnChallengeCredits, loadCredits, redeemCreditReward, type CreditSnapshot } from "../credits/credits";
 
 interface Redemption {
   id: string;
@@ -94,8 +94,18 @@ function redemptionFor(state: RewardState, rewardId: string) {
   return state.redemptions.find((entry) => entry.rewardId === rewardId && (!entry.validUntil || new Date(entry.validUntil) > new Date()));
 }
 
+function mergeCreditSnapshot(state: RewardState, snapshot: CreditSnapshot) {
+  state.points = snapshot.balance;
+  const catalogIds = new Set(rewardCatalog.map((reward) => reward.id));
+  const pending = state.redemptions.filter((entry) => entry.status === "pending" && entry.rewardId !== "software-presupuestos");
+  const permanent = snapshot.redemptions
+    .filter((entry) => entry.status === "active" && catalogIds.has(entry.rewardId))
+    .map((entry) => ({ id: entry.id, rewardId: entry.rewardId, points: entry.points, createdAt: entry.createdAt || new Date().toISOString(), status: "active" as const }));
+  state.redemptions = [...permanent, ...pending];
+}
+
 function rewardIcon(reward: RewardItem) {
-  if (reward.id === "software-presupuestos-7d") return "assets/icons/reward-presupuestos.png";
+  if (reward.id === "software-presupuestos") return "assets/icons/reward-presupuestos.png";
   if (reward.id === "pack-plantillas-pro") return "assets/icons/reward-plantillas.png";
   return "assets/icons/reward-plantillas.png";
 }
@@ -311,8 +321,9 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
                 <img class="rw-reward__icon" src="${rewardIcon(reward)}" alt="" loading="lazy">
                 <span class="rw-reward__type">${reward.category}</span>
                 <h3>${escapeHtml(reward.name)}</h3>
+                <p class="rw-reward__description">${escapeHtml(reward.description)}</p>
                 <div class="rw-reward__meta"><strong>${reward.points.toLocaleString("es-MX")} créditos</strong><span>${reward.availability}</span></div>
-                <button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? "Canjear beneficio" : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>
+                ${redeemed && reward.accessRoute ? `<span class="rw-reward__unlocked"><svg class="ic"><use href="#i-check-circle"/></svg> Desbloqueado</span><button type="button" class="btn btn--accent rw-redeem" data-open-reward="${reward.accessRoute}">Abrir software</button>` : `<button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? (reward.permanent ? `Canjear por ${reward.points} créditos` : "Canjear beneficio") : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>`}
               </article>`;
             }).join("")}
           </div>
@@ -329,10 +340,10 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             <button type="button" class="rw-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
             <span class="rw-dialog__icon"><img src="${rewardIcon(pendingReward)}" alt="" loading="lazy"></span>
             <span class="rw-eyebrow">Confirmar beneficio</span>
-            <h2 id="rw-dialog-title">${escapeHtml(pendingReward.name)}</h2>
-            <p>Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}</p>
-            <div class="rw-dialog__balance"><span>Saldo actual <b>${state.points.toLocaleString("es-MX")}</b></span><i>→</i><span>Saldo restante <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>
-            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "En esta vista privada la activación es una simulación segura. No se enviarán datos ni se creará una cuenta externa." : "Primero se registrará una solicitud. El saldo solo cambiará después de que el servidor valide créditos, vigencia e inventario."}</span></div>
+            <h2 id="rw-dialog-title">${pendingReward.permanent ? `¿Deseas desbloquear ${escapeHtml(pendingReward.name)} por ${pendingReward.points} créditos?` : escapeHtml(pendingReward.name)}</h2>
+            <p>${pendingReward.permanent ? "El acceso quedará asociado permanentemente a tu cuenta y no volverás a pagar al abrirlo." : `Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}`}</p>
+            <div class="rw-dialog__balance"><span>Créditos disponibles <b>${state.points.toLocaleString("es-MX")}</b></span><span>Costo <b>−${pendingReward.points.toLocaleString("es-MX")}</b></span><span>Créditos restantes <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>
+            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "Esta activación de prueba es local y segura." : pendingReward.permanent ? "El servidor realizará el cargo y el desbloqueo en una sola operación segura, sin duplicados." : "Primero se registrará una solicitud. El saldo solo cambiará después de que el servidor valide créditos, vigencia e inventario."}</span></div>
             ${redemptionError ? `<div class="rw-dialog__error" role="alert">${escapeHtml(redemptionError)}</div>` : ""}
             <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">Confirmar canje</button></div>
           </section>
@@ -395,6 +406,10 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
       });
     });
 
+    container.querySelectorAll<HTMLButtonElement>("[data-open-reward]").forEach((button) => {
+      button.addEventListener("click", () => window.navigateToSection?.(button.dataset.openReward || "entrenamiento"));
+    });
+
     container.querySelectorAll<HTMLElement>("[data-close-dialog]").forEach((element) => {
       element.addEventListener("click", (event) => {
         if (event.target !== element && element.classList.contains("rw-dialog-backdrop")) return;
@@ -412,13 +427,18 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         button.disabled = true;
         button.textContent = "Registrando solicitud…";
         try {
-          const request = await submitRewardRequest(reward.id);
-          if (isRewardsDemo()) {
-            const validUntil = reward.durationDays ? new Date(createdAt.getTime() + reward.durationDays * 86400000).toISOString() : undefined;
-            state.points -= reward.points;
-            state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), validUntil, status: "active" });
+          if (reward.permanent) {
+            button.textContent = "Desbloqueando…";
+            mergeCreditSnapshot(state, await redeemCreditReward(reward.id));
           } else {
-            state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), status: "pending" });
+            const request = await submitRewardRequest(reward.id);
+            if (isRewardsDemo()) {
+              const validUntil = reward.durationDays ? new Date(createdAt.getTime() + reward.durationDays * 86400000).toISOString() : undefined;
+              state.points -= reward.points;
+              state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), validUntil, status: "active" });
+            } else {
+              state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), status: "pending" });
+            }
           }
           pendingRewardId = null;
           redemptionError = "";
@@ -434,9 +454,8 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
   };
 
   render();
-  void loadRewardBalance().then((balance) => {
-    if (balance === null) return;
-    state.points = balance;
+  void loadCredits().then((snapshot) => {
+    mergeCreditSnapshot(state, snapshot);
     saveState(state);
     render();
   });

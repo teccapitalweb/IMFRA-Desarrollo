@@ -35,6 +35,8 @@ export interface RewardItem {
   accessUrl?: string;
   featured?: boolean;
   features?: string[];
+  permanent?: boolean;
+  accessRoute?: string;
 }
 
 export const rewardQuestions: RewardQuestion[] = [
@@ -305,17 +307,19 @@ export const rewardQuestions: RewardQuestion[] = [
   }
 ];
 
-// Catálogo provisional para validar la experiencia. Los nombres y costos
-// definitivos se administrarán desde backend antes de publicar.
+// Los recursos digitales permanentes usan el costo autoritativo del backend.
+// Los beneficios externos conservan el flujo piloto de solicitud manual.
 export const rewardCatalog: RewardItem[] = [
   {
-    id: "software-presupuestos-7d",
+    id: "software-presupuestos",
     name: "Software de presupuestos",
-    description: "Acceso temporal durante 7 días para preparar y revisar presupuestos de obra.",
+    description: "Sistema profesional integrado para proyectos, conceptos, APU, insumos, generadores y reportes.",
     category: "Software",
     points: 350,
-    availability: "Catálogo piloto",
-    accent: "#f59d1a"
+    availability: "Acceso permanente",
+    accent: "#f59d1a",
+    permanent: true,
+    accessRoute: "presupuestos"
   },
   {
     id: "imdac-control-obra-30d",

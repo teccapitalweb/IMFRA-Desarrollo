@@ -57,7 +57,8 @@ const DEMO_COSTS: Record<string, number> = {
   "material-7": 260,
   "book-advanced-mechanics": 350,
   "book-advanced-strength": 320,
-  "book-resistencia-materiales": 300
+  "book-resistencia-materiales": 300,
+  "software-presupuestos": 350
 };
 const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [] };
 let current: CreditSnapshot = { ...EMPTY };
@@ -80,7 +81,7 @@ export function canEarnChallengeCredits() {
 }
 
 function currentIdentity() {
-  return isDemo() ? "demo-preview-v8" : (window.UserState?.uid || window.UserState?.email || "guest");
+  return isDemo() ? "demo-preview-v9" : (window.UserState?.uid || window.UserState?.email || "guest");
 }
 
 function demoStorageKey() {
@@ -89,9 +90,9 @@ function demoStorageKey() {
 
 function readDemoState(): DemoRewardState {
   try {
-    return JSON.parse(localStorage.getItem(demoStorageKey()) || "null") || { points: 120 };
+    return JSON.parse(localStorage.getItem(demoStorageKey()) || "null") || { points: 620 };
   } catch {
-    return { points: 120 };
+    return { points: 620 };
   }
 }
 
@@ -99,13 +100,13 @@ function demoSnapshot() {
   const saved = readDemoState();
   const unlocks = Array.isArray(saved.creditUnlocks) ? [...new Set(saved.creditUnlocks.map(String))] : [];
   return {
-    balance: Math.max(0, Number(saved.points ?? 120) || 0),
-    lifetimeEarned: 120,
+    balance: Math.max(0, Number(saved.points ?? 620) || 0),
+    lifetimeEarned: 620,
     lifetimeSpent: 0,
     redemptions: unlocks.map((rewardId) => ({
       id: `demo-${rewardId}`,
       rewardId,
-      type: rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
+      type: rewardId === "software-presupuestos" ? "software" : rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
       points: DEMO_COSTS[rewardId] || 0,
       status: "active"
     }))
@@ -178,7 +179,7 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
       redemptions: [...current.redemptions, {
         id: `demo-${rewardId}`,
         rewardId,
-        type: rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
+        type: rewardId === "software-presupuestos" ? "software" : rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
         points: cost,
         status: "active",
         createdAt: new Date().toISOString()

@@ -9,7 +9,7 @@ Esta nomenclatura separa claramente dos productos:
 - **Herramientas pro:** calculadoras, controles y reportes técnicos que el miembro utiliza en obra.
 - **Recompensas:** software, licencias y recursos que el miembro obtiene usando Puntos IMFRA.
 
-## Prototipo privado
+## Modo de prueba
 
 La versión privada permite validar la experiencia visual mediante:
 
@@ -22,15 +22,15 @@ La versión privada permite validar la experiencia visual mediante:
 - Explicación de la respuesta.
 - Catálogo provisional.
 - Canjes simulados guardados únicamente en el navegador cuando se usa modo demo.
-- En modo real, solicitudes pendientes sin descuento local ni activación anticipada.
+- En modo real, el saldo, los canjes digitales y los accesos se resuelven en el backend.
 
-No entrega licencias reales ni modifica Firebase, Railway, Stripe o Bunny.
+El modo `?modo=demo` no modifica Firebase, Railway, Stripe o Bunny. El modo autenticado sí usa el saldo autoritativo del backend.
 
-## Modelo previsto para producción
+## Modelo de producción
 
 Los puntos canjeables no deben calcularse ni modificarse en el navegador. El backend será la única autoridad.
 
-La interfaz ya respeta esta separación: registra intentos y solicitudes, y consulta el saldo autoritativo. Falta implementar y desplegar el procesador de servidor que valide y ejecute las transacciones.
+La interfaz respeta esta separación: registra intentos, consulta el saldo autoritativo y solicita canjes idempotentes. El backend valida y ejecuta los movimientos dentro de transacciones de Firestore.
 
 Fuentes propuestas:
 
@@ -77,3 +77,11 @@ Para reemplazar el catálogo provisional harán falta:
 - Los libros cuestan más que cualquier material (300, 320 y 350 frente a un máximo de 260).
 - En **Retos** solo los miembros VIP suman créditos por acierto (validado en servidor con 403 para cuentas sin membresía). La sección lo indica a las cuentas sin VIP.
 - Desde el panel admin (`vip-admin.html` → detalle del miembro → **Créditos IMFRA**) se pueden regalar o vender créditos. El backend expone `GET /admin/creditos/:uid` y `POST /admin/creditos` y registra cada movimiento en `referral_ledger` como `admin_gift` o `admin_sale`.
+
+## Software de presupuestos
+
+- Cuesta 350 Créditos IMFRA y se adquiere una sola vez.
+- El descuento, `credit_transactions`, `reward_redemptions` y `budget_access` se escriben atómicamente.
+- Un reintento o doble clic devuelve el acceso existente sin volver a descontar.
+- La ruta `#presupuestos` comprueba el permiso en el servidor; sin acceso regresa a Retos y muestra la indicación de desbloqueo.
+- Proyectos, presupuestos, APU, insumos, generadores, versiones y reportes se guardan en Firestore. `localStorage` se utiliza únicamente en `modo=demo`.

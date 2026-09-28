@@ -41,12 +41,12 @@ El navegador presenta la experiencia, pero no es autoridad sobre los Puntos IMFR
 - **XP formativo:** sirve para avance, rachas, insignias y motivación. Puede sincronizarse desde el dispositivo bajo reglas limitadas.
 - **Puntos IMFRA:** tienen valor de canje. Solo el servidor puede otorgarlos, descontarlos o revertirlos.
 
-## Pendiente antes de producción
+## Controles implementados
 
-- Implementar el procesador transaccional en el backend elegido.
-- Aprobar costos, inventario, vigencia, límites y método de entrega de cada recompensa.
-- Desplegar y probar las reglas de Firestore en un entorno de pruebas.
-- Añadir pruebas de concurrencia, reintentos, reversos y caducidad.
-- Conectar las notificaciones de aprobación o rechazo.
+- El backend ejecuta premios y canjes con transacciones idempotentes.
+- El catálogo del servidor define los costos vigentes de materiales, libros, herramientas y del software de presupuestos.
+- Los accesos permanentes se consultan siempre con token Firebase; una URL directa no omite permisos.
+- El software de presupuestos usa revisión optimista para evitar que dos dispositivos sobrescriban cambios silenciosamente.
+- La interfaz mantiene un modo demo aislado para pruebas visuales sin tocar datos reales.
 
-Las reglas y adaptadores de esta rama son preparación técnica: no han sido desplegados y no alteran producción.
+Los beneficios que requieren entrega humana siguen usando solicitudes pendientes. Los recursos digitales registrados se activan inmediatamente después del canje validado por el servidor.
