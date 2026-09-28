@@ -1,6 +1,6 @@
 import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
-import { isRewardsDemo, submitQuizAttempt, submitRewardRequest } from "./cloud";
+import { isRewardsDemo, submitQuizAttempt } from "./cloud";
 import { celebrate } from "../shared/celebration";
 import { canEarnChallengeCredits, loadCredits, redeemCreditReward, type CreditSnapshot } from "../credits/credits";
 
@@ -31,7 +31,7 @@ const dateKey = () => new Date().toISOString().slice(0, 10);
 
 function accountKey() {
   const isDemo = window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
-  const account = isDemo ? "demo-preview-v7" : (window.UserState?.uid || window.UserState?.email || "guest");
+  const account = isDemo ? "demo-preview-v10" : (window.UserState?.uid || window.UserState?.email || "guest");
   return `imfra:v2:rewards:${account}`;
 }
 
@@ -100,7 +100,7 @@ function mergeCreditSnapshot(state: RewardState, snapshot: CreditSnapshot) {
   const pending = state.redemptions.filter((entry) => entry.status === "pending" && entry.rewardId !== "software-presupuestos");
   const permanent = snapshot.redemptions
     .filter((entry) => entry.status === "active" && catalogIds.has(entry.rewardId))
-    .map((entry) => ({ id: entry.id, rewardId: entry.rewardId, points: entry.points, createdAt: entry.createdAt || new Date().toISOString(), status: "active" as const }));
+    .map((entry) => ({ id: entry.id, rewardId: entry.rewardId, points: entry.points, createdAt: entry.createdAt || new Date().toISOString(), validUntil: entry.validUntil || undefined, status: "active" as const }));
   state.redemptions = [...permanent, ...pending];
 }
 
@@ -343,7 +343,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             <h2 id="rw-dialog-title">${pendingReward.permanent ? `¿Deseas desbloquear ${escapeHtml(pendingReward.name)} por ${pendingReward.points} créditos?` : escapeHtml(pendingReward.name)}</h2>
             <p>${pendingReward.permanent ? "El acceso quedará asociado permanentemente a tu cuenta y no volverás a pagar al abrirlo." : `Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}`}</p>
             <div class="rw-dialog__balance"><span>Créditos disponibles <b>${state.points.toLocaleString("es-MX")}</b></span><span>Costo <b>−${pendingReward.points.toLocaleString("es-MX")}</b></span><span>Créditos restantes <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>
-            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "Esta activación de prueba es local y segura." : pendingReward.permanent ? "El servidor realizará el cargo y el desbloqueo en una sola operación segura, sin duplicados." : "Primero se registrará una solicitud. El saldo solo cambiará después de que el servidor valide créditos, vigencia e inventario."}</span></div>
+            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "Esta activación de prueba es local y segura." : "El servidor realizará el cargo y el desbloqueo en una sola operación segura, sin duplicados."}</span></div>
             ${redemptionError ? `<div class="rw-dialog__error" role="alert">${escapeHtml(redemptionError)}</div>` : ""}
             <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">Confirmar canje</button></div>
           </section>
@@ -423,23 +423,11 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
       button.addEventListener("click", async () => {
         const reward = rewardCatalog.find((item) => item.id === button.dataset.confirmRedeem);
         if (!reward || state.points < reward.points || redemptionFor(state, reward.id)) return;
-        const createdAt = new Date();
         button.disabled = true;
         button.textContent = "Registrando solicitud…";
         try {
-          if (reward.permanent) {
-            button.textContent = "Desbloqueando…";
-            mergeCreditSnapshot(state, await redeemCreditReward(reward.id));
-          } else {
-            const request = await submitRewardRequest(reward.id);
-            if (isRewardsDemo()) {
-              const validUntil = reward.durationDays ? new Date(createdAt.getTime() + reward.durationDays * 86400000).toISOString() : undefined;
-              state.points -= reward.points;
-              state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), validUntil, status: "active" });
-            } else {
-              state.redemptions.unshift({ id: request.id, rewardId: reward.id, points: reward.points, createdAt: createdAt.toISOString(), status: "pending" });
-            }
-          }
+          button.textContent = "Desbloqueando…";
+          mergeCreditSnapshot(state, await redeemCreditReward(reward.id));
           pendingRewardId = null;
           redemptionError = "";
           saveState(state);

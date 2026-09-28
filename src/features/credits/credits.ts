@@ -1,3 +1,5 @@
+import { celebrateRedemption } from "../shared/celebration";
+
 export interface CreditRedemption {
   id: string;
   rewardId: string;
@@ -5,6 +7,7 @@ export interface CreditRedemption {
   points: number;
   status: string;
   createdAt?: string | null;
+  validUntil?: string | null;
 }
 
 export interface CreditSnapshot {
@@ -17,6 +20,7 @@ export interface CreditSnapshot {
 interface DemoRewardState {
   points?: number;
   creditUnlocks?: string[];
+  creditRedemptions?: CreditRedemption[];
   creditEvents?: string[];
   [key: string]: unknown;
 }
@@ -58,7 +62,9 @@ const DEMO_COSTS: Record<string, number> = {
   "book-advanced-mechanics": 350,
   "book-advanced-strength": 320,
   "book-resistencia-materiales": 300,
-  "software-presupuestos": 350
+  "software-presupuestos": 350,
+  "imdac-control-obra-30d": 600,
+  "pack-plantillas-pro": 500
 };
 const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [] };
 let current: CreditSnapshot = { ...EMPTY };
@@ -81,7 +87,7 @@ export function canEarnChallengeCredits() {
 }
 
 function currentIdentity() {
-  return isDemo() ? "demo-preview-v9" : (window.UserState?.uid || window.UserState?.email || "guest");
+  return isDemo() ? "demo-preview-v10" : (window.UserState?.uid || window.UserState?.email || "guest");
 }
 
 function demoStorageKey() {
@@ -99,24 +105,35 @@ function readDemoState(): DemoRewardState {
 function demoSnapshot() {
   const saved = readDemoState();
   const unlocks = Array.isArray(saved.creditUnlocks) ? [...new Set(saved.creditUnlocks.map(String))] : [];
+  const storedRedemptions = Array.isArray(saved.creditRedemptions) ? saved.creditRedemptions : [];
+  const redemptions = storedRedemptions.length ? storedRedemptions : unlocks.map((rewardId) => ({
+    id: `demo-${rewardId}`,
+    rewardId,
+    type: rewardType(rewardId),
+    points: DEMO_COSTS[rewardId] || 0,
+    status: "active"
+  }));
   return {
     balance: Math.max(0, Number(saved.points ?? 620) || 0),
     lifetimeEarned: 620,
-    lifetimeSpent: 0,
-    redemptions: unlocks.map((rewardId) => ({
-      id: `demo-${rewardId}`,
-      rewardId,
-      type: rewardId === "software-presupuestos" ? "software" : rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
-      points: DEMO_COSTS[rewardId] || 0,
-      status: "active"
-    }))
+    lifetimeSpent: redemptions.reduce((total, item) => total + Math.max(0, Number(item.points) || 0), 0),
+    redemptions
   } satisfies CreditSnapshot;
+}
+
+function rewardType(rewardId: string) {
+  if (rewardId === "software-presupuestos" || rewardId === "imdac-control-obra-30d") return "software";
+  if (rewardId === "pack-plantillas-pro") return "resource";
+  if (rewardId.startsWith("tool-")) return "tool";
+  if (rewardId.startsWith("material-")) return "material";
+  return "book";
 }
 
 function writeDemo(snapshot: CreditSnapshot, eventIds?: string[]) {
   const saved = readDemoState();
   saved.points = snapshot.balance;
   saved.creditUnlocks = snapshot.redemptions.filter((item) => item.status === "active").map((item) => item.rewardId);
+  saved.creditRedemptions = snapshot.redemptions;
   if (eventIds) saved.creditEvents = eventIds;
   localStorage.setItem(demoStorageKey(), JSON.stringify(saved));
 }
@@ -179,14 +196,16 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
       redemptions: [...current.redemptions, {
         id: `demo-${rewardId}`,
         rewardId,
-        type: rewardId === "software-presupuestos" ? "software" : rewardId.startsWith("tool-") ? "tool" : rewardId.startsWith("material-") ? "material" : "book",
+        type: rewardType(rewardId),
         points: cost,
         status: "active",
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        validUntil: rewardId === "imdac-control-obra-30d" ? new Date(Date.now() + 30 * 86400000).toISOString() : null
       }]
     };
     writeDemo(next);
     const published = publish(next);
+    celebrateRedemption(rewardId, rewardType(rewardId));
     if (firstToolRedemption) window.dispatchEvent(new CustomEvent("imfra:first-tool-redemption", { detail: { rewardId } }));
     return published;
   }
@@ -198,6 +217,9 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "No pudimos completar el canje.");
   const snapshot = await loadCredits(true);
+  if (data.alreadyUnlocked !== true) {
+    celebrateRedemption(rewardId, data.redemption?.type || rewardType(rewardId));
+  }
   if (data.firstToolRedemption === true) {
     window.dispatchEvent(new CustomEvent("imfra:first-tool-redemption", { detail: { rewardId } }));
   }

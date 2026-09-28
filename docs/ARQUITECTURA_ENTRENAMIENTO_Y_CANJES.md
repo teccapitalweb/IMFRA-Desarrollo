@@ -13,26 +13,26 @@ El navegador presenta la experiencia, pero no es autoridad sobre los Puntos IMFR
 | `training_flashcards` | Tarjetas de repaso | Solo administradores |
 | `training_drafts` | Borradores editoriales | Solo administradores |
 | `training_progress/{uid}` | XP formativo, casos, tarjetas y racha | Únicamente el propietario |
-| `training_attempts` | Intentos inmutables para validación | El propietario solo crea |
+| `training_attempts` | Intentos inmutables para validación | Solo servidor |
 | `reward_catalog` | Beneficios publicados | Solo administradores |
 | `reward_accounts/{uid}` | Saldo autoritativo | Nunca desde navegador |
 | `reward_ledger` | Movimientos auditables | Nunca desde navegador |
-| `reward_requests` | Solicitudes pendientes | El propietario solo crea |
+| `reward_requests` | Solicitudes que requieren entrega humana | Solo servidor |
 | `reward_redemptions` | Canjes aprobados y vigencia | Nunca desde navegador |
 
 ## Flujo de puntos
 
 1. El alumno responde una actividad.
-2. El cliente registra un intento con identificador determinista para evitar duplicados diarios.
-3. Un proceso de servidor valida actividad, respuesta, membresía y si ya fue premiada.
+2. El cliente envía la respuesta al endpoint autenticado, sin escribir directamente en Firestore.
+3. El servidor valida actividad, respuesta, membresía y si ya fue premiada.
 4. En una transacción, el servidor agrega el movimiento al libro mayor y actualiza el saldo.
 5. La interfaz vuelve a leer `reward_accounts/{uid}`; nunca calcula el saldo definitivo por sí misma.
 
 ## Flujo de canje
 
-1. El usuario crea una solicitud `pending` con identificador idempotente.
-2. El servidor valida saldo, costo vigente, inventario, membresía y restricciones.
-3. En una sola transacción, descuenta puntos, registra el libro mayor y crea el canje.
+1. El usuario confirma el producto desde la interfaz.
+2. El servidor valida saldo, costo vigente, vigencia y restricciones.
+3. En una sola transacción idempotente, descuenta puntos, registra el libro mayor y crea el canje.
 4. La entrega de licencia ocurre fuera del documento público. No se guardan claves visibles en el frontend.
 5. El usuario recibe estado aprobado, rechazado o requiere atención, con trazabilidad.
 
@@ -48,5 +48,6 @@ El navegador presenta la experiencia, pero no es autoridad sobre los Puntos IMFR
 - Los accesos permanentes se consultan siempre con token Firebase; una URL directa no omite permisos.
 - El software de presupuestos usa revisión optimista para evitar que dos dispositivos sobrescriban cambios silenciosamente.
 - La interfaz mantiene un modo demo aislado para pruebas visuales sin tocar datos reales.
+- Cada canje confirmado emite una celebración compacta por producto, sin modal ni bloqueo de navegación.
 
 Los beneficios que requieren entrega humana siguen usando solicitudes pendientes. Los recursos digitales registrados se activan inmediatamente después del canje validado por el servidor.

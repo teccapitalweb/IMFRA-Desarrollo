@@ -23,6 +23,8 @@ La versión privada permite validar la experiencia visual mediante:
 - Catálogo provisional.
 - Canjes simulados guardados únicamente en el navegador cuando se usa modo demo.
 - En modo real, el saldo, los canjes digitales y los accesos se resuelven en el backend.
+- Herramientas, materiales, libros, plantillas y software usan el mismo endpoint transaccional; el navegador nunca crea el canje directamente en Firestore.
+- Cada producto muestra una celebración breve con identidad propia después de una confirmación real. La tarjeta es informativa, no captura clics y desaparece sola.
 
 El modo `?modo=demo` no modifica Firebase, Railway, Stripe o Bunny. El modo autenticado sí usa el saldo autoritativo del backend.
 

@@ -347,6 +347,7 @@ export const rewardCatalog: RewardItem[] = [
     category: "Recursos",
     points: 500,
     availability: "Catálogo piloto",
-    accent: "#0f9d78"
+    accent: "#0f9d78",
+    permanent: true
   }
 ];
