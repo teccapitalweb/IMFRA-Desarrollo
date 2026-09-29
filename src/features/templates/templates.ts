@@ -47,7 +47,7 @@ function ensureTemplateStyles() {
     const link = document.createElement("link");
     link.id = "imfra-templates-styles";
     link.rel = "stylesheet";
-    link.href = "assets/imfra-plantillas/imfra-plantillas.css?v=1.1.3";
+    link.href = "assets/imfra-plantillas/imfra-plantillas.css?v=1.2.1";
     link.addEventListener("load", () => resolve(), { once: true });
     link.addEventListener("error", () => resolve(), { once: true });
     document.head.appendChild(link);

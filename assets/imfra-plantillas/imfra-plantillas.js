@@ -1044,8 +1044,7 @@
       (extra ? '<button data-act="inicio">Pack de plantillas</button><span>›</span><b>' + esc(extra) + '</b>' : '<b>Pack de plantillas profesionales</b>') + '</div>';
   };
   App.prototype._moduleNav = function () {
-    return '<div class="ipk-module-nav"><button class="ipk-module-back" data-act="volver-panel" aria-label="Volver a Recompensas IMFRA">' + ico('atras') + '<span>Volver a Recompensas</span></button>' +
-      '<div class="ipk-module-status"><i></i><span>Pack profesional · acceso permanente</span></div></div>';
+    return '<div class="ipk-module-nav"><button class="ipk-module-back" data-act="volver-panel" aria-label="Volver a Recompensas IMFRA">' + ico('atras') + '<span>Volver a Recompensas</span></button></div>';
   };
   App.prototype._render = function () {
     if (this.vista === 'lock') return this._renderLock();
@@ -1116,19 +1115,19 @@
   };
   App.prototype._renderInicio = function () {
     var self = this;
-    var h = this._moduleNav() + this._crumb() +
-      '<div class="ipk-hero ipk-hero--catalog"><div class="ipk-hero-copy"><span class="ipk-pill ipk-pill-ok">' + ico('check') + ' DESBLOQUEADO</span><h1>PACK DE PLANTILLAS PROFESIONALES</h1><p>Formatos técnicos listos para ayudarte a presupuestar, controlar y documentar tus obras.</p><div class="ipk-hero-tags"><span>' + ico('check') + ' Autoguardado</span><span>' + ico('excel') + ' Excel y PDF</span><span>' + ico('abierto') + ' Acceso permanente</span></div></div>' +
-      '<div class="ipk-hero-summary"><div><b>10</b><span>plantillas listas</span></div><div><b>' + this.misDocs.length + '</b><span>proyectos guardados</span></div></div></div>' +
+    var h = this._moduleNav() +
+      '<div class="ipk-hero ipk-hero--catalog"><div class="ipk-hero-copy"><span class="ipk-eyebrow">BIBLIOTECA IMFRA</span><h1>Plantillas profesionales</h1><p>Presupuesta, controla y reporta desde un solo lugar.</p></div>' +
+      '<div class="ipk-hero-summary"><span><b>10</b> plantillas</span><i></i><span><b>' + this.misDocs.length + '</b> guardada' + (this.misDocs.length === 1 ? '' : 's') + '</span></div></div>' +
       '<div class="ipk-tabs"><button class="ipk-tab' + (this.tab === 'catalogo' ? ' is-on' : '') + '" data-act="tab" data-v="catalogo">Plantillas <span class="ipk-count">10</span></button>' +
       '<button class="ipk-tab' + (this.tab === 'mis' ? ' is-on' : '') + '" data-act="tab" data-v="mis">Mis plantillas <span class="ipk-count">' + this.misDocs.length + '</span></button></div>';
     if (this.tab === 'catalogo') {
-      h += '<div class="ipk-catalog-head"><div><span>CATÁLOGO PROFESIONAL</span><h2>Elige una plantilla para comenzar</h2></div><p>Abre, personaliza y guarda cada formato dentro de tu cuenta.</p></div>';
+      h += '<div class="ipk-catalog-head"><h2>Explorar plantillas</h2><span>10 formatos</span></div>';
       h += '<div class="ipk-chips">' + CATEGORIAS.map(function (c) { return '<button class="ipk-chip' + (self.filtro === c ? ' is-on' : '') + '" data-act="filtro" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div>';
       h += '<div class="ipk-grid">' + CATALOGO.filter(function (c) { return self.filtro === 'TODAS' || c.cat === self.filtro; }).map(function (c) {
         var ok = !!REGISTRO[c.id], n = CATALOGO.indexOf(c) + 1;
-        return '<article class="ipk-card' + (ok ? '' : ' is-soon') + '"><div class="ipk-card-top"><span class="ipk-ico">' + ico(c.icon) + '</span><span class="ipk-cat" data-cat="' + c.cat + '">' + c.cat + '</span></div>' +
-          '<span class="ipk-num">PLANTILLA ' + String(n).padStart(2, '0') + '</span><h3>' + esc(c.nombre) + '</h3><p>' + esc(c.desc) + '</p>' +
-          '<div class="ipk-card-actions">' + (ok ? '<button class="ipk-btn ipk-btn-sm" data-act="abrir-tpl" data-id="' + c.id + '">' + ico('abrir') + ' Abrir</button><button class="ipk-btn ipk-btn-sm ipk-btn-ghost" data-act="descargar-tpl" data-id="' + c.id + '">' + ico('bajar') + ' Descargar</button>'
+        return '<article class="ipk-card' + (ok ? '' : ' is-soon') + '"><div class="ipk-card-top"><span class="ipk-ico">' + ico(c.icon) + '</span><span class="ipk-num">' + String(n).padStart(2, '0') + '</span></div>' +
+          '<span class="ipk-cat" data-cat="' + c.cat + '">' + c.cat + '</span><h3>' + esc(c.nombre) + '</h3>' +
+          '<div class="ipk-card-actions">' + (ok ? '<button class="ipk-btn ipk-btn-sm" data-act="abrir-tpl" data-id="' + c.id + '">Abrir plantilla ' + ico('abrir') + '</button><button class="ipk-card-download" data-act="descargar-tpl" data-id="' + c.id + '" title="Descargar plantilla" aria-label="Descargar ' + esc(c.nombre) + '">' + ico('bajar') + '</button>'
             : '<button class="ipk-btn ipk-btn-sm ipk-btn-ghost" disabled>En preparación</button>') + '</div></article>';
       }).join('') + '</div>';
     } else h += this._htmlMis();
