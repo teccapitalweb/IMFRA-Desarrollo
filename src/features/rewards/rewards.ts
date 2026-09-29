@@ -17,6 +17,7 @@ interface RewardState {
   points: number;
   answered: Record<string, { correct: boolean; earned: number; answeredAt: string; selected?: number }>;
   redemptions: Redemption[];
+  benefits: CreditSnapshot["benefits"];
 }
 
 declare global {
@@ -26,7 +27,7 @@ declare global {
   }
 }
 
-const defaultState = (): RewardState => ({ points: 0, answered: {}, redemptions: [] });
+const defaultState = (): RewardState => ({ points: 0, answered: {}, redemptions: [], benefits: {} });
 const dateKey = () => new Date().toISOString().slice(0, 10);
 
 function accountKey() {
@@ -42,7 +43,7 @@ function readState(): RewardState {
       const redemptions = isRewardsDemo()
         ? (saved.redemptions || [])
         : (saved.redemptions || []).filter((entry) => entry.status === "pending");
-      return { ...defaultState(), ...saved, answered: saved.answered || {}, redemptions };
+      return { ...defaultState(), ...saved, answered: saved.answered || {}, redemptions, benefits: saved.benefits || {} };
     }
   } catch {}
   const initial = defaultState();
@@ -96,6 +97,7 @@ function redemptionFor(state: RewardState, rewardId: string) {
 
 function mergeCreditSnapshot(state: RewardState, snapshot: CreditSnapshot) {
   state.points = snapshot.balance;
+  state.benefits = snapshot.benefits || {};
   const catalogIds = new Set(rewardCatalog.map((reward) => reward.id));
   const pending = state.redemptions.filter((entry) => entry.status === "pending" && entry.rewardId !== "software-presupuestos");
   const permanent = snapshot.redemptions
@@ -182,7 +184,19 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
       : Math.min(100, Math.round(((state.points - currentLevel.start) / (currentLevel.next - currentLevel.start)) * 100));
     const featuredReward = rewardCatalog.find((reward) => reward.featured);
     const featuredAccess = featuredReward ? redemptionFor(state, featuredReward.id) : undefined;
+    const featuredBenefit = featuredReward ? state.benefits[featuredReward.id] : undefined;
     const featuredPending = featuredAccess?.status === "pending";
+    const featuredUsed = Boolean(featuredBenefit?.used && !featuredAccess);
+    const featuredEligible = Boolean(featuredBenefit?.eligible || demoMode);
+    const featuredStatus = featuredPending
+      ? "Activación en proceso"
+      : featuredAccess
+        ? "Acceso activo"
+        : featuredUsed
+          ? "Beneficio utilizado"
+          : featuredEligible
+            ? "Beneficio disponible"
+            : "Beneficio por antigüedad";
     const pendingReward = rewardCatalog.find((reward) => reward.id === pendingRewardId);
 
     container.innerHTML = `
@@ -209,30 +223,33 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
           <div class="rw-featured__main">
             <div class="rw-featured__topline">
               <div class="rw-featured__brand"><img class="rw-imdac-wordmark" src="assets/imdac-wordmark.svg" alt="IMDAC" loading="lazy"></div>
-              <span class="rw-status"><i></i>${featuredPending ? "Solicitud en revisión" : featuredAccess ? "Acceso activo" : "Recompensa destacada"}</span>
+              <span class="rw-status"><i></i>${featuredStatus}</span>
             </div>
-            <span class="rw-eyebrow">Software profesional para construcción</span>
+            <span class="rw-eyebrow">Beneficio por permanencia</span>
             <h2>Control de obra, sin perder el control.</h2>
             <p>${escapeHtml(featuredReward.description)}</p>
             <div class="rw-featured__facts">
               <div><span>Duración</span><strong>${featuredReward.durationDays} días</strong></div>
-              <div><span>Inversión</span><strong>${featuredReward.points.toLocaleString("es-MX")} créditos</strong></div>
+              <div><span>Requisito</span><strong>1 año como miembro</strong></div>
               <div><span>Proveedor</span><strong>${escapeHtml(featuredReward.brand || "IMDAC")}</strong></div>
             </div>
           </div>
           <div class="rw-featured__side">
             ${featuredPending ? `<div class="rw-access-ready rw-access-ready--pending">
               <span class="rw-access-ready__icon"><svg class="ic"><use href="#i-clock"/></svg></span>
-              <div><span>Solicitud registrada</span><strong>Validación pendiente</strong><small>El servidor comprobará saldo, vigencia e inventario antes de descontar créditos.</small></div>
+              <div><span>Activación registrada</span><strong>Estamos preparando tu acceso</strong><small>Tu periodo comienza cuando el servidor confirma este beneficio.</small></div>
             </div>` : featuredAccess ? `<div class="rw-access-ready">
               <span class="rw-access-ready__icon"><svg class="ic"><use href="#i-check-circle"/></svg></span>
               <div><span>Beneficio activado</span><strong>Tu acceso está listo</strong><small>${featuredAccess.validUntil ? `Válido hasta el ${formatDate(featuredAccess.validUntil)}` : "Acceso piloto registrado"}</small></div>
               <a class="btn btn--accent rw-access-button" href="${featuredReward.accessUrl}" target="_blank" rel="noopener noreferrer">Entrar a IMDAC <span aria-hidden="true">↗</span></a>
+            </div>` : featuredUsed ? `<div class="rw-access-ready rw-access-ready--used">
+              <span class="rw-access-ready__icon"><svg class="ic"><use href="#i-check-circle"/></svg></span>
+              <div><span>Beneficio utilizado</span><strong>Tu periodo de 30 días concluyó</strong><small>El acceso por aniversario se entrega una sola vez por cuenta.</small></div>
             </div>` : `<div class="rw-feature-list">
               <span>Incluye</span>
               <ul>${(featuredReward.features || []).map((feature) => `<li><svg class="ic"><use href="#i-check-circle"/></svg>${escapeHtml(feature)}</li>`).join("")}</ul>
-              <button type="button" class="btn btn--accent rw-featured__cta" data-redeem="${featuredReward.id}" ${state.points >= featuredReward.points ? "" : "disabled"}>${state.points >= featuredReward.points ? `Canjear por ${featuredReward.points} créditos` : `Te faltan ${(featuredReward.points - state.points).toLocaleString("es-MX")} créditos`}</button>
-              <small>Se solicitará confirmación antes de descontar tus créditos.</small>
+              <button type="button" class="btn ${featuredEligible ? "btn--accent" : "btn--ghost"} rw-featured__cta" data-redeem="${featuredReward.id}" ${featuredEligible ? "" : "disabled"}>${featuredEligible ? "Activar mis 30 días" : featuredBenefit?.eligibleAt ? `Disponible el ${formatDate(featuredBenefit.eligibleAt)}` : "Disponible al cumplir 1 año"}</button>
+              <small>${featuredEligible ? "La vigencia empezará al confirmar. No utiliza tus créditos." : featuredBenefit?.activeMembership ? "Te avisaremos cuando completes tu primer año como miembro." : "Requiere una membresía activa y un año de antigüedad."}</small>
             </div>`}
           </div>
         </section>` : ""}
@@ -240,9 +257,9 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         <section class="rw-redemption-flow">
           <div class="rw-redemption-flow__intro"><span class="rw-eyebrow">Así funciona el beneficio</span><h2>Del aprendizaje a una herramienta real</h2></div>
           <ol>
-            <li><b>01</b><div><strong>Acumulas</strong><span>Participa en cursos, evaluaciones y retos técnicos.</span></div></li>
-            <li><b>02</b><div><strong>Canjeas</strong><span>Confirmas el uso de tus créditos y activas el beneficio.</span></div></li>
-            <li><b>03</b><div><strong>Accedes</strong><span>IMFRA genera tu acceso y te dirige al software IMDAC.</span></div></li>
+            <li><b>01</b><div><strong>Cumples un año</strong><span>La membresía debe mantenerse activa al alcanzar el aniversario.</span></div></li>
+            <li><b>02</b><div><strong>Activas cuando quieras</strong><span>Tú eliges cuándo comienzan tus 30 días de acceso.</span></div></li>
+            <li><b>03</b><div><strong>Accedes</strong><span>IMFRA registra el beneficio y te dirige al software IMDAC.</span></div></li>
           </ol>
         </section>
 
@@ -323,7 +340,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
                 <h3>${escapeHtml(reward.name)}</h3>
                 <p class="rw-reward__description">${escapeHtml(reward.description)}</p>
                 <div class="rw-reward__meta"><strong>${reward.points.toLocaleString("es-MX")} créditos</strong><span>${reward.availability}</span></div>
-                ${redeemed && reward.accessRoute ? `<span class="rw-reward__unlocked"><svg class="ic"><use href="#i-check-circle"/></svg> Desbloqueado</span><button type="button" class="btn btn--accent rw-redeem" data-open-reward="${reward.accessRoute}">Abrir software</button>` : `<button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? (reward.permanent ? `Canjear por ${reward.points} créditos` : "Canjear beneficio") : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>`}
+                ${redeemed && reward.accessRoute ? `<span class="rw-reward__unlocked"><svg class="ic"><use href="#i-check-circle"/></svg> Desbloqueado</span><button type="button" class="btn btn--accent rw-redeem" data-open-reward="${reward.accessRoute}">Abrir software</button>` : `<button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? (reward.permanent ? `Canjear por ${reward.points.toLocaleString("es-MX")} créditos` : "Canjear beneficio") : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>`}
               </article>`;
             }).join("")}
           </div>
@@ -331,7 +348,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
 
         ${state.redemptions.length ? `<section class="rw-history"><div class="rw-section-head"><div><span class="rw-eyebrow">Tu actividad</span><h2>Historial de beneficios</h2></div></div>${state.redemptions.map((entry) => {
           const reward = rewardCatalog.find((item) => item.id === entry.rewardId);
-          return `<div class="rw-history__row"><span><svg class="ic"><use href="${entry.status === "pending" ? "#i-clock" : "#i-check-circle"}"/></svg><span><strong>${escapeHtml(reward?.name || entry.rewardId)}</strong><small>${formatDate(entry.createdAt)} · ${entry.status === "active" ? "Acceso activado" : "Solicitud en validación"}</small></span></span><b>${entry.status === "pending" ? "Sin descuento" : `−${entry.points} créditos`}</b></div>`;
+          return `<div class="rw-history__row"><span><svg class="ic"><use href="${entry.status === "pending" ? "#i-clock" : "#i-check-circle"}"/></svg><span><strong>${escapeHtml(reward?.name || entry.rewardId)}</strong><small>${formatDate(entry.createdAt)} · ${entry.status === "active" ? "Acceso activado" : "Solicitud en validación"}</small></span></span><b>${entry.status === "pending" || reward?.unlockMode === "membership_anniversary" ? "Sin descuento" : `−${entry.points.toLocaleString("es-MX")} créditos`}</b></div>`;
         }).join("")}</section>` : ""}
       </div>
 
@@ -340,12 +357,12 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             <button type="button" class="rw-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
             <span class="rw-dialog__icon"><img src="${rewardIcon(pendingReward)}" alt="" loading="lazy"></span>
             <span class="rw-eyebrow">Confirmar beneficio</span>
-            <h2 id="rw-dialog-title">${pendingReward.permanent ? `¿Deseas desbloquear ${escapeHtml(pendingReward.name)} por ${pendingReward.points} créditos?` : escapeHtml(pendingReward.name)}</h2>
-            <p>${pendingReward.permanent ? "El acceso quedará asociado permanentemente a tu cuenta y no volverás a pagar al abrirlo." : `Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}`}</p>
-            <div class="rw-dialog__balance"><span>Créditos disponibles <b>${state.points.toLocaleString("es-MX")}</b></span><span>Costo <b>−${pendingReward.points.toLocaleString("es-MX")}</b></span><span>Créditos restantes <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>
-            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "Esta activación de prueba es local y segura." : "El servidor realizará el cargo y el desbloqueo en una sola operación segura, sin duplicados."}</span></div>
+            <h2 id="rw-dialog-title">${pendingReward.unlockMode === "membership_anniversary" ? "¿Deseas activar ahora tus 30 días de IMDAC?" : pendingReward.permanent ? `¿Deseas desbloquear ${escapeHtml(pendingReward.name)} por ${pendingReward.points.toLocaleString("es-MX")} créditos?` : escapeHtml(pendingReward.name)}</h2>
+            <p>${pendingReward.unlockMode === "membership_anniversary" ? "La vigencia comenzará al confirmar y terminará 30 días después. Este beneficio no descuenta Créditos IMFRA." : pendingReward.permanent ? "El acceso quedará asociado permanentemente a tu cuenta y no volverás a pagar al abrirlo." : `Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}`}</p>
+            ${pendingReward.unlockMode === "membership_anniversary" ? `<div class="rw-dialog__benefit"><span><svg class="ic"><use href="#i-gift"/></svg></span><div><small>Beneficio por permanencia</small><strong>30 días · 0 créditos</strong></div></div>` : `<div class="rw-dialog__balance"><span>Créditos disponibles <b>${state.points.toLocaleString("es-MX")}</b></span><span>Costo <b>−${pendingReward.points.toLocaleString("es-MX")}</b></span><span>Créditos restantes <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>`}
+            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "Esta activación de prueba es local y segura." : pendingReward.unlockMode === "membership_anniversary" ? "El servidor verificará tu antigüedad y registrará el beneficio una sola vez." : "El servidor realizará el cargo y el desbloqueo en una sola operación segura, sin duplicados."}</span></div>
             ${redemptionError ? `<div class="rw-dialog__error" role="alert">${escapeHtml(redemptionError)}</div>` : ""}
-            <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">Confirmar canje</button></div>
+            <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">${pendingReward.unlockMode === "membership_anniversary" ? "Activar 30 días" : "Confirmar canje"}</button></div>
           </section>
         </div>` : ""}`;
 
@@ -399,7 +416,9 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
     container.querySelectorAll<HTMLButtonElement>("[data-redeem]").forEach((button) => {
       button.addEventListener("click", () => {
         const reward = rewardCatalog.find((item) => item.id === button.dataset.redeem);
-        if (!reward || state.points < reward.points || redemptionFor(state, reward.id)) return;
+        const requiresCredits = reward?.unlockMode !== "membership_anniversary";
+        const canActivateAnniversary = reward?.unlockMode !== "membership_anniversary" || featuredEligible;
+        if (!reward || (requiresCredits && state.points < reward.points) || !canActivateAnniversary || redemptionFor(state, reward.id)) return;
         pendingRewardId = reward.id;
         redemptionError = "";
         render();
@@ -422,7 +441,8 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
     container.querySelectorAll<HTMLButtonElement>("[data-confirm-redeem]").forEach((button) => {
       button.addEventListener("click", async () => {
         const reward = rewardCatalog.find((item) => item.id === button.dataset.confirmRedeem);
-        if (!reward || state.points < reward.points || redemptionFor(state, reward.id)) return;
+        const requiresCredits = reward?.unlockMode !== "membership_anniversary";
+        if (!reward || (requiresCredits && state.points < reward.points) || redemptionFor(state, reward.id)) return;
         button.disabled = true;
         button.textContent = "Registrando solicitud…";
         try {

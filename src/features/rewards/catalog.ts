@@ -37,6 +37,8 @@ export interface RewardItem {
   features?: string[];
   permanent?: boolean;
   accessRoute?: string;
+  unlockMode?: "membership_anniversary";
+  membershipMonths?: number;
 }
 
 export const rewardQuestions: RewardQuestion[] = [
@@ -312,10 +314,10 @@ export const rewardQuestions: RewardQuestion[] = [
 export const rewardCatalog: RewardItem[] = [
   {
     id: "software-presupuestos",
-    name: "Software de presupuestos",
+    name: "Software profesional de presupuestos",
     description: "Sistema profesional integrado para proyectos, conceptos, APU, insumos, generadores y reportes.",
     category: "Software",
-    points: 350,
+    points: 1200,
     availability: "Acceso permanente",
     accent: "#f59d1a",
     permanent: true,
@@ -326,11 +328,13 @@ export const rewardCatalog: RewardItem[] = [
     name: "IMDAC · Control de Obra",
     description: "Acceso profesional para centralizar el avance físico, financiero y documental de tus proyectos.",
     category: "Software",
-    points: 600,
-    availability: "30 días de acceso",
+    points: 0,
+    availability: "30 días al cumplir 1 año",
     accent: "#ee8d16",
     brand: "IMDAC · TEC Capital",
     durationDays: 30,
+    unlockMode: "membership_anniversary",
+    membershipMonths: 12,
     accessUrl: "https://imdac-control-obra-web-nxav.vercel.app/login",
     featured: true,
     features: [

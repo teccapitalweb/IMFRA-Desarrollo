@@ -2,7 +2,7 @@
 
 ## Acceso
 
-El punto de entrada es **Retos → Recompensas IMFRA → Software de presupuestos**. El producto cuesta 350 Créditos IMFRA y queda asociado permanentemente al usuario. La interfaz consulta `GET /budgets/access`; no confía en un indicador local para autorizar el módulo.
+El punto de entrada es **Retos → Recompensas IMFRA → Software profesional de presupuestos**. El producto cuesta 1,200 Créditos IMFRA y queda asociado permanentemente al usuario. La interfaz consulta `GET /budgets/access`; no confía en un indicador local para autorizar el módulo.
 
 ## Módulos
 

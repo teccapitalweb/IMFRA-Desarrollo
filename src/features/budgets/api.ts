@@ -17,7 +17,7 @@ const clone = <T>(value: T): T => structuredClone(value);
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const token = await window.__currentUser?.getIdToken?.();
-  if (!token) throw new Error('Inicia sesión para usar Software de presupuestos.');
+  if (!token) throw new Error('Inicia sesión para usar el Software profesional de presupuestos.');
   const response = await fetch(apiUrl(path), {
     ...options,
     headers: { Authorization: `Bearer ${token}`, ...(options.body ? { 'Content-Type': 'application/json' } : {}), ...(options.headers || {}) }

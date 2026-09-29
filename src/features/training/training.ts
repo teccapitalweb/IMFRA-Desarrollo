@@ -106,7 +106,7 @@ function rewardsSnapshot() {
 
 function chipIcon(rewardId: string) {
   if (rewardId === "imdac-control-obra-30d") return "assets/icons/chip-imdac.png";
-  if (rewardId === "software-presupuestos-7d") return "assets/icons/chip-presupuestos.png";
+  if (rewardId === "software-presupuestos") return "assets/icons/chip-presupuestos.png";
   if (rewardId === "pack-plantillas-pro") return "assets/icons/chip-plantillas.png";
   return "assets/icons/chip-catalogo.png";
 }
@@ -224,9 +224,9 @@ function mount(container: HTMLElement) {
         </div>
         ${renderLeague()}
         <section class="tr-rewards">
-          <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Usa tus créditos donde tú decidas</h2></div><div class="tr-rewards__balance"><span>Créditos disponibles</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
+          <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Créditos y beneficios para seguir creciendo</h2></div><div class="tr-rewards__balance"><span>Créditos disponibles</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
           ${canEarnChallengeCredits() ? "" : `<p class="tr-rewards__note">${icon("i-shield-check")}<span>Solo los miembros VIP ganan créditos en Retos.</span></p>`}
-          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.points.toLocaleString("es-MX")} créditos</small></div></button>`).join("")}
+          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.unlockMode === "membership_anniversary" ? "Se activa al cumplir 1 año" : `${reward.points.toLocaleString("es-MX")} créditos`}</small></div></button>`).join("")}
             <button class="tr-chip tr-chip--more" data-training-action="rewards"><img class="tr-chip__icon" src="assets/icons/chip-catalogo.png" alt="" loading="lazy"><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
           </div>
         </section>

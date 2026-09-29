@@ -9608,7 +9608,7 @@ const Sections = (function(){
       },
       presupuestos:(c)=>{
         if(window.IMFRABudgets){ window.IMFRABudgets.mount(c); return; }
-        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Software de presupuestos…</div>';
+        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Software profesional de presupuestos…</div>';
         window.addEventListener('imfra:budgets-ready',()=>{
           if(location.hash==='#presupuestos' && c.isConnected) window.IMFRABudgets?.mount(c);
         },{once:true});

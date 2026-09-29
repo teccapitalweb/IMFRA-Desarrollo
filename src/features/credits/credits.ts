@@ -20,11 +20,22 @@ export interface CreditNotification {
   readAt?: string | null;
 }
 
+export interface MembershipBenefitStatus {
+  mode: "membership_anniversary";
+  activeMembership: boolean;
+  memberSince?: string | null;
+  eligibleAt?: string | null;
+  eligible: boolean;
+  used: boolean;
+  durationDays: number;
+}
+
 export interface CreditSnapshot {
   balance: number;
   lifetimeEarned: number;
   lifetimeSpent: number;
   redemptions: CreditRedemption[];
+  benefits: Record<string, MembershipBenefitStatus>;
   notifications: CreditNotification[];
 }
 
@@ -74,11 +85,11 @@ const DEMO_COSTS: Record<string, number> = {
   "book-advanced-mechanics": 350,
   "book-advanced-strength": 320,
   "book-resistencia-materiales": 300,
-  "software-presupuestos": 350,
-  "imdac-control-obra-30d": 600,
+  "software-presupuestos": 1200,
+  "imdac-control-obra-30d": 0,
   "pack-plantillas-pro": 500
 };
-const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [], notifications: [] };
+const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [], benefits: {}, notifications: [] };
 let current: CreditSnapshot = { ...EMPTY };
 let loaded = false;
 let loading: Promise<CreditSnapshot> | null = null;
@@ -132,6 +143,17 @@ function demoSnapshot() {
     lifetimeEarned: 620,
     lifetimeSpent: redemptions.reduce((total, item) => total + Math.max(0, Number(item.points) || 0), 0),
     redemptions,
+    benefits: {
+      "imdac-control-obra-30d": {
+        mode: "membership_anniversary",
+        activeMembership: true,
+        memberSince: new Date(Date.now() - 370 * 86400000).toISOString(),
+        eligibleAt: new Date(Date.now() - 5 * 86400000).toISOString(),
+        eligible: !redemptions.some((item) => item.rewardId === "imdac-control-obra-30d"),
+        used: redemptions.some((item) => item.rewardId === "imdac-control-obra-30d"),
+        durationDays: 30
+      }
+    },
     notifications: []
   } satisfies CreditSnapshot;
 }
@@ -184,13 +206,15 @@ function publish(snapshot: CreditSnapshot) {
     lifetimeEarned: Math.max(0, Number(snapshot.lifetimeEarned) || 0),
     lifetimeSpent: Math.max(0, Number(snapshot.lifetimeSpent) || 0),
     redemptions: Array.isArray(snapshot.redemptions) ? snapshot.redemptions : [],
+    benefits: snapshot.benefits && typeof snapshot.benefits === "object" ? snapshot.benefits : {},
     notifications: Array.isArray(snapshot.notifications) ? snapshot.notifications : []
   };
   const changed = !loaded
     || current.balance !== next.balance
     || current.lifetimeEarned !== next.lifetimeEarned
     || current.lifetimeSpent !== next.lifetimeSpent
-    || current.redemptions.map((item) => `${item.id}:${item.status}`).join("|") !== next.redemptions.map((item) => `${item.id}:${item.status}`).join("|");
+    || current.redemptions.map((item) => `${item.id}:${item.status}`).join("|") !== next.redemptions.map((item) => `${item.id}:${item.status}`).join("|")
+    || JSON.stringify(current.benefits) !== JSON.stringify(next.benefits);
   current = next;
   loaded = true;
   if (changed) window.dispatchEvent(new CustomEvent("imfra:credits-changed", { detail: current }));
@@ -265,8 +289,9 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
   if (current.redemptions.some((item) => item.rewardId === rewardId && item.status === "active")) return current;
   if (isDemo()) {
     const cost = DEMO_COSTS[rewardId];
-    if (!cost) throw new Error("Este recurso todavía no está disponible para canje.");
-    if (current.balance < cost) throw new Error(`Te faltan ${cost - current.balance} créditos.`);
+    if (cost === undefined) throw new Error("Este recurso todavía no está disponible para canje.");
+    const anniversaryBenefit = rewardId === "imdac-control-obra-30d";
+    if (!anniversaryBenefit && current.balance < cost) throw new Error(`Te faltan ${cost - current.balance} créditos.`);
     const firstToolRedemption = rewardId.startsWith("tool-") && !current.redemptions.some((item) => item.type === "tool");
     const next = {
       ...current,

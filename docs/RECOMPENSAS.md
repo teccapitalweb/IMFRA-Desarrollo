@@ -83,10 +83,17 @@ Para reemplazar el catálogo provisional harán falta:
 - El aviso de créditos usa una tarjeta responsive no modal: en escritorio aparece centrada bajo el encabezado y en móvil se adapta al borde inferior. Destaca monto y saldo, permanece visible 5.8 segundos y enlaza a la campana.
 - Los libros de pago pueden canjearse permanentemente con Créditos IMFRA. Una membresía VIP permite leerlos sin ocultar la opción de canje permanente.
 
-## Software de presupuestos
+## Software profesional de presupuestos
 
-- Cuesta 350 Créditos IMFRA y se adquiere una sola vez.
+- Cuesta 1,200 Créditos IMFRA y se adquiere una sola vez.
 - El descuento, `credit_transactions`, `reward_redemptions` y `budget_access` se escriben atómicamente.
 - Un reintento o doble clic devuelve el acceso existente sin volver a descontar.
 - La ruta `#presupuestos` comprueba el permiso en el servidor; sin acceso regresa a Retos y muestra la indicación de desbloqueo.
 - Proyectos, presupuestos, APU, insumos, generadores, versiones y reportes se guardan en Firestore. `localStorage` se utiliza únicamente en `modo=demo`.
+
+## IMDAC · Control de Obra
+
+- No se canjea con créditos. Es un beneficio único por permanencia.
+- Al completar 12 meses con una membresía activa, la tarjeta cambia a **Beneficio disponible**.
+- El usuario decide cuándo pulsar **Activar mis 30 días**; la vigencia empieza al confirmar, no el día del aniversario.
+- El backend verifica la antigüedad y registra la activación de forma atómica. Una vez consumido el periodo, no se vuelve a otorgar automáticamente.

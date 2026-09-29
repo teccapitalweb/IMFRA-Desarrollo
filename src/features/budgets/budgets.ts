@@ -73,9 +73,9 @@ class BudgetApplication {
     this.renderLoading('Comprobando tu acceso…');
     try {
       if (!(await api.hasAccess())) {
-        this.root.innerHTML = `<div class="budget-app"><div class="bu-access"><span class="bu-access__icon">${icon('i-lock')}</span><h2>Software de presupuestos</h2><p>Desbloquéalo con 350 Créditos IMFRA desde Retos para empezar a crear proyectos.</p><button class="bu-button bu-button--accent" data-action="go-rewards">Ir a Recompensas IMFRA</button></div></div>`;
+        this.root.innerHTML = `<div class="budget-app"><div class="bu-access"><span class="bu-access__icon">${icon('i-lock')}</span><h2>Software profesional de presupuestos</h2><p>Desbloquéalo con 1,200 Créditos IMFRA desde Retos para empezar a crear proyectos.</p><button class="bu-button bu-button--accent" data-action="go-rewards">Ir a Recompensas IMFRA</button></div></div>`;
         this.bind();
-        window.Toast?.info('Acceso protegido', 'Desbloquea Software de presupuestos con tus créditos IMFRA para utilizar esta herramienta.');
+        window.Toast?.info('Acceso protegido', 'Desbloquea el Software profesional de presupuestos con tus créditos IMFRA para utilizar esta herramienta.');
         window.setTimeout(() => {
           if (location.hash === '#presupuestos') window.navigateToSection?.('entrenamiento');
         }, 1200);
@@ -488,7 +488,7 @@ class BudgetApplication {
   printReport(type:string){const preview=this.renderReportHtml(type);const popup=window.open('','_blank','width=1100,height=800');if(!popup){window.Toast?.error('Impresión bloqueada','Permite ventanas emergentes para imprimir.');return;}popup.document.write(`<!doctype html><html><head><title>IMFRA · Reporte</title><style>body{font-family:Arial;margin:24px;color:#222}header{display:flex;justify-content:space-between;border-bottom:3px solid #f59d1a;padding-bottom:14px}header span{color:#f59d1a;font-weight:bold}.bu-report-preview__meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}.bu-report-preview__meta small,.bu-report-preview__meta strong{display:block}table{width:100%;border-collapse:collapse}th,td{padding:7px;border:1px solid #ddd;font-size:10px;text-align:left}th{background:#171717;color:white}.num{text-align:right}.bu-report-preview__total{text-align:right;padding:16px;font-size:14px}@media print{body{margin:0}}</style></head><body>${preview}<script>window.onload=()=>{window.print();window.onafterprint=()=>window.close()}<\/script></body></html>`);popup.document.close();void api.registerReport(this.active!.project.id,type,'print');}
   download(blob:Blob,name:string){const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   fileName(){return this.active!.project.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,70)||'presupuesto-imfra';}
-  notifyError(error:unknown){const message=error instanceof Error?error.message:'No pudimos completar la operación.';window.Toast?.error('Software de presupuestos',message);console.error('[budgets]',error);}
+  notifyError(error:unknown){const message=error instanceof Error?error.message:'No pudimos completar la operación.';window.Toast?.error('Software profesional de presupuestos',message);console.error('[budgets]',error);}
 }
 
 let app: BudgetApplication | null = null;
