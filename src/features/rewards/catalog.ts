@@ -348,10 +348,10 @@ export const rewardCatalog: RewardItem[] = [
   {
     id: "pack-plantillas-pro",
     name: "Pack de plantillas profesionales",
-    description: "Nueve formatos editables para presupuestos, APU, generadores, estimaciones y control de obra.",
+    description: "Diez formatos editables para presupuestos, APU, generadores, estimaciones, bitácora y control de obra.",
     category: "Recursos",
     points: 450,
-    availability: "9 plantillas · acceso permanente",
+    availability: "10 plantillas · acceso permanente",
     accent: "#0f9d78",
     permanent: true,
     accessRoute: "plantillas",

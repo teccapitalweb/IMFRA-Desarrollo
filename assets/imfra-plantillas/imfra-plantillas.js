@@ -1,7 +1,7 @@
 /* =========================================================
    IMFRA · Pack de Plantillas Profesionales — motor v1.0
    - Canje con créditos (transacción, sin doble cobro)
-   - Catálogo de 9 plantillas disponibles + "Mis plantillas"
+   - Catálogo de 10 plantillas + "Mis plantillas"
    - Editor con filas (partida/subpartida/concepto), cálculos,
      autoguardado, copia, Excel (con fórmulas), PDF e impresión
    Cada plantilla vive en su propio archivo y se registra con
@@ -28,7 +28,7 @@
     }
   };
 
-  /* ---------------- Catálogo (9 disponibles + bitácora próxima) ---------------- */
+  /* ---------------- Catálogo (las 10) ---------------- */
   var CATALOGO = [
     { id: 'casa-habitacion', nombre: 'Presupuesto de Casa Habitación', cat: 'PRESUPUESTOS', icon: 'casa',
       desc: 'Catálogo por partidas, subpartidas y conceptos con importes, IVA, total con letra y costo por m².' },
@@ -117,6 +117,8 @@
   function setPath(o, p, v) { var ks = p.split('.'); var a = o; for (var i = 0; i < ks.length - 1; i++) { if (a[ks[i]] == null || typeof a[ks[i]] !== 'object') a[ks[i]] = {}; a = a[ks[i]]; } a[ks[ks.length - 1]] = v; }
   function slug(s) { return String(s || 'plantilla').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '_').slice(0, 80) || 'plantilla'; }
   function hoyISO() { var d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); }
+  function isoADate(v) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || '')); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null; }
+  function fechaCorta(v) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || '')); return m ? m[3] + '/' + m[2] + '/' + m[1] : (v || ''); }
   function fechaLarga(iso) { if (!iso) return ''; var p = String(iso).split('-'); if (p.length !== 3) return iso; var d = new Date(+p[0], +p[1] - 1, +p[2]); return d.toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }); }
 
   /* Importe con letra (pesos mexicanos) */
@@ -137,6 +139,32 @@
     var ent = Math.floor(v), cen = Math.round((v - ent) * 100);
     var t = ent === 0 ? 'CERO PESOS' : ent === 1 ? 'UN PESO' : letras(ent) + ' PESOS';
     return (neg ? 'MENOS ' : '') + '(' + t + ' ' + String(cen).padStart(2, '0') + '/100 M.N.)';
+  }
+
+  function comprimirImagen(file, max, q) {
+    max = max || 1280; q = q || 0.72;
+    return new Promise(function (ok, ko) {
+      var fr = new FileReader();
+      fr.onerror = function () { ko(new Error('No se pudo leer la imagen')); };
+      fr.onload = function () {
+        var img = new Image();
+        img.onerror = function () { ko(new Error('Formato de imagen no compatible')); };
+        img.onload = function () {
+          var w = img.naturalWidth, h = img.naturalHeight, lado = max, url, iter = 0;
+          do {
+            var k = Math.min(1, lado / Math.max(w, h)), cw = Math.round(w * k), ch = Math.round(h * k);
+            var c = document.createElement('canvas'); c.width = cw; c.height = ch;
+            var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, cw, ch); x.drawImage(img, 0, 0, cw, ch);
+            url = c.toDataURL('image/jpeg', q);
+            if (url.length > 650000) { if (q > 0.5) q -= 0.1; else lado = Math.round(lado * 0.8); }
+            iter++;
+          } while (url.length > 650000 && iter < 8);
+          ok({ data: url, w: cw, h: ch });
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
   }
 
   var _scripts = {};
@@ -295,6 +323,10 @@
     return this.fs.update(this.docsPath + '/' + id, cambios).then(function () { return cambios.modificado; });
   };
   Store.prototype.eliminar = function (id) { return this.fs.del(this.docsPath + '/' + id); };
+  Store.prototype.fotoPath = function (id) { return this.userPath + '/' + (this.cfg.subcoleccionFotos || 'misPlantillasFotos') + '/' + id; };
+  Store.prototype.guardarFoto = function (id, dataUrl) { return this.fs.set(this.fotoPath(id), { data: dataUrl, creado: Date.now() }); };
+  Store.prototype.leerFoto = function (id) { return this.fs.get(this.fotoPath(id)).then(function (d) { return d ? d.data : null; }); };
+  Store.prototype.borrarFoto = function (id) { return this.fs.del(this.fotoPath(id)); };
   Store.prototype.duplicar = function (id, nombre) {
     var self = this;
     return this.obtener(id).then(function (d) { if (!d) throw new Error('No existe'); return self.crear(nombre, d.tipo, d.data, d.version); });
@@ -349,7 +381,7 @@
     if (t === 'semaforo') return v ? '<span class="ipk-sem ' + semCls(v) + '">' + esc(v) + '</span>' : '';
     return esc(v);
   }
-  function semCls(v) { v = String(v || '').toUpperCase(); return /ATRAS|ROJO|CR[IÍ]T/.test(v) ? 'is-rojo' : /ATENC|AMARILL|RIESGO/.test(v) ? 'is-amarillo' : v ? 'is-verde' : ''; }
+  function semCls(v) { v = String(v || '').toUpperCase(); return /ATRAS|ROJO|CR[IÍ]T|VENCID/.test(v) ? 'is-rojo' : /ATENC|AMARILL|RIESGO|PENDIENT|PROCESO/.test(v) ? 'is-amarillo' : v ? 'is-verde' : ''; }
   var SEM_RGB = { 'is-verde': [209, 250, 229, 22, 101, 52], 'is-amarillo': [254, 243, 199, 146, 64, 14], 'is-rojo': [254, 226, 226, 185, 28, 28] };
 
   /* Operaciones de filas con niveles */
@@ -517,7 +549,7 @@
             if (c1 > c0 + 1) ws.mergeCells(row, c0 + 1, row, c1);
             var vc = ws.getCell(row, c0 + 1);
             if (f.t === 'number') { vc.value = num(v); vc.numFmt = f.dec === 0 ? '#,##0' : '#,##0.00'; vc.alignment = { horizontal: 'left' }; }
-            else if (f.t === 'date') vc.value = fechaLarga(v);
+            else if (f.t === 'date') { var dd = isoADate(v); vc.value = dd || (v || ''); if (dd) { vc.numFmt = 'dd/mm/yyyy'; vc.alignment = { horizontal: 'left' }; } }
             else vc.value = v == null ? '' : String(v);
             vc.font = { size: 10 }; vc.border = border; if (f.t === 'textarea') { vc.alignment = { wrapText: true, vertical: 'top' }; }
             for (var z = c0 + 1; z <= c1; z++) ws.getCell(row, z).border = border;
@@ -562,8 +594,9 @@
                 if (c.t === 'semaforo') { cell.font = { bold: true, size: 9 }; }
               } else if (c.calc) cell.value = num(o[c.k]);
               else if (c.t === 'money' || c.t === 'num' || c.t === 'pct') cell.value = r[c.k] === '' || r[c.k] == null ? null : num(r[c.k]);
-              else cell.value = r[c.k] == null ? '' : String(r[c.k]);
-              var fm = xlFmt(c.t, c.dec); if (fm) cell.numFmt = fm;
+              else if (c.t === 'date') cell.value = isoADate(r[c.k]) || null;
+              else cell.value = r[c.k] == null || r[c.k] === '' ? null : String(r[c.k]);
+              var fm = c.t === 'date' ? 'dd/mm/yyyy' : xlFmt(c.t, c.dec); if (fm) cell.numFmt = fm;
               cell.border = border; cell.font = { size: 9.5 };
               cell.alignment = { vertical: 'top', wrapText: c.t === 'textarea' || c.t === 'text', horizontal: fm ? 'right' : (c.t === 'unidad' ? 'center' : 'left') };
             });
@@ -588,7 +621,7 @@
           if (c.t !== 'semaforo' || !rows.length) return;
           var ref = colL(i) + r0 + ':' + colL(i) + rN;
           var mk = function (txt, bg, fg) { return { type: 'containsText', operator: 'containsText', text: txt, style: { fill: { type: 'pattern', pattern: 'solid', bgColor: { argb: bg } }, font: { color: { argb: fg }, bold: true } } }; };
-          ws.addConditionalFormatting({ ref: ref, rules: [mk('ATRASADO', 'FFFEE2E2', 'FFB91C1C'), mk('ATENCI', 'FFFEF3C7', 'FF92400E'), mk('EN TIEMPO', 'FFD1FAE5', 'FF166534')] });
+          ws.addConditionalFormatting({ ref: ref, rules: [mk('ATRASADO', 'FFFEE2E2', 'FFB91C1C'), mk('VENCIDO', 'FFFEE2E2', 'FFB91C1C'), mk('ATENCI', 'FFFEF3C7', 'FF92400E'), mk('PENDIENTE', 'FFFEF3C7', 'FF92400E'), mk('PROCESO', 'FFFEF3C7', 'FF92400E'), mk('EN TIEMPO', 'FFD1FAE5', 'FF166534'), mk('CUMPLIDO', 'FFD1FAE5', 'FF166534')] });
           for (var q = r0; q <= rN; q++) ws.getCell(q, i + 1).alignment = { horizontal: 'center', vertical: 'middle' };
         });
         // fila total
@@ -656,11 +689,35 @@
         row++;
       }
 
+      function pxCol(px) { var acc = 0; for (var i = 0; i < NC; i++) { var w = (ws.getColumn(i + 1).width || 9) * 7 + 5; if (acc + w > px) return i + (px - acc) / w; acc += w; } return NC; }
+      function fotos(s) {
+        tituloSec(s.titulo);
+        var lst = (data.fotos && data.fotos[s.key]) || [], F = doc._fotos || {};
+        if (!lst.length) { ws.getCell(row, 1).value = 'Sin evidencia fotográfica.'; row += 2; return; }
+        for (var i = 0; i < lst.length; i += 2) {
+          var par = lst.slice(i, i + 2), alto = 0;
+          par.forEach(function (f, j) {
+            var src = F[f.id] || f.url; if (!src || String(src).indexOf('data:image') !== 0) return;
+            var w = 430, h = Math.min(320, Math.round(w * (f.h || 3) / (f.w || 4))); if (h === 320) w = Math.round(h * (f.w || 4) / (f.h || 3));
+            var im = wb.addImage({ base64: src, extension: 'jpeg' });
+            ws.addImage(im, { tl: { col: pxCol(j * 470 + 4), row: row - 1 + 0.2 }, ext: { width: w, height: h } });
+            alto = Math.max(alto, h);
+          });
+          var filas = Math.ceil(alto / 20) + 1; for (var rr = row; rr < row + filas; rr++) ws.getRow(rr).height = 15; row += filas;
+          par.forEach(function (f, j) {
+            var c = ws.getCell(row, Math.floor(pxCol(j * 470 + 4)) + 1);
+            c.value = 'Foto ' + (i + j + 1) + (f.fecha ? ' · ' + fechaCorta(f.fecha) : '') + (f.ubic ? ' · ' + f.ubic : '') + (f.pie ? ' — ' + f.pie : '');
+            c.font = { size: 9, bold: true, color: { argb: 'FF16181D' } };
+          });
+          row += 2;
+        }
+      }
       function grafico(s) {
         tituloSec(s.titulo);
         if (IMGS[s.key]) {
           var im = wb.addImage({ base64: IMGS[s.key], extension: 'png' });
           ws.addImage(im, { tl: { col: 0, row: row - 1 + 0.3 }, ext: { width: 900, height: 319 } });
+          for (var rg = row; rg < row + 17; rg++) ws.getRow(rg).height = 15;
           row += 17;
         } else { ws.getCell(row, 1).value = 'Gráfica disponible en la plataforma y en el PDF.'; row += 2; }
       }
@@ -669,6 +726,7 @@
         else if (s.tipo === 'tabla') tabla(s);
         else if (s.tipo === 'resumen') resumen(s);
         else if (s.tipo === 'grafico') grafico(s);
+        else if (s.tipo === 'fotos') fotos(s);
       });
       // Firmas
       if (def.firmas && def.firmas.length) {
@@ -749,7 +807,7 @@
             if (t === 'c') return cc.map(function (c) {
               var v = c.calc || c.pctDe ? o[c.k] : r[c.k];
               var isN = c.t === 'money' || c.t === 'num' || c.t === 'pct';
-              var txt = isN ? (v === '' || v == null ? '' : (c.t === 'money' ? fmtMoney(v) : c.t === 'pct' ? fmtPct(v) : fmtNum(v, c.dec))) : String(v == null ? '' : v);
+              var txt = isN ? (v === '' || v == null ? '' : (c.t === 'money' ? fmtMoney(v) : c.t === 'pct' ? fmtPct(v) : fmtNum(v, c.dec))) : c.t === 'date' ? fechaCorta(v) : String(v == null ? '' : v);
               if (c.t === 'semaforo') { var sr = SEM_RGB[semCls(v)]; return { content: String(v || ''), styles: sr ? { halign: 'center', fontStyle: 'bold', fillColor: sr.slice(0, 3), textColor: sr.slice(3) } : { halign: 'center' } }; }
               return { content: txt, styles: { halign: isN ? 'right' : (c.t === 'unidad' ? 'center' : 'left') } };
             });
@@ -783,6 +841,25 @@
             columnStyles: colStyles
           }));
           y = pdf.lastAutoTable.finalY + 12;
+        } else if (s.tipo === 'fotos') {
+          var lstF = (data.fotos && data.fotos[s.key]) || [], FF = doc._fotos || {};
+          if (y > Hh - 160) { pdf.addPage(); y = 72; }
+          tit(s.titulo); y += 8;
+          if (!lstF.length) { pdf.setFontSize(9); pdf.setTextColor.apply(pdf, MUT); pdf.text('Sin evidencia fotográfica.', M, y + 10); y += 24; return; }
+          var cw = (W - 2 * M - 18) / 2;
+          for (var fi = 0; fi < lstF.length; fi += 2) {
+            var par = lstF.slice(fi, fi + 2), hs = par.map(function (f) { return Math.min(230, cw * (f.h || 3) / (f.w || 4)); }), hmax = Math.max.apply(null, hs);
+            if (y + hmax + 40 > Hh - 40) { pdf.addPage(); y = 80; }
+            par.forEach(function (f, j) {
+              var x0 = M + j * (cw + 18), src = FF[f.id] || f.url, hh = hs[j], ww = Math.min(cw, hh * (f.w || 4) / (f.h || 3));
+              if (src && String(src).indexOf('data:image') === 0) { try { pdf.addImage(src, 'JPEG', x0 + (cw - ww) / 2, y, ww, hh); } catch (e) { } }
+              pdf.setDrawColor(225, 225, 230); pdf.setLineWidth(0.5); pdf.rect(x0, y, cw, hmax);
+              pdf.setFont('helvetica', 'bold'); pdf.setFontSize(8.5); pdf.setTextColor.apply(pdf, INK);
+              pdf.text(T('Foto ' + (fi + j + 1) + (f.fecha ? ' · ' + fechaCorta(f.fecha) : '') + (f.ubic ? ' · ' + f.ubic : '')), x0, y + hmax + 12);
+              if (f.pie) { pdf.setFont('helvetica', 'normal'); pdf.setTextColor.apply(pdf, MUT); pdf.text(pdf.splitTextToSize(T(f.pie), cw).slice(0, 2), x0, y + hmax + 23); }
+            });
+            y += hmax + 44;
+          }
         } else if (s.tipo === 'grafico') {
           var gw = W - 2 * M, gh = gw * CH.H / CH.W;
           if (y + gh + 30 > Hh - 40) { pdf.addPage(); y = 72; }
@@ -841,6 +918,12 @@
       '</style></head><body>');
     h.push('<div class="hd">' + (cfg.logo ? '<img src="' + cfg.logo + '">' : '<b>' + esc(cfg.marca) + '</b>') + '<div><h1>' + esc(def.nombre.toUpperCase()) + '</h1><h2>' + esc(doc.nombre) + '</h2></div></div>');
     def.secciones.forEach(function (s) {
+      if (s.tipo === 'fotos') {
+        var lp = (data.fotos && data.fotos[s.key]) || [], FP = doc._fotos || {};
+        h.push('<div class="st">' + esc(s.titulo.toUpperCase()) + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">' +
+          (lp.length ? lp.map(function (f, i) { var src = FP[f.id] || f.url || ''; return '<figure style="margin:0;page-break-inside:avoid;border:1px solid #E1E1E6;padding:6px">' + (src ? '<img src="' + src + '" style="width:100%;max-height:260px;object-fit:contain;display:block">' : '') + '<figcaption style="font-size:9px;margin-top:4px"><b>Foto ' + (i + 1) + (f.fecha ? ' · ' + esc(fechaCorta(f.fecha)) : '') + (f.ubic ? ' · ' + esc(f.ubic) : '') + '</b>' + (f.pie ? '<br>' + esc(f.pie) : '') + '</figcaption></figure>'; }).join('') : '<p>Sin evidencia fotográfica.</p>') + '</div>');
+        return;
+      }
       if (s.tipo === 'grafico') {
         var sp = s.datos(data, comp);
         h.push('<div class="st">' + esc(s.titulo.toUpperCase()) + '</div><div style="page-break-inside:avoid;margin-top:6px">' + svgChart(sp, 'claro').replace('<svg ', '<svg style="width:100%;height:auto" ') + '</div>');
@@ -865,7 +948,7 @@
         rows.forEach(function (r) {
           var t = s.niveles ? (r._t || 'c') : 'c', o = out[r.id] || {};
           if (t === 'c') {
-            h.push('<tr>' + cc.map(function (c) { var v = c.calc || c.pctDe ? o[c.k] : r[c.k]; var isN = c.t === 'money' || c.t === 'num' || c.t === 'pct'; if (c.t === 'semaforo') { var sr = SEM_RGB[semCls(v)]; return '<td style="text-align:center;font-weight:700' + (sr ? ';background:rgb(' + sr.slice(0, 3).join(',') + ');color:rgb(' + sr.slice(3).join(',') + ')' : '') + '">' + esc(v || '') + '</td>'; } return '<td' + (isN ? ' class="n"' : '') + '>' + (isN ? (v === '' || v == null ? '' : c.t === 'money' ? fmtMoney(v) : c.t === 'pct' ? fmtPct(v) : fmtNum(v, c.dec)) : esc(v)) + '</td>'; }).join('') + '</tr>');
+            h.push('<tr>' + cc.map(function (c) { var v = c.calc || c.pctDe ? o[c.k] : r[c.k]; var isN = c.t === 'money' || c.t === 'num' || c.t === 'pct'; if (c.t === 'semaforo') { var sr = SEM_RGB[semCls(v)]; return '<td style="text-align:center;font-weight:700' + (sr ? ';background:rgb(' + sr.slice(0, 3).join(',') + ');color:rgb(' + sr.slice(3).join(',') + ')' : '') + '">' + esc(v || '') + '</td>'; } return '<td' + (isN ? ' class="n"' : '') + '>' + (isN ? (v === '' || v == null ? '' : c.t === 'money' ? fmtMoney(v) : c.t === 'pct' ? fmtPct(v) : fmtNum(v, c.dec)) : c.t === 'date' ? esc(fechaCorta(v)) : esc(v)) + '</td>'; }).join('') + '</tr>');
           } else {
             var tds = '';
             cc.forEach(function (c, i) {
@@ -926,6 +1009,7 @@
     this.vista = 'cargando'; this.tab = 'catalogo'; this.filtro = 'TODAS'; this.busca = ''; this.filtroTipo = '';
     this.misDocs = []; this.doc = null; this.def = null; this.comp = null;
     this._tarjetas = [];
+    this._fotosCache = {};
     this._saveChain = Promise.resolve();
     var self = this;
     this.root.addEventListener('click', function (e) { self._click(e); });
@@ -969,11 +1053,10 @@
   /* ---------- Bloqueado / canje ---------- */
   App.prototype._renderLock = function () {
     var p = this.cfg.precio, s = this.estado.saldo, falta = Math.max(0, p - s), pct = Math.min(100, s / p * 100);
-    var disponibles = CATALOGO.filter(function (c) { return !!REGISTRO[c.id]; });
-    var lista = disponibles.map(function (c) { return '<div class="ipk-li"><span class="ipk-ico">' + ico(c.icon) + '</span>' + esc(c.nombre) + '</div>'; }).join('');
+    var lista = CATALOGO.map(function (c) { return '<div class="ipk-li"><span class="ipk-ico">' + ico(c.icon) + '</span>' + esc(c.nombre) + '</div>'; }).join('');
     this._html(this._crumb() +
       '<div class="ipk-hero"><span class="ipk-eyebrow">' + ico('candado') + ' Recompensas IMFRA</span><h1>PACK DE PLANTILLAS PROFESIONALES</h1><p>Formatos técnicos listos para ayudarte a presupuestar, controlar y documentar tus obras.</p></div>' +
-      '<div class="ipk-lock"><div class="ipk-box"><h2>' + disponibles.length + ' plantillas editables disponibles</h2><p class="ipk-sub">Se abren dentro de tu panel, calculan solas y se guardan en tu cuenta. La plantilla de Bitácora se incorporará próximamente al mismo pack.</p><div class="ipk-list">' + lista + '</div>' +
+      '<div class="ipk-lock"><div class="ipk-box"><h2>10 plantillas editables incluidas</h2><p class="ipk-sub">Se abren dentro de tu panel, calculan solas y se guardan en tu cuenta.</p><div class="ipk-list">' + lista + '</div>' +
       '<div class="ipk-feats">' +
       '<div class="ipk-feat">' + ico('check') + '<div><b>Edición en línea</b>Agrega, duplica y elimina filas con cálculos automáticos.</div></div>' +
       '<div class="ipk-feat">' + ico('check') + '<div><b>Autoguardado</b>Tu trabajo se guarda solo mientras capturas.</div></div>' +
@@ -1031,7 +1114,7 @@
     var self = this;
     var h = this._crumb() +
       '<div class="ipk-hero"><span class="ipk-pill ipk-pill-ok">' + ico('check') + ' DESBLOQUEADO</span><h1>PACK DE PLANTILLAS PROFESIONALES</h1><p>Formatos técnicos listos para ayudarte a presupuestar, controlar y documentar tus obras.</p></div>' +
-      '<div class="ipk-tabs"><button class="ipk-tab' + (this.tab === 'catalogo' ? ' is-on' : '') + '" data-act="tab" data-v="catalogo">Plantillas <span class="ipk-count">' + Object.keys(REGISTRO).length + '</span></button>' +
+      '<div class="ipk-tabs"><button class="ipk-tab' + (this.tab === 'catalogo' ? ' is-on' : '') + '" data-act="tab" data-v="catalogo">Plantillas <span class="ipk-count">10</span></button>' +
       '<button class="ipk-tab' + (this.tab === 'mis' ? ' is-on' : '') + '" data-act="tab" data-v="mis">Mis plantillas <span class="ipk-count">' + this.misDocs.length + '</span></button></div>';
     if (this.tab === 'catalogo') {
       h += '<div class="ipk-chips">' + CATEGORIAS.map(function (c) { return '<button class="ipk-chip' + (self.filtro === c ? ' is-on' : '') + '" data-act="filtro" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div>';
@@ -1111,7 +1194,11 @@
     var d = doc.data || (doc.data = {});
     d.campos = d.campos || {}; d.tablas = d.tablas || {}; d.params = d.params || {};
     this.def.secciones.forEach(function (s) { if (s.tipo === 'tabla' && !d.tablas[s.key]) d.tablas[s.key] = []; });
+    d.fotos = d.fotos || {};
+    this.def.secciones.forEach(function (s) { if (s.tipo === 'fotos' && !d.fotos[s.key]) d.fotos[s.key] = []; });
+    this._fotosCache = this._fotosCache || {};
     this.vista = 'editor'; this._render();
+    this._cargarFotos();
     var root = this.root; if (root.scrollIntoView) try { root.scrollIntoView({ block: 'start', behavior: 'smooth' }); } catch (e) { }
   };
   App.prototype._renderEditor = function () {
@@ -1130,15 +1217,99 @@
       if (s.tipo === 'campos') h += self._htmlCampos(s);
       else if (s.tipo === 'tabla') h += self._htmlTabla(s);
       else if (s.tipo === 'resumen') h += self._htmlResumen(s);
+      else if (s.tipo === 'fotos') h += self._htmlFotos(s);
       else if (s.tipo === 'grafico') h += '<section class="ipk-sec" data-graf="' + s.key + '"><div class="ipk-sec-h"><h3>' + esc(s.titulo) + '</h3><div class="ipk-legs"></div></div><div class="ipk-sec-b"><div class="ipk-chart"><div class="ipk-chart-svg"></div><div class="ipk-tip" hidden></div></div></div></section>';
     });
     this._html(h);
     this._autoGrow(this.root);
     this._graficas();
   };
+  App.prototype._htmlFotos = function (s) {
+    var lst = this.doc.data.fotos[s.key] || [], max = s.max || 24;
+    return '<section class="ipk-sec" data-fotos="' + s.key + '"><div class="ipk-sec-h"><h3>' + esc(s.titulo) + ' <span class="ipk-count">' + lst.length + '/' + max + '</span></h3>' +
+      '<label class="ipk-btn ipk-btn-sm' + (lst.length >= max ? ' is-off' : '') + '">' + ico('mas') + ' Agregar fotos<input type="file" accept="image/*" multiple hidden data-fotos-in="' + s.key + '"></label></div>' +
+      '<div class="ipk-sec-b"><div class="ipk-fotos">' + this._htmlFotosGrid(s) + '</div></div></section>';
+  };
+  App.prototype._htmlFotosGrid = function (s) {
+    var self = this, lst = this.doc.data.fotos[s.key] || [];
+    if (!lst.length) return '<div class="ipk-empty ipk-fotos-empty"><span class="ipk-ico">' + ico('abrir') + '</span><b>Sin evidencia fotográfica</b>Agrega fotos desde tu computadora o celular. Se comprimen automáticamente.</div>';
+    return lst.map(function (f, i) {
+      var src = self._fotosCache[f.id] || f.url || '';
+      return '<figure class="ipk-foto" data-foto="' + f.id + '"><div class="ipk-foto-img">' + (src ? '<img src="' + src + '" alt="Foto ' + (i + 1) + '">' : '<span class="ipk-spin"></span>') +
+        '<span class="ipk-foto-n">Foto ' + (i + 1) + '</span><button class="ipk-ib is-bad" data-act="foto-del" data-id="' + f.id + '" title="Quitar foto">' + ico('basura') + '</button></div>' +
+        '<textarea class="ipk-input" rows="2" data-foto-k="pie" placeholder="Descripción de la evidencia">' + esc(f.pie || '') + '</textarea>' +
+        '<div class="ipk-foto-meta"><input class="ipk-input" type="date" data-foto-k="fecha" value="' + esc(f.fecha || '') + '"><input class="ipk-input" data-foto-k="ubic" placeholder="Ubicación / frente" value="' + esc(f.ubic || '') + '"></div></figure>';
+    }).join('');
+  };
+  App.prototype._repintarFotos = function (key) {
+    var s = this.def.secciones.filter(function (x) { return x.key === key; })[0], sec = this.root.querySelector('[data-fotos="' + key + '"]');
+    if (s && sec) { var tmp = document.createElement('div'); tmp.innerHTML = this._htmlFotos(s); sec.parentNode.replaceChild(tmp.firstChild, sec); }
+  };
+  App.prototype._cargarFotos = function () {
+    var self = this, d = this.doc, pend = [];
+    Object.keys(d.data.fotos || {}).forEach(function (k) { (d.data.fotos[k] || []).forEach(function (f) { if (!self._fotosCache[f.id] && !f.url) pend.push(f.id); }); });
+    return Promise.all(pend.map(function (id) { return self.store.leerFoto(id).then(function (u) { if (u) self._fotosCache[id] = u; }).catch(function () { }); }))
+      .then(function () {
+        if (self.doc !== d) return;
+        pend.forEach(function (id) { var fig = self.root.querySelector('[data-foto="' + id + '"] .ipk-foto-img'); if (fig && self._fotosCache[id]) { var sp = fig.querySelector('.ipk-spin'); if (sp) sp.outerHTML = '<img src="' + self._fotosCache[id] + '" alt="">'; } });
+        d._fotos = self._fotosCache;
+      });
+  };
+  App.prototype._agregarFotos = function (key, files) {
+    var self = this, d = this.doc, s = this.def.secciones.filter(function (x) { return x.key === key; })[0], lst = d.data.fotos[key] = d.data.fotos[key] || [];
+    var libres = (s.max || 24) - lst.length, arr = Array.prototype.slice.call(files || []).filter(function (f) { return /^image\//.test(f.type) || /\.(jpe?g|png|webp|heic)$/i.test(f.name); });
+    if (!arr.length) return;
+    if (arr.length > libres) { this._toast('Máximo ' + (s.max || 24) + ' fotos por documento; se agregarán ' + Math.max(0, libres), 'bad'); arr = arr.slice(0, Math.max(0, libres)); }
+    var hecho = 0, fecha = d.data.campos.al || d.data.campos.fecha || hoyISO();
+    this._estadoGuardado('saving');
+    return arr.reduce(function (pr, file) {
+      return pr.then(function () {
+        return comprimirImagen(file).then(function (im) {
+          var id = nid();
+          return self.store.guardarFoto(id, im.data).then(function () {
+            self._fotosCache[id] = im.data;
+            lst.push({ id: id, pie: '', fecha: fecha, ubic: '', w: im.w, h: im.h });
+            hecho++; if (self.doc === d) self._repintarFotos(key);
+          });
+        }).catch(function (e) { console.error(e); self._toast('No se pudo agregar ' + file.name + ': ' + e.message, 'bad'); });
+      });
+    }, Promise.resolve()).then(function () {
+      d._fotos = self._fotosCache;
+      if (hecho) { self._toast(hecho === 1 ? 'Foto agregada' : hecho + ' fotos agregadas', 'ok'); self._refrescarCalculos(); self._programarGuardado(); }
+      else self._estadoGuardado('saved');
+    });
+  };
+  App.prototype._quitarFoto = function (id) {
+    var self = this, d = this.doc, key = null, idx = -1;
+    Object.keys(d.data.fotos || {}).forEach(function (k) { d.data.fotos[k].forEach(function (f, i) { if (f.id === id) { key = k; idx = i; } }); });
+    if (key === null) return;
+    this._modal({ titulo: 'Quitar foto', cuerpo: '<p>La foto se eliminará de este documento.</p>', acciones: [{ l: 'Cancelar', v: null, cls: 'ipk-btn-ghost' }, { l: 'Quitar', v: 'ok', cls: 'ipk-btn-danger' }] }).then(function (r) {
+      if (r !== 'ok') return;
+      d.data.fotos[key].splice(idx, 1); self._repintarFotos(key); self._refrescarCalculos(); self._programarGuardado();
+      self.store.borrarFoto(id).catch(function () { }); delete self._fotosCache[id];
+    });
+  };
+  /* Copia las fotos (nuevos IDs) para que cada documento tenga las suyas */
+  App.prototype._clonarFotos = function (data) {
+    var self = this, tareas = [];
+    Object.keys(data.fotos || {}).forEach(function (k) {
+      (data.fotos[k] || []).forEach(function (f) {
+        if (f.url) return;
+        tareas.push((self._fotosCache[f.id] ? Promise.resolve(self._fotosCache[f.id]) : self.store.leerFoto(f.id)).then(function (u) {
+          if (!u) return; var nid2 = nid(); return self.store.guardarFoto(nid2, u).then(function () { self._fotosCache[nid2] = u; f.id = nid2; });
+        }));
+      });
+    });
+    return Promise.all(tareas).then(function () { return data; });
+  };
+  App.prototype._borrarFotosDe = function (data) {
+    var self = this, t = [];
+    Object.keys((data && data.fotos) || {}).forEach(function (k) { (data.fotos[k] || []).forEach(function (f) { if (!f.url) t.push(self.store.borrarFoto(f.id).catch(function () { })); }); });
+    return Promise.all(t);
+  };
   App.prototype._tema = function () {
     var r = this.root;
-    if (r.classList.contains('ipk-dark') || (r.closest && r.closest('.dark,.dark-mode,.theme-dark,[data-theme="dark"],[data-theme="night"]'))) return 'oscuro';
+    if (r.classList.contains('ipk-dark') || (r.closest && r.closest('.dark,.dark-mode,.theme-dark,[data-theme="dark"]'))) return 'oscuro';
     return getComputedStyle(r).getPropertyValue('--ipk-card').trim().toUpperCase() === '#17191E' ? 'oscuro' : 'claro';
   };
   App.prototype._graficas = function () {
@@ -1214,6 +1385,8 @@
         if (c.calc || c.pctDe) return '<td class="calc' + (num(o[c.k]) < -0.00001 ? ' is-neg' : '') + '"' + (c.t === 'semaforo' ? ' style="text-align:center"' : '') + ' data-c="' + r.id + ':' + c.k + '">' + fmtTipo(c.t, o[c.k], c.dec) + '</td>';
         var v = r[c.k] == null ? '' : r[c.k];
         if (c.t === 'textarea') return '<td><textarea class="ipk-in" rows="1" data-k="' + c.k + '" placeholder="' + esc(c.ph || '') + '">' + esc(v) + '</textarea></td>';
+        if (c.t === 'select') return '<td><select class="ipk-in" data-k="' + c.k + '">' + ['<option value=""></option>'].concat(c.op.map(function (x) { return '<option' + (x === v ? ' selected' : '') + '>' + esc(x) + '</option>'; })).join('') + '</select></td>';
+        if (c.t === 'date') return '<td><input class="ipk-in" type="date" data-k="' + c.k + '" value="' + esc(v) + '"></td>';
         var isN = c.t === 'money' || c.t === 'num' || c.t === 'pct';
         return '<td><input class="ipk-in' + (isN ? ' is-n' : '') + '" data-k="' + c.k + '" value="' + esc(v) + '"' + (isN ? ' inputmode="decimal"' : '') + (c.t === 'unidad' ? ' list="ipk-unidades" style="text-align:center"' : '') + ' placeholder="' + esc(c.ph || '') + '"></td>';
       }).join('') + '</tr>';
@@ -1374,7 +1547,7 @@
     it.push(['up', 'arriba', 'Mover arriba']); it.push(['down', 'abajo', 'Mover abajo']); it.push(['hr']);
     it.push(['del', 'basura', t === 'c' ? 'Eliminar fila' : 'Eliminar ' + (t === 'p' ? 'partida' : 'subpartida'), 'is-bad']);
     m.innerHTML = it.map(function (x) { return x[0] === 'hr' ? '<hr>' : '<button data-op="' + x[0] + '"' + (x[3] ? ' class="' + x[3] + '"' : '') + '>' + ico(x[1]) + esc(x[2]) + '</button>'; }).join('');
-    if (this.root.closest && (this.root.closest('.dark,[data-theme="dark"],[data-theme="night"],.dark-mode') || this.root.classList.contains('ipk-dark'))) m.classList.add('ipk-dark');
+    if (this.root.closest && (this.root.closest('.dark,[data-theme="dark"],.dark-mode') || this.root.classList.contains('ipk-dark'))) m.classList.add('ipk-dark');
     document.body.appendChild(m);
     var r = btn.getBoundingClientRect(), mh = m.offsetHeight, mw = m.offsetWidth;
     var top = r.bottom + 4; if (top + mh > global.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
@@ -1416,9 +1589,10 @@
       case 'renum': var s3 = this._tablaDe(b); renumerar(this.doc.data.tablas[s3.key]); this._renderEditorConservando(); this._programarGuardado(); this._toast('Claves renumeradas', 'ok'); break;
       case 'copia': this._crearCopia(); break;
       case 'accion': this._accion(+b.getAttribute('data-i')); break;
+      case 'foto-del': this._quitarFoto(id); break;
       case 'excel': this._exportar('excel', b); break;
       case 'pdf': this._exportar('pdf', b); break;
-      case 'imprimir': this._flush(); imprimir(this.def, this.doc, this.cfg); break;
+      case 'imprimir': this._flush(); this._cargarFotos().then(function () { self.doc._fotos = self._fotosCache; imprimir(self.def, self.doc, self.cfg); }); break;
     }
   };
   App.prototype._input = function (e) {
@@ -1430,6 +1604,11 @@
       return;
     }
     if (!this.doc || this.vista !== 'editor') return;
+    if (t.hasAttribute('data-foto-k')) {
+      var fig = t.closest('[data-foto]'), fid = fig && fig.getAttribute('data-foto'), dd = this.doc.data.fotos;
+      Object.keys(dd).forEach(function (k) { dd[k].forEach(function (f) { if (f.id === fid) f[t.getAttribute('data-foto-k')] = t.value; }); });
+      this._programarGuardado(); return;
+    }
     if (t.hasAttribute('data-campo')) { this.doc.data.campos[t.getAttribute('data-campo')] = t.value; this._refrescarCalculos(); this._programarGuardado(); return; }
     if (t.hasAttribute('data-param')) { this.doc.data.params[t.getAttribute('data-param')] = t.value; this._refrescarCalculos(); this._programarGuardado(); return; }
     if (t.hasAttribute('data-k')) {
@@ -1443,6 +1622,7 @@
   };
   App.prototype._change = function (e) {
     var t = e.target;
+    if (t.hasAttribute('data-fotos-in')) { var k = t.getAttribute('data-fotos-in'); this._agregarFotos(k, t.files); t.value = ''; return; }
     if (t.getAttribute('data-in') === 'filtroTipo') { this.filtroTipo = t.value; this._renderInicio(); }
     else if (t.tagName === 'SELECT' && t.hasAttribute('data-campo') && this.doc) { this.doc.data.campos[t.getAttribute('data-campo')] = t.value; this._refrescarCalculos(); this._programarGuardado(); }
     else if (t.getAttribute('data-in') === 'nombreDoc' && this.doc && !t.value.trim()) { t.value = this.doc.nombre = cat(this.doc.tipo).nombre; this._programarGuardado(); }
@@ -1450,7 +1630,8 @@
   App.prototype._exportar = function (tipo, btn) {
     var self = this, html = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<span class="ipk-spin"></span> Generando…';
     this._flush();
-    var p = tipo === 'excel' ? exportarExcel(this.def, this.doc, this.cfg) : exportarPDF(this.def, this.doc, this.cfg);
+    var d = this.doc, def = this.def, cfg = this.cfg;
+    var p = this._cargarFotos().then(function () { d._fotos = self._fotosCache; return tipo === 'excel' ? exportarExcel(def, d, cfg) : exportarPDF(def, d, cfg); });
     p.then(function () { self._toast(tipo === 'excel' ? 'Excel descargado' : 'PDF descargado', 'ok'); })
       .catch(function (e) { console.error(e); self._toast('No se pudo generar el archivo. Revisa tu conexión.', 'bad'); })
       .then(function () { btn.disabled = false; btn.innerHTML = html; });
@@ -1463,7 +1644,7 @@
     this._modal({ titulo: a.l, cuerpo: '<p>' + esc(a.desc || 'Se creará un documento nuevo; el actual no se modifica.') + '</p><label class="ipk-f"><span>Nombre del nuevo documento</span><input class="ipk-input" name="nombre" value="' + esc(res.nombre) + '"></label>', acciones: [{ l: 'Cancelar', v: null, cls: 'ipk-btn-ghost' }, { l: 'Crear', v: 'ok' }], foco: 'nombre' })
       .then(function (r) {
         if (!r) return; var nombre = (r.form.nombre || '').trim() || res.nombre;
-        return self._flush().then(function () { return self.store.crear(nombre, doc.tipo, res.data, doc.version); }).then(function (nd) {
+        return self._flush().then(function () { return self._clonarFotos(res.data); }).then(function (dd) { return self.store.crear(nombre, doc.tipo, dd, doc.version); }).then(function (nd) {
           self.misDocs.unshift({ id: nd.id, nombre: nd.nombre, tipo: nd.tipo, creado: nd.creado, modificado: nd.modificado });
           self._abrirEditor(nd); self._toast(a.ok || 'Documento creado', 'ok');
         });
@@ -1476,7 +1657,7 @@
     this._modal({ titulo: 'Crear copia', cuerpo: '<p>Se crea un documento nuevo con todo lo capturado. El original no se modifica.</p><label class="ipk-f"><span>Nombre de la copia</span><input class="ipk-input" name="nombre" value="' + esc(doc.nombre + ' (copia)') + '"></label>', acciones: [{ l: 'Cancelar', v: null, cls: 'ipk-btn-ghost' }, { l: 'Crear copia', v: 'ok' }], foco: 'nombre' })
       .then(function (r) {
         if (!r) return; var nombre = (r.form.nombre || '').trim() || doc.nombre + ' (copia)';
-        return self._flush().then(function () { return self.store.crear(nombre, doc.tipo, clone(doc.data), doc.version); }).then(function (nd) {
+        return self._flush().then(function () { return self._clonarFotos(clone(doc.data)); }).then(function (dd) { return self.store.crear(nombre, doc.tipo, dd, doc.version); }).then(function (nd) {
           self.misDocs.unshift({ id: nd.id, nombre: nd.nombre, tipo: nd.tipo, creado: nd.creado, modificado: nd.modificado });
           self._abrirEditor(nd); self._toast('Copia creada. Ahora estás editando la copia.', 'ok');
         });
@@ -1484,7 +1665,10 @@
   };
   App.prototype._dupDoc = function (id) {
     var self = this, d = this.misDocs.filter(function (x) { return x.id === id; })[0]; if (!d) return;
-    this.store.duplicar(id, d.nombre + ' (copia)').then(function (nd) {
+    this.store.obtener(id).then(function (orig) {
+      if (!orig) throw new Error('No existe');
+      return self._clonarFotos(clone(orig.data || {})).then(function (dd) { return self.store.crear(d.nombre + ' (copia)', orig.tipo, dd, orig.version); });
+    }).then(function (nd) {
       self.misDocs.unshift({ id: nd.id, nombre: nd.nombre, tipo: nd.tipo, creado: nd.creado, modificado: nd.modificado });
       self._renderInicio(); self._toast('Plantilla duplicada', 'ok');
     }).catch(function (e) { console.error(e); self._toast('No se pudo duplicar', 'bad'); });
@@ -1502,7 +1686,7 @@
     this._modal({ titulo: 'Eliminar plantilla', cuerpo: '<p>¿Eliminar <b>' + esc(d.nombre) + '</b>? Esta acción no se puede deshacer.</p>', acciones: [{ l: 'Cancelar', v: null, cls: 'ipk-btn-ghost' }, { l: 'Eliminar', v: 'ok', cls: 'ipk-btn-danger' }] })
       .then(function (r) {
         if (r !== 'ok') return;
-        return self.store.eliminar(id).then(function () { self.misDocs = self.misDocs.filter(function (x) { return x.id !== id; }); self._renderInicio(); self._toast('Plantilla eliminada', 'ok'); });
+        return self.store.obtener(id).then(function (orig) { return self._borrarFotosDe(orig && orig.data); }).then(function () { return self.store.eliminar(id); }).then(function () { self.misDocs = self.misDocs.filter(function (x) { return x.id !== id; }); self._renderInicio(); self._toast('Plantilla eliminada', 'ok'); });
       }).catch(function (e) { console.error(e); self._toast('No se pudo eliminar', 'bad'); });
   };
 
@@ -1511,7 +1695,7 @@
     var self = this;
     return new Promise(function (res) {
       var ov = document.createElement('div'); ov.className = 'ipk ipk-ov';
-      if (self.root.closest && self.root.closest('.dark,[data-theme="dark"],[data-theme="night"],.dark-mode')) ov.classList.add('ipk-dark');
+      if (self.root.closest && self.root.closest('.dark,[data-theme="dark"],.dark-mode')) ov.classList.add('ipk-dark');
       ov.innerHTML = '<form class="ipk-modal" novalidate><h3>' + esc(o.titulo) + '</h3>' + (o.cuerpo || '') + '<div class="ipk-modal-acts">' +
         o.acciones.map(function (a, i) { return '<button type="' + (a.v ? 'submit' : 'button') + '" class="ipk-btn ' + (a.cls || '') + '" data-i="' + i + '">' + esc(a.l) + '</button>'; }).join('') + '</div></form>';
       document.body.appendChild(ov);

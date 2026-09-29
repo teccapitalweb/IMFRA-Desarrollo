@@ -88,7 +88,8 @@ function createApplication(container: HTMLElement) {
     config: {
       precio: PACK_PRICE,
       coleccionUsuarios: "usuarios",
-      subcoleccionPlantillas: "misPlantillas"
+      subcoleccionPlantillas: "misPlantillas",
+      subcoleccionFotos: "misPlantillasFotos"
     },
     creditos: { estado: creditState, canjear: redeemPack },
     onVolver: () => window.navigateToSection?.("recompensas")

@@ -29,7 +29,7 @@
 }
 /* Modo oscuro: cubre las convenciones más comunes del panel */
 html.dark .ipk,body.dark .ipk,body.dark-mode .ipk,html[data-theme="dark"] .ipk,body[data-theme="dark"] .ipk,
-[data-theme="dark"] .ipk,[data-theme="night"] .ipk,.theme-dark .ipk,.ipk.ipk-dark{
+[data-theme="dark"] .ipk,.theme-dark .ipk,.ipk.ipk-dark{
   --ipk-card:#17191E;--ipk-card2:#1F2228;--ipk-line:#2B2F37;--ipk-tx:#F1F2F4;--ipk-mut:#9AA0AB;
   --ipk-acc-t:rgba(253,163,17,.16);--ipk-ok-t:rgba(22,163,74,.18);--ipk-bad-t:rgba(220,38,38,.18);
   --ipk-sh:0 1px 2px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.28);--ipk-sh-h:0 2px 6px rgba(0,0,0,.35),0 14px 30px rgba(0,0,0,.35);
@@ -54,7 +54,7 @@ html.dark .ipk,body.dark .ipk,body.dark-mode .ipk,html[data-theme="dark"] .ipk,b
 .ipk-btn-ghost[disabled]{background:transparent;opacity:.7}
 .ipk-btn-dark{background:var(--ipk-ink);color:#fff}
 .ipk-btn-dark:hover{background:#2A2C31;box-shadow:0 6px 16px rgba(0,0,0,.2)}
-.ipk-dark .ipk-btn-dark,[data-theme="dark"] .ipk-btn-dark,[data-theme="night"] .ipk-btn-dark,body.dark .ipk-btn-dark,html.dark .ipk-btn-dark,body.dark-mode .ipk-btn-dark{background:#F1F2F4;color:#111214}
+.ipk-dark .ipk-btn-dark,[data-theme="dark"] .ipk-btn-dark,body.dark .ipk-btn-dark,html.dark .ipk-btn-dark,body.dark-mode .ipk-btn-dark{background:#F1F2F4;color:#111214}
 .ipk-btn-ghost{background:transparent;color:var(--ipk-tx);border-color:var(--ipk-line)}
 .ipk-btn-ghost:hover{background:var(--ipk-card2);box-shadow:none;border-color:var(--ipk-mut)}
 .ipk-btn-ok{background:var(--ipk-ok);color:#fff}
@@ -90,7 +90,7 @@ html.dark .ipk,body.dark .ipk,body.dark-mode .ipk,html[data-theme="dark"] .ipk,b
 .ipk-tab{border:0;background:transparent;color:var(--ipk-mut);height:36px;padding:0 16px;border-radius:8px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:8px}
 .ipk-tab:hover{color:var(--ipk-tx)}
 .ipk-tab.is-on{background:var(--ipk-ink);color:#fff}
-[data-theme="dark"] .ipk-tab.is-on,[data-theme="night"] .ipk-tab.is-on,body.dark .ipk-tab.is-on,html.dark .ipk-tab.is-on,body.dark-mode .ipk-tab.is-on,.ipk-dark .ipk-tab.is-on{background:var(--ipk-acc);color:#111214}
+[data-theme="dark"] .ipk-tab.is-on,body.dark .ipk-tab.is-on,html.dark .ipk-tab.is-on,body.dark-mode .ipk-tab.is-on,.ipk-dark .ipk-tab.is-on{background:var(--ipk-acc);color:#111214}
 .ipk-tab .ipk-count{min-width:20px;height:20px;padding:0 6px;border-radius:99px;background:var(--ipk-acc-t);color:var(--ipk-acc-d);font-size:11px;display:inline-flex;align-items:center;justify-content:center}
 .ipk-tab.is-on .ipk-count{background:rgba(255,255,255,.16);color:#fff}
 
@@ -328,3 +328,20 @@ tr.r-p .ipk-in,tr.r-s .ipk-in{font-weight:inherit;text-transform:uppercase}
 .ipk-tip div b{margin-left:auto;font-variant-numeric:tabular-nums}
 .ipk-tip i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .ipk-tip .ipk-tip-d{border-top:1px solid var(--ipk-line);margin-top:4px;padding-top:6px;color:var(--ipk-mut)}
+
+/* ---------- Evidencia fotográfica ---------- */
+.ipk-fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.ipk-foto{margin:0;display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--ipk-line);border-radius:12px;background:var(--ipk-card2)}
+.ipk-foto-img{position:relative;aspect-ratio:4/3;border-radius:9px;overflow:hidden;background:var(--ipk-line);display:flex;align-items:center;justify-content:center}
+.ipk-foto-img img{width:100%;height:100%;object-fit:cover;display:block}
+.ipk-foto-n{position:absolute;left:8px;top:8px;padding:3px 8px;border-radius:99px;background:rgba(17,18,20,.72);color:#fff;font-size:11px;font-weight:700}
+.ipk-foto-img .ipk-ib{position:absolute;right:6px;top:6px;background:rgba(255,255,255,.9);color:var(--ipk-bad)}
+.ipk-foto-img .ipk-ib:hover{background:#fff}
+.ipk-foto textarea.ipk-input{min-height:52px;padding:8px 10px;font-size:13px;resize:vertical}
+.ipk-foto-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ipk-foto-meta .ipk-input{height:36px;font-size:12.5px;padding:0 8px}
+.ipk-fotos-empty{grid-column:1/-1;border:2px dashed var(--ipk-line);border-radius:12px}
+.ipk label.ipk-btn{cursor:pointer}
+.ipk label.ipk-btn.is-off{opacity:.5;pointer-events:none}
+.ipk-sec-h h3 .ipk-count{min-width:20px;height:20px;padding:0 7px;border-radius:99px;background:var(--ipk-acc-t);color:var(--ipk-acc-d);font-size:11px;display:inline-flex;align-items:center}
+.ipk-t select.ipk-in{appearance:auto;cursor:pointer}

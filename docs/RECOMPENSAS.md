@@ -95,9 +95,9 @@ Para reemplazar el catálogo provisional harán falta:
 
 - Cuesta 450 Créditos IMFRA y el acceso es permanente.
 - El canje usa el mismo endpoint autoritativo e idempotente que las demás recompensas; el navegador nunca descuenta el saldo directamente.
-- Incluye nueve plantillas editables disponibles y deja Bitácora como próxima incorporación, sin anunciarla como entregada.
+- Incluye diez plantillas editables; la décima es **Bitácora y Reporte Semanal**, con evidencia fotográfica comprimida y guardada por usuario.
 - La ruta `#plantillas` vive dentro del panel y se abre desde la tarjeta desbloqueada en Recompensas IMFRA.
-- En producción, cada usuario guarda sus copias en `usuarios/{uid}/misPlantillas`; las reglas exigen un canje activo. `localStorage` queda reservado para `modo=demo`.
+- En producción, cada usuario guarda sus copias en `usuarios/{uid}/misPlantillas` y las fotos de Bitácora en `usuarios/{uid}/misPlantillasFotos`; las reglas exigen un canje activo. `localStorage` queda reservado para `modo=demo`.
 - El editor incluye autoguardado, duplicado, renombrado, eliminación y exportación a Excel, PDF e impresión.
 
 ## IMDAC · Control de Obra

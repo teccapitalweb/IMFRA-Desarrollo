@@ -230,6 +230,16 @@ service cloud.firestore {
         request.resource.data.modificado is number &&
         request.resource.data.data is map;
     }
+    // La Bitacora guarda cada evidencia fotografica por separado para no
+    // superar el limite de 1 MB de un documento de Firestore.
+    match /usuarios/{uid}/misPlantillasFotos/{fotoId} {
+      allow read, delete: if isOwner(uid) && hasTemplatesPack(uid);
+      allow create, update: if isOwner(uid) && hasTemplatesPack(uid) &&
+        request.resource.data.keys().hasOnly(['data','creado']) &&
+        request.resource.data.data is string &&
+        request.resource.data.data.size() < 900000 &&
+        request.resource.data.creado is number;
+    }
     // ───────── DEFAULT ─────────
     match /{document=**} {
       allow read, write: if false;
