@@ -37,6 +37,7 @@ export interface RewardItem {
   features?: string[];
   permanent?: boolean;
   accessRoute?: string;
+  openLabel?: string;
   unlockMode?: "membership_anniversary";
   membershipMonths?: number;
 }
@@ -347,11 +348,13 @@ export const rewardCatalog: RewardItem[] = [
   {
     id: "pack-plantillas-pro",
     name: "Pack de plantillas profesionales",
-    description: "Formatos editables para supervisión, bitácora, estimaciones y control documental.",
+    description: "Nueve formatos editables para presupuestos, APU, generadores, estimaciones y control de obra.",
     category: "Recursos",
-    points: 500,
-    availability: "Catálogo piloto",
+    points: 450,
+    availability: "9 plantillas · acceso permanente",
     accent: "#0f9d78",
-    permanent: true
+    permanent: true,
+    accessRoute: "plantillas",
+    openLabel: "Abrir pack"
   }
 ];

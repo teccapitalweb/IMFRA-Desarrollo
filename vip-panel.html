@@ -3384,7 +3384,7 @@ window.UserState = {
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, runTransaction, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDBY5kZinOkKKVARTUro5hE59h8i58RZx4",
@@ -3404,7 +3404,7 @@ const db = getFirestore(app);
 window.__auth = auth;
 window.__db = db;
 // Exponer funciones de Firestore para que el script no-module pueda usarlas
-window.__fs = { collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, serverTimestamp, Timestamp, db };
+window.__fs = { collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, runTransaction, serverTimestamp, Timestamp, db };
 setPersistence(auth, browserLocalPersistence);
 
 // ⚠️ CAMBIA esta URL por la de tu Railway cuando esté deployado
@@ -4473,7 +4473,7 @@ function navigateToSection(section, opciones){
   }
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item, .account-nav-link').forEach(n=>n.classList.remove('is-active'));
-  const navSection = section.startsWith('curso/') ? 'cursos' : section.startsWith('libro/') ? 'libros' : section.startsWith('tool-') ? 'herramientas' : section === 'presupuestos' ? 'entrenamiento' : section;
+  const navSection = section.startsWith('curso/') ? 'cursos' : section.startsWith('libro/') ? 'libros' : section.startsWith('tool-') ? 'herramientas' : ['presupuestos','recompensas','plantillas'].includes(section) ? 'entrenamiento' : section;
   document.querySelectorAll(`[data-section="${navSection}"]`).forEach(ni => ni.classList.add('is-active'));
   // Si es una herramienta-sección (tool-iper, tool-oee...), resaltar su item data-tool
   if(section.startsWith('tool-')){
@@ -4482,6 +4482,7 @@ function navigateToSection(section, opciones){
   }
   const inicio=document.getElementById('inicio-content');const dyn=document.getElementById('dynamic-section');
   if(!inicio||!dyn)return;
+  if(section!=='plantillas')dyn.classList.remove('ipk','ipk-dark');
   if(Sections.countdownTimer){clearInterval(Sections.countdownTimer);Sections.countdownTimer=null;}
   // Limpiar listeners del foro al salir de la sección
   if(section!=='foro' && typeof window.__foroCleanup==='function'){ window.__foroCleanup(); }
@@ -9600,10 +9601,17 @@ const Sections = (function(){
         },{once:true});
       },
       recompensas:(c)=>{
-        if(window.IMFRATraining){ window.IMFRATraining.mount(c); return; }
-        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Retos…</div>';
-        window.addEventListener('imfra:training-ready',()=>{
-          if(location.hash==='#recompensas' && c.isConnected) window.IMFRATraining?.mount(c);
+        if(window.IMFRARewards){ window.IMFRARewards.mount(c); return; }
+        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Recompensas IMFRA…</div>';
+        window.addEventListener('imfra:rewards-ready',()=>{
+          if(location.hash==='#recompensas' && c.isConnected) window.IMFRARewards?.mount(c);
+        },{once:true});
+      },
+      plantillas:(c)=>{
+        if(window.IMFRATemplates){ window.IMFRATemplates.mount(c); return; }
+        c.innerHTML='<div class="fade-up" style="padding:72px 20px;text-align:center;color:var(--text-2)"><div class="sub-loading__spin" style="margin:0 auto 14px"></div>Cargando Pack de plantillas…</div>';
+        window.addEventListener('imfra:templates-ready',()=>{
+          if(location.hash==='#plantillas' && c.isConnected) window.IMFRATemplates?.mount(c);
         },{once:true});
       },
       presupuestos:(c)=>{
@@ -12145,11 +12153,24 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v3-premium.css">
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
+<link rel="stylesheet" href="assets/imfra-plantillas/imfra-plantillas.css?v=1.0.0">
 <script src="onboarding-tour.js?v=2" defer></script>
 <script src="assets/imfra-tools.js?v=20260928-1"></script>
+<script src="assets/imfra-plantillas/imfra-plantillas-logo.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/imfra-plantillas.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p01-casa-habitacion.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p02-remodelacion.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p03-nave-industrial.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p04-apu.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p05-explosion-insumos.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p06-generadores.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p07-estimaciones.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p08-fisico-financiero.js?v=1.0.0"></script>
+<script src="assets/imfra-plantillas/plantillas/p09-curva-s.js?v=1.0.0"></script>
 <script type="module" src="./src/features/credits/credits.ts"></script>
 <script type="module" src="./src/features/training/training.ts"></script>
 <script type="module" src="./src/features/rewards/rewards.ts"></script>
+<script type="module" src="./src/features/templates/templates.ts"></script>
 <script type="module" src="./src/features/budgets/budgets.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>
 </body>

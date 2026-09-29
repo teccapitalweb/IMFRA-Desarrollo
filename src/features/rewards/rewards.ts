@@ -18,6 +18,8 @@ interface RewardState {
   answered: Record<string, { correct: boolean; earned: number; answeredAt: string; selected?: number }>;
   redemptions: Redemption[];
   benefits: CreditSnapshot["benefits"];
+  creditRedemptions?: CreditSnapshot["redemptions"];
+  creditUnlocks?: string[];
 }
 
 declare global {
@@ -98,6 +100,11 @@ function redemptionFor(state: RewardState, rewardId: string) {
 function mergeCreditSnapshot(state: RewardState, snapshot: CreditSnapshot) {
   state.points = snapshot.balance;
   state.benefits = snapshot.benefits || {};
+  // El modo demo comparte una sola clave de almacenamiento con Créditos IMFRA.
+  // Mantener ambos campos sincronizados evita que un render posterior restaure
+  // un historial antiguo y vuelva a mostrar como bloqueado un canje permanente.
+  state.creditRedemptions = snapshot.redemptions;
+  state.creditUnlocks = snapshot.redemptions.filter((entry) => entry.status === "active").map((entry) => entry.rewardId);
   const catalogIds = new Set(rewardCatalog.map((reward) => reward.id));
   const pending = state.redemptions.filter((entry) => entry.status === "pending" && entry.rewardId !== "software-presupuestos");
   const permanent = snapshot.redemptions
@@ -340,7 +347,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
                 <h3>${escapeHtml(reward.name)}</h3>
                 <p class="rw-reward__description">${escapeHtml(reward.description)}</p>
                 <div class="rw-reward__meta"><strong>${reward.points.toLocaleString("es-MX")} créditos</strong><span>${reward.availability}</span></div>
-                ${redeemed && reward.accessRoute ? `<span class="rw-reward__unlocked"><svg class="ic"><use href="#i-check-circle"/></svg> Desbloqueado</span><button type="button" class="btn btn--accent rw-redeem" data-open-reward="${reward.accessRoute}">Abrir software</button>` : `<button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? (reward.permanent ? `Canjear por ${reward.points.toLocaleString("es-MX")} créditos` : "Canjear beneficio") : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>`}
+                ${redeemed && reward.accessRoute ? `<span class="rw-reward__unlocked"><svg class="ic"><use href="#i-check-circle"/></svg> Desbloqueado</span><button type="button" class="btn btn--accent rw-redeem" data-open-reward="${reward.accessRoute}">${escapeHtml(reward.openLabel || "Abrir beneficio")}</button>` : `<button type="button" class="btn ${canRedeem && !redeemed ? "btn--accent" : "btn--ghost"} rw-redeem" data-redeem="${reward.id}" ${canRedeem && !redeemed ? "" : "disabled"}>${redeemed?.status === "pending" ? "Solicitud en revisión" : redeemed ? "Beneficio canjeado" : canRedeem ? (reward.permanent ? `Canjear por ${reward.points.toLocaleString("es-MX")} créditos` : "Canjear beneficio") : `Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}`}</button>`}
               </article>`;
             }).join("")}
           </div>

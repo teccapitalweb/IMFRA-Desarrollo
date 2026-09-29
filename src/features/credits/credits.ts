@@ -87,7 +87,7 @@ const DEMO_COSTS: Record<string, number> = {
   "book-resistencia-materiales": 300,
   "software-presupuestos": 1200,
   "imdac-control-obra-30d": 0,
-  "pack-plantillas-pro": 500
+  "pack-plantillas-pro": 450
 };
 const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [], benefits: {}, notifications: [] };
 let current: CreditSnapshot = { ...EMPTY };

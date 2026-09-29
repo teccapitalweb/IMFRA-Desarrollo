@@ -22,6 +22,11 @@ service cloud.firestore {
     function isOwner(uid) {
       return signedIn() && request.auth.uid == uid;
     }
+    function hasTemplatesPack(uid) {
+      return exists(/databases/$(database)/documents/reward_redemptions/$(uid + '__pack-plantillas-pro')) &&
+        get(/databases/$(database)/documents/reward_redemptions/$(uid + '__pack-plantillas-pro')).data.uid == uid &&
+        get(/databases/$(database)/documents/reward_redemptions/$(uid + '__pack-plantillas-pro')).data.status == 'active';
+    }
     // ───────── CURSOS ─────────
     match /cursos/{cursoId} {
       allow read: if request.auth != null;
@@ -208,6 +213,22 @@ service cloud.firestore {
         request.resource.data.requestKey is string &&
         request.resource.data.source == 'web';
       allow update, delete: if isAdmin();
+    }
+    // ═════════ PACK DE PLANTILLAS ═════════
+    // El canje es autoritativo en Railway. Firestore solo permite guardar
+    // documentos propios cuando ya existe un canje activo del pack.
+    match /usuarios/{uid}/misPlantillas/{plantillaId} {
+      allow read, delete: if isOwner(uid) && hasTemplatesPack(uid);
+      allow create, update: if isOwner(uid) && hasTemplatesPack(uid) &&
+        request.resource.data.keys().hasOnly([
+          'nombre','tipo','version','creado','modificado','data'
+        ]) &&
+        request.resource.data.nombre is string &&
+        request.resource.data.tipo is string &&
+        request.resource.data.version is number &&
+        request.resource.data.creado is number &&
+        request.resource.data.modificado is number &&
+        request.resource.data.data is map;
     }
     // ───────── DEFAULT ─────────
     match /{document=**} {

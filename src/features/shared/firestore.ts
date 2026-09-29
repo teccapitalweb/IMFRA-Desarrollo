@@ -8,8 +8,12 @@ export interface FirestoreFacade {
   collection: (...args: unknown[]) => unknown;
   doc: (...args: unknown[]) => unknown;
   getDoc: (ref: unknown) => Promise<FirestoreSnapshot>;
+  getDocs: (ref: unknown) => Promise<unknown>;
   setDoc: (ref: unknown, data: Record<string, unknown>, options?: { merge: boolean }) => Promise<void>;
+  updateDoc: (ref: unknown, data: Record<string, unknown>) => Promise<void>;
+  deleteDoc: (ref: unknown) => Promise<void>;
   addDoc: (ref: unknown, data: Record<string, unknown>) => Promise<{ id: string }>;
+  runTransaction: (...args: unknown[]) => Promise<unknown>;
   serverTimestamp: () => unknown;
 }
 

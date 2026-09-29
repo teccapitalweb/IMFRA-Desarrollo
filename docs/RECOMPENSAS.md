@@ -91,6 +91,15 @@ Para reemplazar el catálogo provisional harán falta:
 - La ruta `#presupuestos` comprueba el permiso en el servidor; sin acceso regresa a Retos y muestra la indicación de desbloqueo.
 - Proyectos, presupuestos, APU, insumos, generadores, versiones y reportes se guardan en Firestore. `localStorage` se utiliza únicamente en `modo=demo`.
 
+## Pack de plantillas profesionales
+
+- Cuesta 450 Créditos IMFRA y el acceso es permanente.
+- El canje usa el mismo endpoint autoritativo e idempotente que las demás recompensas; el navegador nunca descuenta el saldo directamente.
+- Incluye nueve plantillas editables disponibles y deja Bitácora como próxima incorporación, sin anunciarla como entregada.
+- La ruta `#plantillas` vive dentro del panel y se abre desde la tarjeta desbloqueada en Recompensas IMFRA.
+- En producción, cada usuario guarda sus copias en `usuarios/{uid}/misPlantillas`; las reglas exigen un canje activo. `localStorage` queda reservado para `modo=demo`.
+- El editor incluye autoguardado, duplicado, renombrado, eliminación y exportación a Excel, PDF e impresión.
+
 ## IMDAC · Control de Obra
 
 - No se canjea con créditos. Es un beneficio único por permanencia.
