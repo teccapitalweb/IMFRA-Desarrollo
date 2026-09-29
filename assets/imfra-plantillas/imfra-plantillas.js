@@ -1043,6 +1043,10 @@
     return '<div class="ipk-crumb"><button data-act="volver-panel">Retos</button><span>›</span><button data-act="volver-panel">Recompensas IMFRA</button><span>›</span>' +
       (extra ? '<button data-act="inicio">Pack de plantillas</button><span>›</span><b>' + esc(extra) + '</b>' : '<b>Pack de plantillas profesionales</b>') + '</div>';
   };
+  App.prototype._moduleNav = function () {
+    return '<div class="ipk-module-nav"><button class="ipk-module-back" data-act="volver-panel" aria-label="Volver a Recompensas IMFRA">' + ico('atras') + '<span>Volver a Recompensas</span></button>' +
+      '<div class="ipk-module-status"><i></i><span>Pack profesional · acceso permanente</span></div></div>';
+  };
   App.prototype._render = function () {
     if (this.vista === 'lock') return this._renderLock();
     if (this.vista === 'ok') return this._renderOk();
@@ -1054,7 +1058,7 @@
   App.prototype._renderLock = function () {
     var p = this.cfg.precio, s = this.estado.saldo, falta = Math.max(0, p - s), pct = Math.min(100, s / p * 100);
     var lista = CATALOGO.map(function (c) { return '<div class="ipk-li"><span class="ipk-ico">' + ico(c.icon) + '</span>' + esc(c.nombre) + '</div>'; }).join('');
-    this._html(this._crumb() +
+    this._html(this._moduleNav() + this._crumb() +
       '<div class="ipk-hero"><span class="ipk-eyebrow">' + ico('candado') + ' Recompensas IMFRA</span><h1>PACK DE PLANTILLAS PROFESIONALES</h1><p>Formatos técnicos listos para ayudarte a presupuestar, controlar y documentar tus obras.</p></div>' +
       '<div class="ipk-lock"><div class="ipk-box"><h2>10 plantillas editables incluidas</h2><p class="ipk-sub">Se abren dentro de tu panel, calculan solas y se guardan en tu cuenta.</p><div class="ipk-list">' + lista + '</div>' +
       '<div class="ipk-feats">' +
@@ -1096,7 +1100,7 @@
     });
   };
   App.prototype._renderOk = function () {
-    this._html(this._crumb() + '<div class="ipk-box ipk-success" style="max-width:520px;margin:30px auto"><div class="ipk-okring">' + ico('check') + '</div>' +
+    this._html(this._moduleNav() + this._crumb() + '<div class="ipk-box ipk-success" style="max-width:520px;margin:30px auto"><div class="ipk-okring">' + ico('check') + '</div>' +
       '<span class="ipk-pill ipk-pill-ok">DESBLOQUEADO</span><h2 style="margin:12px 0 6px;font-size:21px">¡Pack de plantillas desbloqueado!</h2>' +
       '<p class="ipk-sub">' + (this._yaTenia ? 'Este pack ya estaba en tu cuenta; no se cobraron créditos.' : 'Se descontaron ' + fmtNum(this.cfg.precio, 0) + ' créditos. Tu saldo es de ' + fmtNum(this.estado.saldo, 0) + ' créditos.') + ' El acceso es permanente.</p>' +
       '<button class="ipk-btn ipk-btn-lg" data-act="inicio">' + ico('abrir') + ' Abrir pack</button></div>');
@@ -1112,11 +1116,13 @@
   };
   App.prototype._renderInicio = function () {
     var self = this;
-    var h = this._crumb() +
-      '<div class="ipk-hero"><span class="ipk-pill ipk-pill-ok">' + ico('check') + ' DESBLOQUEADO</span><h1>PACK DE PLANTILLAS PROFESIONALES</h1><p>Formatos técnicos listos para ayudarte a presupuestar, controlar y documentar tus obras.</p></div>' +
+    var h = this._moduleNav() + this._crumb() +
+      '<div class="ipk-hero ipk-hero--catalog"><div class="ipk-hero-copy"><span class="ipk-pill ipk-pill-ok">' + ico('check') + ' DESBLOQUEADO</span><h1>PACK DE PLANTILLAS PROFESIONALES</h1><p>Formatos técnicos listos para ayudarte a presupuestar, controlar y documentar tus obras.</p><div class="ipk-hero-tags"><span>' + ico('check') + ' Autoguardado</span><span>' + ico('excel') + ' Excel y PDF</span><span>' + ico('abierto') + ' Acceso permanente</span></div></div>' +
+      '<div class="ipk-hero-summary"><div><b>10</b><span>plantillas listas</span></div><div><b>' + this.misDocs.length + '</b><span>proyectos guardados</span></div></div></div>' +
       '<div class="ipk-tabs"><button class="ipk-tab' + (this.tab === 'catalogo' ? ' is-on' : '') + '" data-act="tab" data-v="catalogo">Plantillas <span class="ipk-count">10</span></button>' +
       '<button class="ipk-tab' + (this.tab === 'mis' ? ' is-on' : '') + '" data-act="tab" data-v="mis">Mis plantillas <span class="ipk-count">' + this.misDocs.length + '</span></button></div>';
     if (this.tab === 'catalogo') {
+      h += '<div class="ipk-catalog-head"><div><span>CATÁLOGO PROFESIONAL</span><h2>Elige una plantilla para comenzar</h2></div><p>Abre, personaliza y guarda cada formato dentro de tu cuenta.</p></div>';
       h += '<div class="ipk-chips">' + CATEGORIAS.map(function (c) { return '<button class="ipk-chip' + (self.filtro === c ? ' is-on' : '') + '" data-act="filtro" data-v="' + c + '">' + c + '</button>'; }).join('') + '</div>';
       h += '<div class="ipk-grid">' + CATALOGO.filter(function (c) { return self.filtro === 'TODAS' || c.cat === self.filtro; }).map(function (c) {
         var ok = !!REGISTRO[c.id], n = CATALOGO.indexOf(c) + 1;
