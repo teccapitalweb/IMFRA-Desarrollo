@@ -1038,7 +1038,13 @@
     }).catch(function (e) { console.error(e); self._html('<div class="ipk-empty">' + ico('alerta', '') + '<b>No se pudo cargar el pack</b>' + esc(e.message || '') + '</div>'); });
   };
   App.prototype.abrir = function () { if (this.opts.mostrar) this.opts.mostrar(); return this.iniciar(); };
-  App.prototype._html = function (h) { this.root.innerHTML = h; };
+  App.prototype._html = function (h) {
+    // El shell retira las clases específicas al cambiar de sección. El módulo
+    // puede reutilizar esta instancia al volver, así que restaura su scope en
+    // cada render y no solamente durante el constructor.
+    this.root.classList.add('ipk');
+    this.root.innerHTML = h;
+  };
   App.prototype._crumb = function (extra) {
     return '<div class="ipk-crumb"><button data-act="volver-panel">Retos</button><span>›</span><button data-act="volver-panel">Recompensas IMFRA</button><span>›</span>' +
       (extra ? '<button data-act="inicio">Pack de plantillas</button><span>›</span><b>' + esc(extra) + '</b>' : '<b>Pack de plantillas profesionales</b>') + '</div>';

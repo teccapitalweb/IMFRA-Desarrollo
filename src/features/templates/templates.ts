@@ -143,6 +143,10 @@ function createApplication(container: HTMLElement) {
 }
 
 function mount(container: HTMLElement) {
+  // `navigateToSection` limpia las clases del módulo al salir. Como la
+  // aplicación se conserva para no perder el documento activo, debemos
+  // recuperar el scope visual cada vez que el usuario vuelve a Plantillas.
+  container.classList.add("ipk");
   observeTheme(container);
   void ensureTemplateStyles().then(() => {
     if (!application) application = createApplication(container);
