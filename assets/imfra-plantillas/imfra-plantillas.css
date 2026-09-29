@@ -176,6 +176,10 @@ select.ipk-input{width:auto;min-width:190px;cursor:pointer}
 /* ---------- Editor ---------- */
 .ipk-ed-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 14px;margin-bottom:16px;
   background:var(--ipk-card);border:1px solid var(--ipk-line);border-radius:var(--ipk-r);box-shadow:var(--ipk-sh)}
+.ipk-back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;flex:0 0 auto;padding:0 13px;border:1px solid var(--ipk-line);border-radius:10px;background:var(--ipk-card2);color:var(--ipk-tx);font-size:12.5px;font-weight:800;white-space:nowrap;cursor:pointer;transition:border-color .15s,background .15s,color .15s,transform .15s}
+.ipk-back-btn svg{width:17px;height:17px;color:var(--ipk-acc-d)}
+.ipk-back-btn:hover{border-color:var(--ipk-acc);background:var(--ipk-acc-t);color:var(--ipk-acc-d);transform:translateX(-1px)}
+.ipk-back-btn:focus-visible{outline:3px solid var(--ipk-acc-t);outline-offset:2px;border-color:var(--ipk-acc)}
 .ipk-ed-title{display:flex;align-items:center;gap:10px;flex:1 1 420px;min-width:240px}
 .ipk-ed-title input{width:100%;min-width:0;border:1px solid transparent;background:transparent;height:38px;border-radius:8px;padding:0 8px;font-size:16px;font-weight:800;outline:none}
 .ipk-ed-title input:hover{border-color:var(--ipk-line)}
@@ -301,6 +305,7 @@ tr.r-p .ipk-in,tr.r-s .ipk-in{font-weight:inherit;text-transform:uppercase}
   .ipk-doc-meta{grid-column:1/2;padding-left:48px}
   .ipk-doc-meta[data-l]::before{content:attr(data-l) ": ";font-weight:600}
   .ipk-doc-acts{grid-column:2;grid-row:1/span 4;flex-direction:column}
+  .ipk-ed-acts{width:100%;justify-content:flex-end}
 }
 @media (max-width:640px){
   .ipk-hero{padding:20px}
@@ -308,9 +313,16 @@ tr.r-p .ipk-in,tr.r-s .ipk-in{font-weight:inherit;text-transform:uppercase}
   .ipk-list,.ipk-feats{grid-template-columns:1fr}
   .ipk-fields{grid-template-columns:1fr}
   .ipk-f.w-2,.ipk-f.w-3{grid-column:auto}
-  .ipk-ed-top{position:static}
+  .ipk-ed-top{position:static;gap:10px;padding:10px}
+  .ipk-back-btn{height:38px;padding:0 11px}
+  .ipk-back-long{display:none}
+  .ipk-ed-title{flex:1 1 calc(100% - 94px);min-width:190px}
+  .ipk-ed-title .ipk-ico{display:none}
+  .ipk-ed-title input{font-size:14px;padding-left:2px}
+  .ipk-ed-type{padding-left:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ipk-save{order:3;width:100%;min-width:0;justify-content:flex-end;padding-right:2px}
   .ipk-ed-acts{width:100%}
-  .ipk-ed-acts .ipk-btn{flex:1}
+  .ipk-ed-acts .ipk-btn{flex:1 1 calc(50% - 4px);min-width:132px}
   .ipk-tabs{width:100%}.ipk-tab{flex:1;justify-content:center;padding:0 8px}
   .ipk-kpis{grid-template-columns:1fr}
 }

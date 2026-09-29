@@ -1205,7 +1205,7 @@
     var self = this, def = this.def, doc = this.doc, c = cat(doc.tipo);
     this.comp = calcular(def, doc.data);
     var h = this._crumb(c.nombre) +
-      '<div class="ipk-ed-top"><button class="ipk-ib" data-act="inicio-mis" title="Volver a Mis plantillas">' + ico('atras') + '</button>' +
+      '<div class="ipk-ed-top"><button class="ipk-back-btn" data-act="inicio" title="Volver al pack de plantillas" aria-label="Volver al pack de plantillas">' + ico('atras') + '<span>Volver <span class="ipk-back-long">al pack</span></span></button>' +
       '<div class="ipk-ed-title"><span class="ipk-ico" style="width:38px;height:38px">' + ico(c.icon) + '</span><div style="flex:1;min-width:0"><input data-in="nombreDoc" value="' + esc(doc.nombre) + '" aria-label="Nombre del documento"><div class="ipk-ed-type">' + esc(c.nombre) + ' · <span data-mod>Modificado ' + fmtFecha(doc.modificado) + '</span></div></div></div>' +
       '<span class="ipk-save is-saved" data-save>' + ico('check') + ' Guardado</span>' +
       '<div class="ipk-ed-acts">' + (def.acciones || []).map(function (a, i) { return '<button class="ipk-btn ipk-btn-sm ipk-btn-ok" data-act="accion" data-i="' + i + '">' + ico(a.icon || 'mas') + ' ' + esc(a.l) + '</button>'; }).join('') +
