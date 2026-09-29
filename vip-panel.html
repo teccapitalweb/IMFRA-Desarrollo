@@ -4447,6 +4447,7 @@ function __leerSeccionURLVIP(){
   let s = '';
   try { s = decodeURIComponent((location.hash || '').replace(/^#/, '')).trim(); } catch(e) { s = ''; }
   if (!s) s = (new URLSearchParams(location.search).get('seccion') || '').trim();
+  if (s === 'retos') s = 'entrenamiento';
   return (__seccionesValidasVIP().has(s) || __esRutaDinamicaVIP(s)) ? s : SECCION_DEFAULT_VIP;
 }
 function __sincronizarDesdeURLVIP(){
@@ -4457,6 +4458,7 @@ window.addEventListener('popstate', __sincronizarDesdeURLVIP);
 window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
 
 function navigateToSection(section, opciones){
+  if(section === 'retos') section = 'entrenamiento';
   if(!__seccionesValidasVIP().has(section) && !__esRutaDinamicaVIP(section)) section = SECCION_DEFAULT_VIP;
   document.body.classList.toggle('immersive-content-route', section.startsWith('curso/') || section.startsWith('libro/'));
 
@@ -7339,7 +7341,7 @@ const Sections = (function(){
       :`<div class="credit-confirm"><strong>${tituloEsc}</strong><p>No tienes créditos suficientes. Tienes <b>${saldo.toLocaleString('es-MX')}</b> y necesitas <b>${costo}</b>. Gánalos en <b>Retos</b>.</p></div>`;
     const footer=`<button class="btn btn--ghost" type="button" onclick="Modal.close('material-credit-redeem')">Cancelar</button>${alcanza?`<button class="btn btn--accent" type="button" id="material-credit-confirm">Canjear y abrir</button>`:'<button class="btn btn--accent" type="button" id="material-credit-earn">Ir a Retos</button>'}`;
     Modal.open({id:'material-credit-redeem',title:alcanza?`¿Canjear ${costo} créditos?`:'Créditos insuficientes',subtitle:'Créditos IMFRA',icon:'i-gift',size:'sm',body,footer,closeOnBackdrop:false});
-    document.querySelector('#material-credit-earn')?.addEventListener('click',()=>{Modal.close('material-credit-redeem');navigateToSection('retos');});
+    document.querySelector('#material-credit-earn')?.addEventListener('click',()=>{Modal.close('material-credit-redeem');navigateToSection('entrenamiento');});
     document.querySelector('#material-credit-confirm')?.addEventListener('click',async event=>{const button=event.currentTarget;button.disabled=true;button.textContent='Canjeando…';try{await window.IMFRACredits.redeem(material.rewardId);Modal.close('material-credit-redeem');Toast.success('Material desbloqueado',material.titulo+' ya es tuyo.');renderPDFs(container);if(material.url && typeof window.abrirVisor==='function')window.abrirVisor(material.url,material.titulo);}catch(error){button.disabled=false;button.textContent='Canjear y abrir';Toast.error('No pudimos completar el canje',error.message||'Intenta de nuevo.');}});
   }
 
@@ -7626,7 +7628,7 @@ const Sections = (function(){
       :'<p>No tienes créditos suficientes. Tienes <b>'+saldo.toLocaleString('es-MX')+'</b> y necesitas <b>'+costo+'</b>. Gánalos en <b>Retos</b>.</p>')+'</div>';
     var footer='<button class="btn btn--ghost" type="button" onclick="Modal.close(\'book-credit-redeem\')">Cancelar</button>'+(alcanza?'<button class="btn btn--accent" type="button" id="book-credit-confirm">Canjear y leer</button>':'<button class="btn btn--accent" type="button" id="book-credit-challenges">Ir a Retos</button>');
     Modal.open({id:'book-credit-redeem',title:alcanza?'¿Canjear '+costo+' créditos?':'Créditos insuficientes',subtitle:'Créditos IMFRA',icon:'i-gift',size:'sm',body:body,footer:footer,closeOnBackdrop:false});
-    document.querySelector('#book-credit-challenges')?.addEventListener('click',function(){Modal.close('book-credit-redeem');navigateToSection('retos');});
+    document.querySelector('#book-credit-challenges')?.addEventListener('click',function(){Modal.close('book-credit-redeem');navigateToSection('entrenamiento');});
     document.querySelector('#book-credit-confirm')?.addEventListener('click',async function(e){
       var button=e.currentTarget;button.disabled=true;button.textContent='Procesando…';
       try{
@@ -9424,7 +9426,7 @@ const Sections = (function(){
     const body=`<div style="text-align:center;padding:7px 2px 2px;"><img src="${tool.image}" alt="" style="width:74px;height:74px;object-fit:contain;margin-bottom:10px;"><h3 style="font-size:17px;margin:0 0 6px;">${tool.titulo}</h3><p style="font-size:12px;color:var(--text-2);line-height:1.55;margin:0;">El canje es permanente. Si eres VIP, todas las herramientas ya están incluidas.</p><div class="book-credit-balance"><span>Tu saldo</span><strong>${saldo.toLocaleString('es-MX')} créditos</strong></div><p style="font-size:11px;color:${alcanza?'var(--success)':'var(--danger)'};margin:0;">${alcanza?`Después conservarás ${(saldo-tool.cost).toLocaleString('es-MX')} créditos.`:`Te faltan ${(tool.cost-saldo).toLocaleString('es-MX')} créditos.`}</p></div>`;
     const footer=`<button class="btn btn--ghost" type="button" onclick="Modal.close('tool-credit-redeem')">Cancelar</button>${alcanza?`<button class="btn btn--accent" type="button" id="tool-credit-confirm">Canjear por ${tool.cost} créditos</button>`:'<button class="btn btn--accent" type="button" id="tool-credit-earn">Ganar créditos</button>'}`;
     Modal.open({id:'tool-credit-redeem',title:'Desbloquear herramienta',subtitle:tool.starter?'Tu canje inicial':'Créditos IMFRA',icon:'i-gift',size:'sm',body,footer,closeOnBackdrop:false});
-    document.querySelector('#tool-credit-earn')?.addEventListener('click',()=>{Modal.close('tool-credit-redeem');navigateToSection('retos');});
+    document.querySelector('#tool-credit-earn')?.addEventListener('click',()=>{Modal.close('tool-credit-redeem');navigateToSection('entrenamiento');});
     document.querySelector('#tool-credit-confirm')?.addEventListener('click',async event=>{
       const button=event.currentTarget;button.disabled=true;button.textContent='Canjeando…';
       try{
