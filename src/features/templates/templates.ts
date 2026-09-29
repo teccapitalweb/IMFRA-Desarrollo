@@ -30,6 +30,30 @@ declare global {
 
 let application: PackApplication | null = null;
 let themeObserver: MutationObserver | null = null;
+let stylesheetReady: Promise<void> | null = null;
+
+function ensureTemplateStyles() {
+  if (stylesheetReady) return stylesheetReady;
+  stylesheetReady = new Promise<void>((resolve) => {
+    const existing = document.querySelector<HTMLLinkElement>("#imfra-templates-styles");
+    if (existing) {
+      if (existing.sheet) resolve();
+      else {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => resolve(), { once: true });
+      }
+      return;
+    }
+    const link = document.createElement("link");
+    link.id = "imfra-templates-styles";
+    link.rel = "stylesheet";
+    link.href = "assets/imfra-plantillas/imfra-plantillas.css?v=1.1.2";
+    link.addEventListener("load", () => resolve(), { once: true });
+    link.addEventListener("error", () => resolve(), { once: true });
+    document.head.appendChild(link);
+  });
+  return stylesheetReady;
+}
 
 function hasPack(snapshot: CreditSnapshot) {
   return snapshot.redemptions.some((item) => item.rewardId === REWARD_ID && item.status === "active");
@@ -120,9 +144,11 @@ function createApplication(container: HTMLElement) {
 
 function mount(container: HTMLElement) {
   observeTheme(container);
-  if (!application) application = createApplication(container);
-  if (!application) return;
-  void application.iniciar().catch((error) => {
+  void ensureTemplateStyles().then(() => {
+    if (!application) application = createApplication(container);
+    if (!application) return;
+    return application.iniciar();
+  }).catch((error) => {
     console.error("[plantillas]", error);
     renderUnavailable(container, "No pudimos abrir tus plantillas en este momento.");
     window.Toast?.error("Pack de plantillas", "No pudimos cargar el módulo.");
