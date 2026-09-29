@@ -21,3 +21,63 @@
 @media(max-width:900px){.budget-app{padding-bottom:90px}.bu-hero{min-height:190px;align-items:flex-start;flex-direction:column}.bu-hero__actions{width:100%}.bu-hero__actions .bu-button{flex:1}.bu-projects{grid-template-columns:1fr}.bu-workspace-head{grid-template-columns:auto minmax(0,1fr)}.bu-workspace-head>.bu-toolbar__group{grid-column:1/-1;width:100%;justify-content:space-between}.bu-split{grid-template-columns:1fr}.bu-side-list{max-height:250px}.bu-settings{grid-template-columns:1fr}.bu-apu-total{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:620px){.budget-app{gap:13px}.bu-hero{min-height:0;padding:25px 20px;border-radius:16px}.bu-hero h1{font-size:29px}.bu-hero__actions{display:grid;grid-template-columns:1fr}.bu-toolbar{align-items:stretch;flex-direction:column}.bu-toolbar__group{width:100%}.bu-search,.bu-search--global{min-width:0;max-width:none;width:100%}.bu-select{min-width:0;flex:1}.bu-project{padding:16px}.bu-project__actions{flex-direction:column}.bu-project__meta{grid-template-columns:1fr 1fr}.bu-workspace-title h1{font-size:19px}.bu-workspace-title div{flex-wrap:wrap}.bu-tabs{margin-left:-2px;margin-right:-2px}.bu-kpis{grid-template-columns:1fr 1fr}.bu-kpi{padding:14px}.bu-kpi strong{font-size:14px}.bu-panel{border-radius:14px}.bu-panel__head,.bu-panel__body{padding:16px}.bu-cost-row{grid-template-columns:88px minmax(0,1fr) 82px}.bu-card-grid,.bu-report-grid{grid-template-columns:1fr}.bu-generator__identity,.bu-generator__measurements{grid-template-columns:1fr 1fr}.bu-generator__identity .bu-field:first-child,.bu-generator__identity .bu-field:nth-child(4),.bu-generator__identity .bu-field--wide,.bu-generator__formula,.bu-generator__result{grid-column:1/-1}.bu-generator__delete{justify-self:end}.bu-form-grid,.bu-indirects{grid-template-columns:1fr}.bu-field--wide{grid-column:auto}.bu-apu-identity{grid-template-columns:1fr}.bu-apu-identity strong{text-align:left}.bu-apu-total{grid-template-columns:1fr 1fr}.bu-percentages{grid-template-columns:1fr 1fr}.bu-library-list{grid-template-columns:1fr}.bu-modal-backdrop{padding:8px}.bu-modal{border-radius:15px;max-height:96dvh}.bu-modal__head,.bu-modal__body{padding:16px}.bu-modal__foot{display:grid;grid-template-columns:1fr 1fr;padding:12px 16px}.bu-modal__foot .bu-button{width:100%}.bu-report-preview__meta{grid-template-columns:1fr 1fr}.bu-table{min-width:680px}.bu-table .bu-hide-mobile{display:none}.bu-project__meta div:nth-child(3){display:none}}
 @media print{body>*{display:none!important}.bu-print-root{display:block!important;position:absolute;inset:0}.bu-report-preview{display:block!important}}
+
+/* Presupuestos · navegación de salida y formulario editorial */
+.budget-app{animation:none}
+.bu-module-nav{display:flex;align-items:center;justify-content:space-between;gap:14px;min-height:40px}
+.bu-module-back{min-height:40px;display:inline-flex;align-items:center;gap:9px;padding:0 13px 0 9px;border:1px solid var(--border);border-radius:12px;background:var(--surface);color:var(--text);font:750 10.5px Inter,sans-serif;cursor:pointer;box-shadow:0 5px 18px rgba(20,18,15,.045);transition:.18s}
+.bu-module-back:hover{border-color:color-mix(in srgb,var(--bu-accent) 45%,var(--border));color:var(--bu-accent);transform:translateX(-2px)}
+.bu-module-back svg{width:18px;height:18px}
+.bu-module-status{display:inline-flex;align-items:center;gap:7px;color:var(--text-3);font:700 8px 'JetBrains Mono',monospace;letter-spacing:.06em;text-transform:uppercase}
+.bu-module-status i{width:7px;height:7px;border-radius:50%;background:var(--bu-success);box-shadow:0 0 0 4px color-mix(in srgb,var(--bu-success) 12%,transparent)}
+.bu-field>span{color:var(--text-2);font:750 8px 'JetBrains Mono',monospace;letter-spacing:.055em;text-transform:uppercase}
+.bu-modal-backdrop{z-index:10050;padding:24px;background:rgba(9,9,9,.7);backdrop-filter:blur(9px);animation:bu-modal-fade .18s ease both}
+body:has(.bu-modal-backdrop) #wa-fab,body:has(.bu-modal-backdrop) #wa-fab-menu{opacity:0!important;pointer-events:none!important}
+body:has(.bu-modal-backdrop) .mobile-nav{opacity:0!important;pointer-events:none!important;transform:translateY(100%)}
+@keyframes bu-modal-fade{from{opacity:0}to{opacity:1}}
+.bu-modal{width:min(680px,100%);max-height:min(820px,calc(100dvh - 48px));display:grid;grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden;border-color:color-mix(in srgb,var(--bu-accent) 16%,var(--border));border-radius:22px;box-shadow:0 34px 100px rgba(0,0,0,.38);animation:bu-modal-enter .22s ease both}
+@keyframes bu-modal-enter{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+.bu-modal--wide{width:min(940px,100%)}
+.bu-modal>form{min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto;overflow:hidden}
+.bu-modal__head{position:static;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:19px 22px;background:linear-gradient(100deg,color-mix(in srgb,var(--bu-accent) 7%,var(--surface)),var(--surface));backdrop-filter:none}
+.bu-modal__mark{width:42px;height:42px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--bu-accent) 28%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--bu-accent) 11%,var(--surface));color:var(--bu-accent)}
+.bu-modal__mark svg{width:18px;height:18px}
+.bu-modal__heading{min-width:0}
+.bu-modal__eyebrow{display:block;margin-bottom:4px;color:var(--bu-accent);font:800 7px 'JetBrains Mono',monospace;letter-spacing:.12em;text-transform:uppercase}
+.bu-modal__head h2{font-size:20px;font-weight:780;letter-spacing:-.025em}
+.bu-modal__head p{line-height:1.45}
+.bu-modal__body{min-height:0;overflow:auto;padding:20px 22px}
+.bu-modal__foot{position:static;display:flex;align-items:center;padding:14px 22px;background:color-mix(in srgb,var(--surface) 96%,var(--surface-2))}
+.bu-modal__foot-note{margin-right:auto;color:var(--text-3);font-size:8.5px}
+.bu-close{width:37px;height:37px;border-radius:10px;color:var(--text-2);font-size:21px;line-height:1;transition:.18s}
+.bu-close:hover{border-color:var(--bu-accent);color:var(--bu-accent);transform:rotate(4deg)}
+.bu-new-project{display:grid;gap:14px;background:color-mix(in srgb,var(--surface-2) 48%,var(--surface))}
+.bu-form-section{padding:16px;border:1px solid var(--border);border-radius:15px;background:var(--surface);box-shadow:0 5px 18px rgba(20,18,15,.035)}
+.bu-form-section__head{display:flex;align-items:center;gap:10px;margin-bottom:15px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.bu-form-section__head>span{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:color-mix(in srgb,var(--bu-accent) 10%,var(--surface-2));color:var(--bu-accent)}
+.bu-form-section__head svg{width:14px;height:14px}
+.bu-form-section__head strong,.bu-form-section__head small{display:block}
+.bu-form-section__head strong{font-size:11px}
+.bu-form-section__head small{margin-top:3px;color:var(--text-3);font-size:8.5px}
+.bu-project-form .bu-form-grid{gap:15px 13px}
+.bu-project-form .bu-field input,.bu-project-form .bu-field select,.bu-project-form .bu-field textarea{min-height:45px;border-radius:11px;background:color-mix(in srgb,var(--surface-2) 64%,var(--surface))}
+.bu-description-field{padding:16px;border:1px solid var(--border);border-radius:15px;background:var(--surface)}
+.bu-description-field textarea{min-height:74px!important}
+
+@media(max-width:620px){
+  .bu-module-nav{min-height:38px}
+  .bu-module-status{display:none}
+  .bu-module-back{min-height:38px;padding-right:12px}
+  .bu-modal-backdrop{align-items:end;padding:8px 8px max(8px,env(safe-area-inset-bottom))}
+  .bu-modal{max-height:calc(100dvh - 16px);border-radius:18px}
+  .bu-modal__head{grid-template-columns:auto minmax(0,1fr) auto;padding:14px}
+  .bu-modal__mark{width:37px;height:37px}
+  .bu-modal__head p{display:none}
+  .bu-modal__body{padding:12px}
+  .bu-new-project{gap:10px}
+  .bu-form-section,.bu-description-field{padding:13px;border-radius:13px}
+  .bu-form-section__head{margin-bottom:12px;padding-bottom:10px}
+  .bu-modal__foot{display:grid;grid-template-columns:1fr 1fr;padding:11px 12px}
+  .bu-modal__foot-note{display:none}
+  .bu-modal__foot .bu-button{width:100%;min-width:0}
+}
