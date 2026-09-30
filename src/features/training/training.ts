@@ -162,10 +162,11 @@ function mount(container: HTMLElement) {
   function shell(content: string) {
     const current = level(state.xp);
     const pct = current.next === current.start ? 100 : Math.min(100, Math.round((state.xp - current.start) / (current.next - current.start) * 100));
+    const streakDays = streak(state.days);
     container.innerHTML = `<div class="tr-page fade-up">
       <header class="tr-hero">
         <div><span class="tr-kicker">Retos IMFRA</span><h1>Practica para <em>la obra real.</em></h1><p>Quiz, casos, tarjetas y recompensas.</p></div>
-        <div class="tr-hero__stats"><div><span>Racha</span><strong>${streak(state.days)} días</strong></div><div><span>XP formativo</span><strong>${state.xp}</strong></div></div>
+        <div class="tr-hero__stats"><div><span>Racha</span><strong>${streakDays} día${streakDays === 1 ? "" : "s"}</strong></div><div><span>XP formativo</span><strong>${state.xp}</strong></div></div>
       </header>
       <section class="tr-level"><div><span>Nivel profesional</span><strong>${current.name}</strong></div><div class="tr-level__bar"><span style="width:${pct}%"></span></div><b>${pct}%</b></section>
       ${content}

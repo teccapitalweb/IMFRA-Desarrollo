@@ -1,8 +1,10 @@
 import "./book-reader.css";
 import {
   GlobalWorkerOptions,
+  PDFDataRangeTransport,
   getDocument,
   type PDFDocumentProxy,
+  type PDFDocumentLoadingTask,
   type RenderTask
 } from "pdfjs-dist";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
@@ -51,6 +53,74 @@ function icon(path: string) {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 }
 
+const MOBILE_RANGE_CHUNK = 256 * 1024;
+
+class BunnyRangeTransport extends PDFDataRangeTransport {
+  private controllers = new Set<AbortController>();
+
+  constructor(length: number, private url: string, initialData: Uint8Array) {
+    super(length, initialData, true);
+  }
+
+  requestDataRange(begin: number, end: number) {
+    void this.fetchRange(begin, end, 0);
+  }
+
+  private async fetchRange(begin: number, end: number, attempt: number): Promise<void> {
+    const controller = new AbortController();
+    this.controllers.add(controller);
+    try {
+      const response = await fetch(this.url, {
+        headers: { Range: `bytes=${begin}-${end - 1}` },
+        cache: "force-cache",
+        signal: controller.signal
+      });
+      if (!response.ok || (response.status !== 206 && begin > 0)) {
+        throw new Error(`Rango no disponible (${response.status})`);
+      }
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      this.onDataRange(begin, bytes);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      if (attempt < 1) {
+        await new Promise((resolve) => window.setTimeout(resolve, 450));
+        return this.fetchRange(begin, end, attempt + 1);
+      }
+      console.error("[book-reader] No se pudo recuperar un fragmento del PDF", error);
+      this.onDataRange(begin, null);
+    } finally {
+      this.controllers.delete(controller);
+    }
+  }
+
+  abort() {
+    this.controllers.forEach((controller) => controller.abort());
+    this.controllers.clear();
+  }
+}
+
+async function createMobileRangeTask(url: string): Promise<PDFDocumentLoadingTask> {
+  const head = await fetch(url, { method: "HEAD", cache: "force-cache" });
+  if (!head.ok) throw new Error(`No se pudo consultar el PDF (${head.status})`);
+  const length = Number(head.headers.get("content-length"));
+  if (!Number.isFinite(length) || length <= 0) throw new Error("El PDF no informó su tamaño");
+
+  const end = Math.min(length, MOBILE_RANGE_CHUNK);
+  const first = await fetch(url, {
+    headers: { Range: `bytes=0-${end - 1}` },
+    cache: "force-cache"
+  });
+  if (!first.ok) throw new Error(`No se pudo iniciar el PDF (${first.status})`);
+  const initialData = new Uint8Array(await first.arrayBuffer());
+  const transport = new BunnyRangeTransport(length, url, initialData);
+  return getDocument({
+    range: transport,
+    rangeChunkSize: MOBILE_RANGE_CHUNK,
+    disableAutoFetch: true,
+    disableStream: true
+  });
+}
+
 function mount(container: HTMLElement, options: BookReaderOptions): MountedReader {
   const safeTitle = escapeHtml(options.title || "Libro IMFRA");
   let documentProxy: PDFDocumentProxy | null = null;
@@ -62,6 +132,7 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   let touchStartX = 0;
   let touchStartY = 0;
   let destroyed = false;
+  let loadingTask: PDFDocumentLoadingTask | null = null;
   container.innerHTML = `<div class="imfra-pdf-reader" tabindex="0" aria-label="Lector de ${safeTitle}">
     <div class="imfra-pdf-reader__viewport" data-pdf-viewport>
       <button class="imfra-pdf-reader__edge imfra-pdf-reader__edge--prev" type="button" data-pdf-prev aria-label="Página anterior">${icon('<polyline points="15 18 9 12 15 6"/>')}</button>
@@ -168,7 +239,11 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   container.querySelector("[data-pdf-zoom-out]")?.addEventListener("click", () => setZoom(zoom - .2), listenerOptions);
   container.querySelector("[data-pdf-zoom-in]")?.addEventListener("click", () => setZoom(zoom + .2), listenerOptions);
   container.querySelector("[data-pdf-fit]")?.addEventListener("click", () => setZoom(1), listenerOptions);
-  container.querySelector("[data-pdf-retry]")?.addEventListener("click", () => window.location.reload(), listenerOptions);
+  container.querySelector("[data-pdf-retry]")?.addEventListener("click", () => {
+    error.hidden = true;
+    status.hidden = false;
+    void openDocument();
+  }, listenerOptions);
   pageInput.addEventListener("change", () => goTo(Number(pageInput.value)), listenerOptions);
   pageInput.addEventListener("keydown", (event) => { if (event.key === "Enter") { event.preventDefault(); goTo(Number(pageInput.value)); pageInput.blur(); } }, listenerOptions);
   container.addEventListener("keydown", (event) => {
@@ -199,25 +274,33 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   resizeObserver.observe(viewport);
 
   updateControls();
-  const loadingTask = getDocument({
-    url: options.url,
-    rangeChunkSize: 262144
-  });
-  void loadingTask.promise.then((pdf) => {
-    if (destroyed) { void pdf.cleanup(); return; }
-    documentProxy = pdf;
-    totalPages = pdf.numPages;
-    currentPage = Math.min(currentPage, totalPages);
-    updateControls();
-    void renderPage();
-  }).catch((reason) => {
-    const detail = reason instanceof Error
-      ? `${reason.name}: ${reason.message} ${JSON.stringify(Object.fromEntries(Object.entries(reason)))}`
-      : String(reason);
-    console.error(`[book-reader] No se pudo abrir el PDF · ${detail}`);
-    status.hidden = true;
-    error.hidden = false;
-  });
+  async function openDocument() {
+    try {
+      await loadingTask?.destroy();
+      loadingTask = null;
+      const mobile = window.matchMedia("(max-width: 760px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      loadingTask = mobile
+        ? await createMobileRangeTask(options.url)
+        : getDocument({ url: options.url, rangeChunkSize: MOBILE_RANGE_CHUNK });
+      const pdf = await loadingTask.promise;
+      if (destroyed) { void pdf.cleanup(); return; }
+      documentProxy = pdf;
+      totalPages = pdf.numPages;
+      currentPage = Math.min(currentPage, totalPages);
+      updateControls();
+      void renderPage();
+    } catch (reason) {
+      if (destroyed) return;
+      const detail = reason instanceof Error
+        ? `${reason.name}: ${reason.message} ${JSON.stringify(Object.fromEntries(Object.entries(reason)))}`
+        : String(reason);
+      console.error(`[book-reader] No se pudo abrir el PDF · ${detail}`);
+      status.hidden = true;
+      error.hidden = false;
+    }
+  }
+
+  void openDocument();
 
   return {
     destroy() {
@@ -226,7 +309,7 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
       resizeObserver.disconnect();
       window.clearTimeout(resizeTimer);
       renderTask?.cancel();
-      void loadingTask.destroy();
+      void loadingTask?.destroy();
       void documentProxy?.cleanup();
     }
   };
