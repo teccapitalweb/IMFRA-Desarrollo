@@ -53,6 +53,16 @@ function icon(path: string) {
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${path}</svg>`;
 }
 
+function isIOSDevice() {
+  return /iPad|iPhone|iPod/i.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
+function isMobileDevice() {
+  return window.matchMedia("(max-width: 760px)").matches
+    || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
 const MOBILE_RANGE_CHUNK = 256 * 1024;
 
 class BunnyRangeTransport extends PDFDataRangeTransport {
@@ -133,6 +143,8 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   let touchStartY = 0;
   let destroyed = false;
   let loadingTask: PDFDocumentLoadingTask | null = null;
+  let nativeFrame: HTMLIFrameElement | null = null;
+  let nativeMode = false;
   container.innerHTML = `<div class="imfra-pdf-reader" tabindex="0" aria-label="Lector de ${safeTitle}">
     <div class="imfra-pdf-reader__viewport" data-pdf-viewport>
       <button class="imfra-pdf-reader__edge imfra-pdf-reader__edge--prev" type="button" data-pdf-prev aria-label="Página anterior">${icon('<polyline points="15 18 9 12 15 6"/>')}</button>
@@ -170,6 +182,7 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   const totalOutput = container.querySelector<HTMLElement>("[data-pdf-total]")!;
   const zoomOutput = container.querySelector<HTMLOutputElement>("[data-pdf-zoom]")!;
   const progress = container.querySelector<HTMLElement>("[data-pdf-progress] i")!;
+  const reader = container.querySelector<HTMLElement>(".imfra-pdf-reader")!;
 
   function updateControls() {
     pageInput.value = String(currentPage);
@@ -269,16 +282,58 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
   }, { signal: abort.signal, passive: true });
   const resizeObserver = new ResizeObserver(() => {
     window.clearTimeout(resizeTimer);
-    resizeTimer = window.setTimeout(() => { if (documentProxy) void renderPage(); }, 180);
+    resizeTimer = window.setTimeout(() => { if (documentProxy && !nativeMode) void renderPage(); }, 180);
   });
   resizeObserver.observe(viewport);
 
   updateControls();
+
+  async function openNativeDocument() {
+    nativeMode = true;
+    await loadingTask?.destroy();
+    loadingTask = null;
+    renderTask?.cancel();
+    documentProxy = null;
+    error.hidden = true;
+    status.hidden = false;
+    const statusTitle = status.querySelector("strong");
+    const statusCopy = status.querySelector("small");
+    if (statusTitle) statusTitle.textContent = "Abriendo versión para iPhone";
+    if (statusCopy) statusCopy.textContent = "El visor del teléfono preparará el libro.";
+    paper.hidden = true;
+    reader.classList.add("is-native");
+    nativeFrame?.remove();
+    const frame = document.createElement("iframe");
+    nativeFrame = frame;
+    frame.className = "imfra-pdf-reader__native";
+    frame.title = `Lector de ${options.title || "Libro IMFRA"}`;
+    frame.src = `${options.url}#view=FitH&toolbar=0&navpanes=0`;
+    frame.setAttribute("allow", "fullscreen");
+    frame.addEventListener("load", () => {
+      if (destroyed || frame !== nativeFrame) return;
+      status.hidden = true;
+      error.hidden = true;
+      container.closest(".book-reader")?.classList.add("is-ready");
+    }, { once: true });
+    const launch = document.createElement("button");
+    launch.className = "imfra-pdf-reader__native-launch";
+    launch.type = "button";
+    launch.textContent = "Abrir en el visor del iPhone ↗";
+    launch.addEventListener("click", () => window.open(options.url, "_blank", "noopener"), { signal: abort.signal });
+    viewport.querySelector(".imfra-pdf-reader__native-launch")?.remove();
+    viewport.append(frame, launch);
+  }
+
   async function openDocument() {
     try {
+      if (isIOSDevice()) {
+        await openNativeDocument();
+        return;
+      }
+      nativeMode = false;
       await loadingTask?.destroy();
       loadingTask = null;
-      const mobile = window.matchMedia("(max-width: 760px)").matches || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const mobile = isMobileDevice();
       loadingTask = mobile
         ? await createMobileRangeTask(options.url)
         : getDocument({ url: options.url, rangeChunkSize: MOBILE_RANGE_CHUNK });
@@ -295,6 +350,10 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
         ? `${reason.name}: ${reason.message} ${JSON.stringify(Object.fromEntries(Object.entries(reason)))}`
         : String(reason);
       console.error(`[book-reader] No se pudo abrir el PDF · ${detail}`);
+      if (isMobileDevice() && !nativeMode) {
+        await openNativeDocument();
+        return;
+      }
       status.hidden = true;
       error.hidden = false;
     }
@@ -309,6 +368,10 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
       resizeObserver.disconnect();
       window.clearTimeout(resizeTimer);
       renderTask?.cancel();
+      if (nativeFrame) {
+        nativeFrame.src = "about:blank";
+        nativeFrame.remove();
+      }
       void loadingTask?.destroy();
       void documentProxy?.cleanup();
     }
