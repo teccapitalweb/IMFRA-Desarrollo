@@ -5,6 +5,7 @@ const root = resolve(import.meta.dirname, "..");
 const output = resolve(root, "dist");
 const entries = [
   "assets",
+  "assistant",
   "CNAME",
   "firma-director-imfra.png",
   "firma-ipci.png",

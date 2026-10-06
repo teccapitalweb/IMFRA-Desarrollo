@@ -13,7 +13,8 @@ export default defineConfig({
         auth: resolve(rootDirectory, "vip-auth.html"),
         panel: resolve(rootDirectory, "vip-panel.html"),
         admin: resolve(rootDirectory, "vip-admin.html"),
-        verificar: resolve(rootDirectory, "verificar.html")
+        verificar: resolve(rootDirectory, "verificar.html"),
+        privacidad: resolve(rootDirectory, "privacidad.html")
       }
     }
   }
