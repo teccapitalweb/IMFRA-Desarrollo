@@ -107,6 +107,8 @@ body.imx-scroll-lock { overflow: hidden !important; touch-action: none; }
 .imx-survey__eyebrow::before { content: ''; width: 26px; height: 2px; background: var(--imx-orange); }
 .imx-survey__title,
 .imx-survey__question { margin: 0; max-width: 760px; color: #171512; font-weight: 850; letter-spacing: -.045em; line-height: 1.04; }
+.imx-survey__title:focus,
+.imx-survey__question:focus { outline: none; }
 .imx-survey__title { font-size: clamp(30px,4vw,52px); }
 .imx-survey__question { font-size: clamp(25px,3.2vw,38px); }
 .imx-survey__title span { color: var(--imx-orange-deep); }
