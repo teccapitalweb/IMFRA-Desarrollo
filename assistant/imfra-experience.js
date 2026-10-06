@@ -92,6 +92,85 @@
 
   const normalize = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9ñ\s-]/g, ' ').replace(/\s+/g, ' ').trim();
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+
+  const guidanceProfiles = [
+    {
+      pattern: /grieta|cuartead|fisura|rajadura|cuarteadu|resquebraj/,
+      answer: 'Una grieta por sí sola no revela su causa: puede venir de asentamiento de la cimentación, falta de refuerzo, cambios térmicos, cargas no previstas, humedad o fraguado deficiente del concreto. Antes de resanar conviene mapear ubicación, ancho, patrón (vertical, diagonal, horizontal), si avanza y qué cambió recientemente en la obra o entorno. Las grietas estructurales activas requieren revisión del responsable estructural; las no estructurales se corrigen después de resolver la causa.',
+      queries: ['Supervisión Integral', 'Residente de Obra']
+    },
+    {
+      pattern: /humedad|filtracion|gotera|filtra.*agua|humedad.*muro|salitre|moho/,
+      answer: 'Las humedades y filtraciones casi nunca se resuelven solo con impermeabilizante encima. Primero hay que identificar origen: capilaridad del suelo, falla de impermeabilización, fisura estructural, instalación hidráulica rota, pendiente invertida o condensación. La reparación durable combina detener el origen, secar el sustrato y aplicar un sistema compatible con mantenimiento previsto.',
+      queries: ['Supervisión Integral', 'Residente de Obra']
+    },
+    {
+      pattern: /cuanto cuesta.*(obra|construir|metro cuadrado|m2)|precio por m2|costo por metro|cotizar.*obra|cotizacion de obra|costo de construccion/,
+      answer: 'Un “precio por metro cuadrado” sirve para una primera referencia muy gruesa, pero el costo real depende de proyecto, acabados, nivel de instalaciones, ubicación, altura, tipo de cimentación y condiciones del terreno. Para presupuestar en serio se construye un catálogo de conceptos, se cuantifica, se analizan precios unitarios con rendimientos reales, se suman indirectos, financiamiento y utilidad, y se contempla escalatoria.',
+      queries: ['Control Físico Financiero', 'Números Generadores']
+    },
+    {
+      pattern: /como presupuest|hacer un presupuesto|calcular presupuesto|cotizar materiales|elaborar presupuesto/,
+      answer: 'Un presupuesto confiable parte de planos y especificaciones claros. El flujo típico es: catálogo de conceptos → números generadores → análisis de precios unitarios con rendimientos y cuadrillas reales → indirectos (campo y oficina) → financiamiento → utilidad → cargos adicionales. Después se arma el programa de ejecución y el programa de erogaciones. Un presupuesto sin generadores ni análisis es solo una estimación de experiencia.',
+      queries: ['Control Físico Financiero', 'Números Generadores']
+    },
+    {
+      pattern: /permiso|licencia de construccion|tramite.*(obra|construccion)|autoridad|municipio|desarrollo urbano|uso de suelo compatible/,
+      answer: 'Antes de iniciar una obra se tramitan: constancia de uso de suelo compatible, alineamiento y número oficial, licencia de construcción con planos registrados, factibilidades de agua y drenaje, dictamen de impacto urbano cuando aplique y, al cierre, aviso de terminación y recepción. Cada municipio tiene requisitos distintos y tiempos propios; iniciar sin permisos expone a clausura, multas y, en casos graves, demolición.',
+      queries: ['Contratos en la Construcción', 'Gerencia de Proyectos']
+    },
+    {
+      pattern: /como.*(hacer|redactar|firmar).*contrato|contratar.*(constructor|contratista|arquitecto)|redaccion de contrato|clausulas de obra/,
+      answer: 'Un contrato de obra debe definir con precisión alcance, planos, especificaciones, precio, forma de pago, anticipo, programa, retenciones, fianzas, cambios, controversias, garantías y causales de rescisión. Firmar sin anexos técnicos claros es la raíz de la mayoría de los pleitos. Antes de firmar vale la pena una revisión legal especializada en construcción, especialmente si hay precios unitarios o convenio modificatorio futuro.',
+      queries: ['Contratos en la Construcción', 'Gerencia de Proyectos']
+    },
+    {
+      pattern: /retraso|atraso|obra retrasada|obra atrasada|programa atrasado|no avanza la obra/,
+      answer: 'Un retraso rara vez tiene una sola causa: puede ser cambio de alcance, falta de insumos, mal clima, mano de obra insuficiente, decisiones pendientes del cliente o falla en logística. Para controlarlo conviene reconstruir el programa real contra la línea base, identificar actividades críticas atrasadas, cuantificar impacto, documentar causas (bitácora, correos, aclaraciones) y proponer un plan de recuperación con compromisos y responsables.',
+      queries: ['Gerencia de Proyectos', 'Supervisión Integral']
+    },
+    {
+      pattern: /sobrecosto|sobregasto|salio mas caro|rebas.*presupuesto|desvio.*costo|gasto mas de lo planeado/,
+      answer: 'Un sobrecosto se diagnostica comparando lo gastado (costo incurrido + comprometido) contra lo presupuestado por partida, no solo por el total. Preguntas útiles: ¿los rendimientos reales son menores a los supuestos? ¿aumentaron precios de insumos sin escalatoria? ¿hubo trabajos extraordinarios sin convenio? ¿se absorbieron deficiencias de proyecto? Identificar la causa por partida permite negociar, replantear o detener antes de que crezca.',
+      queries: ['Control Físico Financiero', 'Gerencia de Proyectos']
+    },
+    {
+      pattern: /como cobrar|cobro de obra|no me pagan|estimacion.*rechaz|me rechazaron.*estimacion|cuesta cobrar/,
+      answer: 'El cobro en obra se gana desde antes: generadores completos con croquis, mediciones firmadas por supervisión, evidencia fotográfica, bitácora al día y conceptos extraordinarios autorizados por escrito. Si una estimación es rechazada, pide por escrito las observaciones puntuales, corrige lo necesario y vuelve a presentarla. Nunca ejecutes trabajos extraordinarios “de palabra”: formaliza antes.',
+      queries: ['Control Físico Financiero', 'Contratos en la Construcción']
+    },
+    {
+      pattern: /cambio.*obra|modifica.*proyecto|extraordinario|concepto extra|cambio de alcance/,
+      answer: 'Un cambio en obra debe formalizarse antes de ejecutarse: descripción, planos, impacto en tiempo, costo adicional, análisis de precios y autorización por escrito del cliente o representante. Ejecutar primero y pedir pago después expone a no cobro, controversias y responsabilidades. Lo recomendable es un procedimiento de control de cambios acordado desde el inicio del contrato.',
+      queries: ['Contratos en la Construcción', 'Control Físico Financiero']
+    },
+    {
+      pattern: /como iniciar.*(negocio|empresa constructor|despacho)|empezar.*construccion|montar.*constructora|despacho de arquitectura/,
+      answer: 'Un negocio de construcción se sostiene con tres pilares: capacidad técnica demostrable, administración financiera disciplinada y comercial consistente. Al inicio conviene: definir nicho (vivienda, obra pública, remodelación, paisajismo), estandarizar un formato de propuesta y contrato, llevar costeo real por obra, cuidar el flujo de efectivo con cobros oportunos y construir cartera de referencias documentadas antes de crecer en equipo.',
+      queries: ['Gerencia de Proyectos', 'Contratos en la Construcción']
+    },
+    {
+      pattern: /como.*(hacer|elaborar).*planos|elaborar planos|dibujar planos|hacer un plano arquitectonico/,
+      answer: 'Un juego de planos ejecutivos coherente incluye arquitectónicos (plantas, cortes, fachadas, detalles), estructurales con memoria firmada, instalaciones (hidráulica, sanitaria, eléctrica, gas, especiales), carpintería, herrería y cancelería. Antes de dibujar se define programa, partido, normativa aplicable y memoria descriptiva. Entregar planos sin cuadro de áreas, simbología, cotas y notas suele detonar RFIs y retrabajos en obra.',
+      queries: ['Elaboración de Láminas', 'SketchUp Profesional']
+    },
+    {
+      pattern: /como.*(supervis)|supervisar.*obra|empezar.*supervision|supervision de mi obra/,
+      answer: 'Para supervisar una obra con criterio profesional conviene: revisar contrato, planos y especificaciones; abrir y mantener bitácora; definir puntos de inspección por partida; verificar materiales y pruebas; medir generadores con evidencia; registrar RFIs y respuestas; controlar programa y presupuesto; documentar no conformidades con responsable y fecha de cierre; y preparar entrega-recepción con planos as-built. El soporte documental es la supervisión; sin él solo hay opinión.',
+      queries: ['Supervisión Integral', 'Residente de Obra']
+    },
+    {
+      pattern: /seguridad.*obra|accident.*obra|caida.*obra|trabajo en altura|nom seguridad|stps obra/,
+      answer: 'Seguridad en obra se construye desde la planeación: identificar peligros por actividad, controlar en la fuente, dotar EPP cuando el peligro sea residual, capacitar al personal, llevar permisos de trabajos de alto riesgo (altura, caliente, espacio confinado), señalizar frentes y detener actividades ante riesgo inminente. STPS y las NOM específicas (NOM-031 construcción, NOM-009 trabajos en altura) marcan los mínimos no negociables.',
+      queries: ['Supervisión Integral', 'Residente de Obra']
+    },
+    {
+      pattern: /director responsable|dro|corresponsable|cedula profesional|perito/,
+      answer: 'El Director Responsable de Obra (DRO) y los Corresponsables (estructural, instalaciones, diseño urbano) son figuras técnicas que asumen responsabilidad legal del proyecto y la ejecución ante la autoridad. Su registro, firmas y bitácora son requisito en muchos municipios. Un proyecto formal nunca prescinde de estas figuras: su participación es la garantía documental de que el proyecto cumple la normativa aplicable.',
+      queries: ['Contratos en la Construcción', 'Supervisión Integral']
+    }
+  ];
+
   const now = () => new Intl.DateTimeFormat('es-MX', { hour: '2-digit', minute: '2-digit' }).format(new Date());
   const optionOf = (question, value) => question?.options.find((option) => option.value === value);
   const questionById = (id) => data.questions.find((question) => question.id === id);
@@ -287,6 +366,22 @@
 
     const conceptMatch = findConcept(query);
     if (conceptMatch?.score) { conceptReply(conceptMatch); return; }
+
+    const profile = guidanceProfiles.find((item) => item.pattern.test(query));
+    if (profile) {
+      const relatedCourses = findCourses(profile.queries, 2);
+      const text = relatedCourses.length
+        ? `${profile.answer}\n\nPara profundizarlo y llevarlo a la práctica, en IMFRA contamos con capacitaciones directamente relacionadas:`
+        : `${profile.answer}\n\nSi quieres, cuéntame el tipo de proyecto y en qué etapa estás para orientarte con mayor precisión.`;
+      respond(text, relatedCourses, [
+        { label: 'Hacer otra pregunta', value: 'ask' },
+        { label: 'Explorar conceptos', value: 'concepts' },
+        { label: 'Encontrar mi curso', value: 'survey' },
+        { label: 'Hablar con un asesor', value: 'human' }
+      ]);
+      return;
+    }
+
     const courses = findCourses(query, 3);
     if (courses.length) {
       respond('Tu pregunta se relaciona con estos temas del catálogo de IMFRA. Para orientarte mejor, identifica primero el resultado que buscas, qué experiencia tienes y en qué proyecto lo aplicarás. Estas capacitaciones pueden darte una base práctica:', courses, [
