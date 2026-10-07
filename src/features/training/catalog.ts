@@ -107,6 +107,62 @@ export const trainingCases: TrainingCase[] = [
       { prompt: "¿Dónde debe enfocarse el análisis?", options: ["En todas las actividades por igual", "En ruta crítica, restricciones y rendimientos reales", "Solo en el costo acumulado", "En aumentar personal sin evaluar"], correct: 1, explanation: "Las acciones deben atacar causas y actividades que condicionan la fecha final." },
       { prompt: "¿Cómo se acepta un plan de recuperación?", options: ["Con metas, responsables, recursos y seguimiento semanal", "Con una promesa verbal", "Moviendo la línea base", "Ocultando el atraso"], correct: 0, explanation: "Un plan profesional es medible, asigna responsables y se revisa contra hitos de recuperación." }
     ]
+  },
+  {
+    id: "prueba-presion-tuberia",
+    title: "Prueba de presión hidráulica",
+    area: "Instalaciones",
+    difficulty: "Intermedio",
+    duration: "6 min",
+    scenario: "La red hidráulica quedó oculta parcialmente y la cuadrilla propone cerrar ranuras antes de realizar la prueba de presión.",
+    objective: "Liberar la instalación con evidencia verificable antes de ocultarla.",
+    steps: [
+      { prompt: "¿Qué decisión corresponde?", options: ["Cerrar para proteger la tubería", "Detener el cierre y ejecutar la prueba especificada", "Probar solo un lavabo", "Aceptar una garantía verbal"], correct: 1, explanation: "La instalación debe probarse antes de quedar oculta para detectar fugas y conservar acceso a las correcciones." },
+      { prompt: "¿Qué debe registrarse?", options: ["Solo una fotografía", "Tramo, presión, duración, resultado y responsables", "Únicamente la fecha", "El costo de la tubería"], correct: 1, explanation: "Esos datos permiten reproducir y auditar la prueba, además de vincularla con el tramo liberado." },
+      { prompt: "¿Qué permite cerrar ranuras?", options: ["La liberación documentada después de una prueba conforme", "Que la tubería sea nueva", "El fin de la jornada", "La aprobación verbal del instalador"], correct: 0, explanation: "El cierre procede cuando el resultado cumple y la supervisión deja una liberación trazable." }
+    ]
+  },
+  {
+    id: "relleno-compactacion",
+    title: "Relleno con compactación deficiente",
+    area: "Terracerías",
+    difficulty: "Intermedio",
+    duration: "7 min",
+    scenario: "Los resultados de densidad de una capa de relleno están por debajo del porcentaje especificado y ya llegó material para la capa siguiente.",
+    objective: "Evitar ocultar una no conformidad y recuperar el proceso de compactación.",
+    steps: [
+      { prompt: "¿Qué debe hacerse primero?", options: ["Colocar la siguiente capa", "Detener el avance y delimitar la zona no conforme", "Aumentar el espesor", "Regar sin medir"], correct: 1, explanation: "No debe cubrirse una capa rechazada; primero se contiene y se identifica su alcance." },
+      { prompt: "¿Cómo se corrige?", options: ["Ajustando humedad, espesor y energía de compactación según procedimiento", "Agregando cemento sin autorización", "Esperando una semana", "Promediando resultados"], correct: 0, explanation: "La corrección debe controlar las variables del proceso y seguir el procedimiento aprobado." },
+      { prompt: "¿Cuándo continúa el frente?", options: ["Cuando llegue el laboratorio", "Cuando una nueva verificación cumpla y se libere la capa", "Cuando no se vea huella", "Después de dos pasadas"], correct: 1, explanation: "El avance se reinicia con evidencia conforme y liberación de la capa corregida." }
+    ]
+  },
+  {
+    id: "cambio-alcance",
+    title: "Cambio de alcance solicitado en campo",
+    area: "Administración",
+    difficulty: "Avanzado",
+    duration: "7 min",
+    scenario: "El cliente solicita verbalmente ampliar un área terminada. El cambio afecta cantidades, costo y fecha de entrega.",
+    objective: "Controlar el cambio antes de comprometer recursos y plazo.",
+    steps: [
+      { prompt: "¿Primera actuación?", options: ["Ejecutar de inmediato", "Definir alcance y registrar la solicitud", "Cotizar al final", "Modificar planos sin aviso"], correct: 1, explanation: "El cambio debe describirse y registrarse antes de evaluar sus impactos." },
+      { prompt: "¿Qué análisis se presenta?", options: ["Solo mano de obra", "Cantidad, costo, plazo, riesgos y documentos afectados", "Únicamente un precio global", "Una fotografía"], correct: 1, explanation: "La decisión requiere una visión completa del impacto técnico, económico y contractual." },
+      { prompt: "¿Qué habilita la ejecución?", options: ["La autorización trazable del responsable facultado", "La disponibilidad de la cuadrilla", "Un mensaje sin alcance", "La compra de material"], correct: 0, explanation: "La autorización formal protege a las partes y fija las condiciones del cambio." }
+    ]
+  },
+  {
+    id: "excavacion-inestable",
+    title: "Excavación con paredes inestables",
+    area: "Seguridad",
+    difficulty: "Avanzado",
+    duration: "6 min",
+    scenario: "Tras una lluvia aparecen fisuras y desprendimientos en una excavación donde debe ingresar personal para colocar tubería.",
+    objective: "Controlar el riesgo de colapso antes de permitir el acceso.",
+    steps: [
+      { prompt: "¿Qué procede de inmediato?", options: ["Ingresar por turnos cortos", "Suspender el acceso y aislar la excavación", "Retirar solo el material suelto", "Colocar una escalera"], correct: 1, explanation: "Las señales de inestabilidad obligan a retirar la exposición y asegurar el área." },
+      { prompt: "¿Qué debe evaluarse?", options: ["Suelo, agua, profundidad, cargas próximas y sistema de protección", "Solo la profundidad", "Únicamente el clima", "El rendimiento de la cuadrilla"], correct: 0, explanation: "La estabilidad depende de varias condiciones que deben revisarse de manera conjunta." },
+      { prompt: "¿Cuándo puede ingresar personal?", options: ["Cuando deje de llover", "Después de implementar y verificar el sistema de protección y acceso", "Cuando llegue el supervisor", "Al día siguiente"], correct: 1, explanation: "El acceso requiere controles instalados, inspeccionados y compatibles con las condiciones reales." }
+    ]
   }
 ];
 
@@ -128,5 +184,17 @@ export const flashcards: Flashcard[] = [
   { id: "f15", area: "Documentación", front: "RFI / consulta técnica", back: "Solicitud formal para aclarar información contradictoria, insuficiente o ambigua antes de ejecutar." },
   { id: "f16", area: "Documentación", front: "Bitácora profesional", back: "Registro objetivo con fecha, hecho verificable, ubicación, responsables, instrucción y seguimiento." },
   { id: "f17", area: "Documentación", front: "Control de cambios", back: "Proceso para definir, evaluar, autorizar y rastrear modificaciones de alcance, costo o plazo." },
-  { id: "f18", area: "Supervisión", front: "Punto de inspección", back: "Momento definido para verificar una actividad antes de cubrirla, continuarla o aceptar su resultado." }
+  { id: "f18", area: "Supervisión", front: "Punto de inspección", back: "Momento definido para verificar una actividad antes de cubrirla, continuarla o aceptar su resultado." },
+  { id: "f19", area: "Instalaciones", front: "Prueba hidrostática", back: "Verificación controlada de hermeticidad y resistencia de una red mediante presión, tiempo y criterios de aceptación definidos." },
+  { id: "f20", area: "Instalaciones", front: "Liberación de instalación", back: "Autorización documentada para ocultar o poner en servicio un tramo después de inspecciones y pruebas conformes." },
+  { id: "f21", area: "Terracerías", front: "Grado de compactación", back: "Relación entre la densidad seca de campo y la densidad seca máxima de referencia, expresada como porcentaje." },
+  { id: "f22", area: "Terracerías", front: "Humedad óptima", back: "Contenido de agua asociado con la máxima densidad seca para una energía de compactación determinada." },
+  { id: "f23", area: "Administración", front: "Orden de cambio", back: "Documento que define y autoriza una modificación de alcance, costo, plazo y condiciones antes de su ejecución." },
+  { id: "f24", area: "Administración", front: "Matriz de responsabilidades", back: "Asignación explícita de quién ejecuta, aprueba, consulta e informa cada actividad o decisión." },
+  { id: "f25", area: "Seguridad", front: "Entibado", back: "Sistema de soporte que contiene las paredes de una excavación para reducir el riesgo de colapso." },
+  { id: "f26", area: "Seguridad", front: "Permiso de trabajo", back: "Autorización temporal que confirma riesgos, controles, responsables y condiciones antes de una actividad crítica." },
+  { id: "f27", area: "Calidad", front: "Lote de inspección", back: "Conjunto identificable de elementos o suministro evaluado bajo los mismos criterios de aceptación." },
+  { id: "f28", area: "Calidad", front: "Acción correctiva", back: "Acción para eliminar la causa de una no conformidad y evitar que vuelva a ocurrir." },
+  { id: "f29", area: "Planeación", front: "Lookahead", back: "Planeación de corto plazo que identifica actividades próximas, restricciones, responsables y compromisos de liberación." },
+  { id: "f30", area: "Costos", front: "Costo indirecto", back: "Costo necesario para ejecutar y administrar la obra que no se asigna directamente a un concepto específico." }
 ];

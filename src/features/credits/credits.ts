@@ -37,6 +37,15 @@ export interface CreditSnapshot {
   redemptions: CreditRedemption[];
   benefits: Record<string, MembershipBenefitStatus>;
   notifications: CreditNotification[];
+  challengeAccess: ChallengeAccess;
+}
+
+export type ChallengeMode = "quiz" | "inspector" | "flashcards";
+export interface ChallengeAccess {
+  vip: boolean;
+  status: "vip" | "available" | "active" | "used";
+  mode: ChallengeMode | null;
+  expiresAt: string | null;
 }
 
 interface DemoRewardState {
@@ -56,6 +65,9 @@ declare global {
       isLoaded(): boolean;
       isUnlocked(rewardId: string): boolean;
       canEarn(): boolean;
+      challengeAccess(): ChallengeAccess;
+      startChallenge(mode: ChallengeMode): Promise<ChallengeAccess>;
+      completeChallenge(mode: ChallengeMode): Promise<ChallengeAccess>;
       redeem(rewardId: string): Promise<CreditSnapshot>;
       awardCorrect(activityId: string, source: "quiz" | "inspector", selected: number): Promise<CreditSnapshot>;
       markNotificationsRead(ids: string[]): Promise<void>;
@@ -82,14 +94,16 @@ const DEMO_COSTS: Record<string, number> = {
   "material-5": 220,
   "material-6": 240,
   "material-7": 260,
-  "book-advanced-mechanics": 350,
-  "book-advanced-strength": 320,
-  "book-resistencia-materiales": 300,
+  "book-hidrologia-basica": 800,
+  "book-advanced-mechanics": 800,
+  "book-advanced-strength": 800,
+  "book-resistencia-materiales": 800,
   "software-presupuestos": 1200,
   "imdac-control-obra-30d": 0,
   "pack-plantillas-pro": 450
 };
-const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [], benefits: {}, notifications: [] };
+const EMPTY_ACCESS: ChallengeAccess = { vip: false, status: "available", mode: null, expiresAt: null };
+const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [], benefits: {}, notifications: [], challengeAccess: EMPTY_ACCESS };
 let current: CreditSnapshot = { ...EMPTY };
 let loaded = false;
 let loading: Promise<CreditSnapshot> | null = null;
@@ -101,15 +115,17 @@ function isDemo() {
   return window.UserState?.modo === "demo" || new URLSearchParams(location.search).get("modo") === "demo";
 }
 
-/** VIP activo o administrador. Solo estas cuentas ganan créditos en Retos. */
+/** VIP, administrador o una partida gratuita activa pueden ganar créditos en Retos. */
 export function hasVipAccess() {
   const state = window.UserState as (typeof window.UserState & { plan?: string; isAdmin?: boolean }) | undefined;
   return state?.modo === "vip" || state?.plan === "admin" || state?.isAdmin === true;
 }
 
 export function canEarnChallengeCredits() {
-  return isDemo() || hasVipAccess();
+  return isDemo() || hasVipAccess() || current.challengeAccess.status === "active";
 }
+
+export function getChallengeAccess() { return current.challengeAccess; }
 
 function currentIdentity() {
   return isDemo() ? "demo-preview-v10" : (window.UserState?.uid || window.UserState?.email || "guest");
@@ -154,7 +170,8 @@ function demoSnapshot() {
         durationDays: 30
       }
     },
-    notifications: []
+    notifications: [],
+    challengeAccess: { vip: true, status: "vip", mode: null, expiresAt: null }
   } satisfies CreditSnapshot;
 }
 
@@ -201,20 +218,22 @@ function notifyPrivateMovements(notifications: CreditNotification[]) {
 }
 
 function publish(snapshot: CreditSnapshot) {
-  const next = {
+  const next: CreditSnapshot = {
     balance: Math.max(0, Number(snapshot.balance) || 0),
     lifetimeEarned: Math.max(0, Number(snapshot.lifetimeEarned) || 0),
     lifetimeSpent: Math.max(0, Number(snapshot.lifetimeSpent) || 0),
     redemptions: Array.isArray(snapshot.redemptions) ? snapshot.redemptions : [],
     benefits: snapshot.benefits && typeof snapshot.benefits === "object" ? snapshot.benefits : {},
-    notifications: Array.isArray(snapshot.notifications) ? snapshot.notifications : []
+    notifications: Array.isArray(snapshot.notifications) ? snapshot.notifications : [],
+    challengeAccess: snapshot.challengeAccess && typeof snapshot.challengeAccess === "object" ? snapshot.challengeAccess : (hasVipAccess() ? { vip: true, status: "vip", mode: null, expiresAt: null } : { ...EMPTY_ACCESS })
   };
   const changed = !loaded
     || current.balance !== next.balance
     || current.lifetimeEarned !== next.lifetimeEarned
     || current.lifetimeSpent !== next.lifetimeSpent
     || current.redemptions.map((item) => `${item.id}:${item.status}`).join("|") !== next.redemptions.map((item) => `${item.id}:${item.status}`).join("|")
-    || JSON.stringify(current.benefits) !== JSON.stringify(next.benefits);
+    || JSON.stringify(current.benefits) !== JSON.stringify(next.benefits)
+    || JSON.stringify(current.challengeAccess) !== JSON.stringify(next.challengeAccess);
   current = next;
   loaded = true;
   if (changed) window.dispatchEvent(new CustomEvent("imfra:credits-changed", { detail: current }));
@@ -222,6 +241,81 @@ function publish(snapshot: CreditSnapshot) {
   notifyPrivateMovements(current.notifications);
   return current;
 }
+
+export class ChallengeAccessError extends Error {
+  constructor(message: string, readonly code: "challenge_trial_used" | "challenge_trial_active" | "challenge_unavailable", readonly activeMode: ChallengeMode | null = null) {
+    super(message);
+  }
+}
+
+const CHALLENGE_MODE_LABELS: Record<ChallengeMode, string> = { quiz: "Quiz técnico", inspector: "Casos de obra", flashcards: "Tarjetas técnicas" };
+
+function setChallengeAccess(access: ChallengeAccess) {
+  current = { ...current, challengeAccess: access };
+  window.dispatchEvent(new CustomEvent("imfra:credits-changed", { detail: current }));
+  return access;
+}
+
+function activeTrialFor(mode: ChallengeMode) {
+  const access = current.challengeAccess;
+  return access.status === "active" && access.mode === mode && (!access.expiresAt || new Date(access.expiresAt).getTime() > Date.now());
+}
+
+async function challengeRequest(path: "start" | "complete", mode: ChallengeMode): Promise<ChallengeAccess> {
+  if (isDemo() || hasVipAccess()) return { vip: true, status: "vip", mode, expiresAt: null };
+  await loadCredits();
+  if (current.challengeAccess.status === "vip") return current.challengeAccess;
+  // Evita una llamada de red en cada clic mientras la partida gratuita sigue activa.
+  if (path === "start" && activeTrialFor(mode)) return current.challengeAccess;
+  if (path === "start" && current.challengeAccess.status === "used") {
+    throw new ChallengeAccessError("Tu partida gratuita ya fue utilizada.", "challenge_trial_used");
+  }
+  const response = await fetch(apiUrl(`/credits/challenge/${path}`), {
+    method: "POST",
+    cache: "no-store",
+    headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ mode })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    if (response.status === 403) {
+      setChallengeAccess({ vip: false, status: "used", mode: null, expiresAt: null });
+      throw new ChallengeAccessError(data.error || "Tu partida gratuita ya fue utilizada.", "challenge_trial_used");
+    }
+    if (response.status === 409) {
+      const activeMode = current.challengeAccess.mode;
+      throw new ChallengeAccessError(data.error || "Tu partida gratuita está activa en otra modalidad.", "challenge_trial_active", activeMode);
+    }
+    throw new ChallengeAccessError(data.error || "No pudimos validar tu acceso a Retos IMFRA.", "challenge_unavailable");
+  }
+  return setChallengeAccess(data as ChallengeAccess);
+}
+
+/** Muestra el aviso adecuado cuando un usuario no VIP no puede abrir otra partida. */
+export function showChallengeBlocked(error: unknown) {
+  const reason = error instanceof ChallengeAccessError ? error : null;
+  if (reason?.code === "challenge_trial_active") {
+    const label = reason.activeMode ? CHALLENGE_MODE_LABELS[reason.activeMode] : "otra modalidad";
+    window.__showPaywallModal?.({
+      title: "Tu partida gratuita está en curso",
+      sub: `Tu turno gratis ya comenzó en ${label}. Termínalo ahí o hazte VIP para jugar todas las modalidades sin límites y ganar créditos por cada acierto.`,
+      cta: "Ver membresía VIP"
+    });
+    return;
+  }
+  if (reason?.code === "challenge_unavailable") {
+    window.Toast?.error?.("Retos IMFRA", reason.message);
+    return;
+  }
+  window.__showPaywallModal?.({
+    title: "Tu partida gratuita ya terminó",
+    sub: "Hazte VIP para seguir jugando en Retos IMFRA, practicar sin límites y ganar créditos por cada acierto.",
+    cta: "Ver membresía VIP"
+  });
+}
+
+export const startChallengeAttempt = (mode: ChallengeMode) => challengeRequest("start", mode);
+export const completeChallengeAttempt = (mode: ChallengeMode) => challengeRequest("complete", mode);
 
 async function token() {
   const value = await window.__currentUser?.getIdToken?.();
@@ -359,6 +453,9 @@ window.IMFRACredits = {
   isLoaded: () => loaded,
   isUnlocked: (rewardId: string) => current.redemptions.some((item) => item.rewardId === rewardId && item.status === "active"),
   canEarn: canEarnChallengeCredits,
+  challengeAccess: getChallengeAccess,
+  startChallenge: startChallengeAttempt,
+  completeChallenge: completeChallengeAttempt,
   redeem: redeemCreditReward,
   awardCorrect: awardCreditForCorrect,
   markNotificationsRead: markCreditNotificationsRead

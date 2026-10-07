@@ -307,6 +307,92 @@ export const rewardQuestions: RewardQuestion[] = [
     ],
     correct: 1,
     explanation: "El control de cambios requiere definir y autorizar alcance, costo y plazo antes de ejecutar, salvo una emergencia documentada con el procedimiento contractual correspondiente."
+  },
+  {
+    id: "recepcion-acero-01",
+    area: "Control de calidad",
+    type: "concept",
+    difficulty: "Fundamental",
+    question: "¿Qué debe verificarse al recibir acero de refuerzo?",
+    options: ["Solo el peso del camión", "Únicamente el color", "Diámetro, grado, cantidad, condición y certificados", "La marca de la grúa"],
+    correct: 2,
+    explanation: "La recepción debe confirmar que el suministro coincide con la especificación y conservar evidencia trazable de calidad y cantidad."
+  },
+  {
+    id: "compactacion-relleno-01",
+    area: "Terracerías",
+    type: "case",
+    difficulty: "Intermedio",
+    question: "¿Qué debe hacer la supervisión con una capa que no alcanza la compactación especificada?",
+    context: "El laboratorio reporta un resultado por debajo del mínimo y la cuadrilla quiere colocar la siguiente capa.",
+    options: ["Cubrirla y compensar arriba", "Detener, corregir y volver a verificar", "Promediarla con otra prueba", "Aumentar el espesor de la siguiente capa"],
+    correct: 1,
+    explanation: "Una capa no conforme no debe ocultarse. Se corrige el proceso y se verifica nuevamente antes de liberarla."
+  },
+  {
+    id: "avance-ponderado-01",
+    area: "Planeación y control",
+    type: "measurement",
+    difficulty: "Intermedio",
+    question: "¿Cuál es el avance ponderado del proyecto?",
+    context: "Partida A pesa 40% y está al 80%; partida B pesa 60% y está al 50%.",
+    options: ["55%", "58%", "62%", "65%"],
+    correct: 2,
+    explanation: "Avance ponderado: 0.40 × 80 + 0.60 × 50 = 32 + 30 = 62%."
+  },
+  {
+    id: "junta-fria-01",
+    area: "Concreto",
+    type: "visual",
+    difficulty: "Intermedio",
+    question: "¿Qué indicio visual requiere revisar la continuidad de un colado?",
+    optionVisuals: ["honeycomb", "crack", "efflorescence", "corrosion"],
+    options: ["Nido de grava", "Línea definida entre etapas de colado", "Depósitos blancos", "Acero oxidado"],
+    correct: 1,
+    explanation: "Una línea definida entre etapas puede corresponder a una junta fría y debe revisarse contra el procedimiento, preparación y diseño del elemento."
+  },
+  {
+    id: "excavacion-entibado-01",
+    area: "Seguridad en obra",
+    type: "concept",
+    difficulty: "Avanzado",
+    question: "¿Cuál es la función principal del entibado en una excavación?",
+    options: ["Acelerar el acarreo", "Contener las paredes y proteger contra colapsos", "Drenar automáticamente", "Medir la profundidad"],
+    correct: 1,
+    explanation: "El entibado es un sistema de soporte para controlar la inestabilidad de las paredes; debe diseñarse y verificarse según las condiciones del terreno."
+  },
+  {
+    id: "prueba-hidraulica-01",
+    area: "Instalaciones",
+    type: "case",
+    difficulty: "Fundamental",
+    question: "¿Qué evidencia permite liberar una red antes de ocultarla?",
+    context: "La tubería está instalada y el acabado de muros comenzará hoy.",
+    options: ["Una promesa del instalador", "Una fotografía general", "Prueba registrada con presión, tiempo y resultado conforme", "La factura del material"],
+    correct: 2,
+    explanation: "La liberación debe basarse en una prueba trazable que identifique el tramo y demuestre el cumplimiento del criterio de aceptación."
+  },
+  {
+    id: "estimacion-anticipo-01",
+    area: "Costos y estimaciones",
+    type: "measurement",
+    difficulty: "Intermedio",
+    question: "¿Cuánto se amortiza de anticipo en esta estimación?",
+    context: "Importe bruto de $250,000 y porcentaje de amortización de 20%.",
+    options: ["$25,000", "$50,000", "$62,500", "$200,000"],
+    correct: 1,
+    explanation: "La amortización es $250,000 × 0.20 = $50,000, antes de aplicar otros conceptos contractuales."
+  },
+  {
+    id: "cimbra-liberacion-01",
+    area: "Estructuras",
+    type: "visual",
+    difficulty: "Avanzado",
+    question: "¿Qué elemento debe permanecer soportado hasta cumplir el criterio de descimbrado?",
+    optionVisuals: ["column", "footing", "beam", "slab"],
+    options: ["Columna aislada", "Zapata", "Viga", "Losa sobre terreno"],
+    correct: 2,
+    explanation: "Las vigas dependen del apuntalamiento mientras el concreto desarrolla la resistencia definida por el diseño y el procedimiento de descimbrado."
   }
 ];
 

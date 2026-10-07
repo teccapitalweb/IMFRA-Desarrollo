@@ -4,7 +4,7 @@ import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
 import { celebrate } from "../shared/celebration";
-import { awardCreditForCorrect, canEarnChallengeCredits } from "../credits/credits";
+import { awardCreditForCorrect, completeChallengeAttempt, getChallengeAccess, showChallengeBlocked, startChallengeAttempt, type ChallengeMode } from "../credits/credits";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -19,6 +19,7 @@ declare global {
   interface Window {
     IMFRATraining: { mount(container: HTMLElement): void };
     UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
+    __showPaywallModal?: (options?: { title?: string; sub?: string; cta?: string }) => void;
   }
 }
 
@@ -111,6 +112,11 @@ function chipIcon(rewardId: string) {
   return "assets/icons/chip-catalogo.png";
 }
 
+function flashcardImage(cardId: string) {
+  const numeric = Number(cardId.replace(/\D/g, "")) || 1;
+  return `assets/flashcards/f${String(((numeric - 1) % 18) + 1).padStart(2, "0")}.jpg`;
+}
+
 const tileArt = {
   quiz: `<img src="assets/retos/quiz-tecnico.png" alt="" loading="lazy">`,
   case: `<img src="assets/retos/casos-obra.png" alt="" loading="lazy">`,
@@ -143,7 +149,28 @@ function mount(container: HTMLElement) {
   let cardIndex = 0;
   let cardFlipped = false;
   let cardArea = "Todas";
+  const trialCardsReviewed = new Set<string>();
+  let flashTrialCompleted = false;
+  const pendingAwards = new Set<Promise<unknown>>();
   const persistState = () => { saveState(state); void syncTrainingProgress(state); };
+
+  let challengeStarting = false;
+  async function ensureChallenge(mode: ChallengeMode) {
+    if (challengeStarting) return false;
+    challengeStarting = true;
+    container.setAttribute("aria-busy", "true");
+    try {
+      await startChallengeAttempt(mode);
+      return true;
+    } catch (error) {
+      console.warn("[training] Acceso al reto bloqueado", error);
+      showChallengeBlocked(error);
+      return false;
+    } finally {
+      challengeStarting = false;
+      container.removeAttribute("aria-busy");
+    }
+  }
 
   const goTo = (selector = ".tr-page") => requestAnimationFrame(() => container.querySelector(selector)?.scrollIntoView({ behavior: "smooth", block: "start" }));
 
@@ -182,11 +209,19 @@ function mount(container: HTMLElement) {
     const reviewedCards = Object.keys(state.cards).length;
     const rewards = rewardsSnapshot();
     const rewardChips = [...rewardCatalog].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)).slice(0, 3);
+    const access = getChallengeAccess();
+    const accessNote = access.status === "available"
+      ? "Tu primera partida es gratis y sí puede darte Créditos IMFRA. Después necesitarás ser VIP."
+      : access.status === "active"
+        ? "Tu partida gratuita está activa. Los aciertos de esta partida sí suman Créditos IMFRA."
+        : access.status === "used"
+          ? "Ya utilizaste tu partida gratuita. Hazte VIP para seguir jugando y ganando créditos."
+          : "Cada respuesta correcta validada suma 25 Créditos IMFRA.";
     const achievements = [
       { label: "Primera inspección", detail: "Completa un caso", done: completedCases >= 1, icon: "assets/icons/badge-inspeccion.png" },
       { label: "Memoria activa", detail: "Repasa 8 tarjetas", done: reviewedCards >= 8, icon: "assets/icons/badge-memoria.png" },
       { label: "Constancia", detail: "Alcanza una racha de 3 días", done: streak(state.days) >= 3, icon: "assets/icons/badge-constancia.png" },
-      { label: "Criterio integral", detail: "Resuelve los 6 casos", done: completedCases >= trainingCases.length, icon: "assets/icons/badge-criterio.png" }
+      { label: "Criterio integral", detail: `Resuelve los ${trainingCases.length} casos`, done: completedCases >= trainingCases.length, icon: "assets/icons/badge-criterio.png" }
     ];
     shell(`<div class="tr-layout">
       <main class="tr-main">
@@ -226,7 +261,7 @@ function mount(container: HTMLElement) {
         ${renderLeague()}
         <section class="tr-rewards">
           <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Créditos y beneficios para seguir creciendo</h2></div><div class="tr-rewards__balance"><span>Créditos disponibles</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
-          ${canEarnChallengeCredits() ? "" : `<p class="tr-rewards__note">${icon("i-shield-check")}<span>Solo los miembros VIP ganan créditos en Retos.</span></p>`}
+          <p class="tr-rewards__note">${icon("i-shield-check")}<span>${accessNote}</span></p>
           <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.unlockMode === "membership_anniversary" ? "Se activa al cumplir 1 año" : `${reward.points.toLocaleString("es-MX")} créditos`}</small></div></button>`).join("")}
             <button class="tr-chip tr-chip--more" data-training-action="rewards"><img class="tr-chip__icon" src="assets/icons/chip-catalogo.png" alt="" loading="lazy"><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
           </div>
@@ -235,7 +270,7 @@ function mount(container: HTMLElement) {
       </main>
       <aside class="tr-side">
         <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}" data-training-action="${item.action}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong></span><button aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>
-        <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>${canEarnChallengeCredits() ? "El XP mide tu práctica. Cada respuesta correcta validada suma 25 Créditos IMFRA para canjear donde tú elijas." : "El XP mide tu práctica. Solo los miembros VIP ganan Créditos IMFRA por cada acierto."}</p></section>
+        <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>${accessNote}</p></section>
       </aside>
     </div>`);
   }
@@ -298,11 +333,11 @@ function mount(container: HTMLElement) {
       <section class="tr-flash-layout">
         <article class="tr-flashcard ${cardFlipped ? "is-flipped" : ""}">
           <div class="tr-fc-inner">
-            <div class="tr-fc-face tr-fc-front" style="background-image:linear-gradient(180deg,rgba(8,8,8,.12) 0%,rgba(8,8,8,.32) 42%,rgba(6,6,6,.95) 100%),url('assets/flashcards/${card.id}.jpg')">
+            <div class="tr-fc-face tr-fc-front" style="background-image:linear-gradient(180deg,rgba(8,8,8,.12) 0%,rgba(8,8,8,.32) 42%,rgba(6,6,6,.95) 100%),url('${flashcardImage(card.id)}')">
               <div class="tr-fc-top"><span class="tr-fc-cat">${esc(card.area)}</span><span class="tr-fc-progress">${cardIndex + 1} de ${deck.length}</span></div>
               <div class="tr-fc-main"><h3 class="tr-fc-term">${esc(card.front)}</h3><p class="tr-fc-hint">${hint}</p><button class="btn tr-fc-cta" data-card-flip>Mostrar respuesta ${icon("i-arrow-right")}</button></div>
             </div>
-            <div class="tr-fc-face tr-fc-back" style="background-image:linear-gradient(180deg,rgba(6,6,6,.2) 0%,rgba(6,6,6,.55) 30%,rgba(6,6,6,.97) 62%),url('assets/flashcards/${card.id}.jpg')">
+            <div class="tr-fc-face tr-fc-back" style="background-image:linear-gradient(180deg,rgba(6,6,6,.2) 0%,rgba(6,6,6,.55) 30%,rgba(6,6,6,.97) 62%),url('${flashcardImage(card.id)}')">
               <span class="tr-fc-badge">Respuesta</span>
               <h4 class="tr-fc-back-term">${esc(card.front)}</h4>
               <p class="tr-fc-def">${esc(card.back)}</p>
@@ -315,7 +350,7 @@ function mount(container: HTMLElement) {
   }
 
   function bind() {
-    container.querySelectorAll<HTMLElement>("[data-training-action]").forEach((element) => element.addEventListener("click", () => {
+    container.querySelectorAll<HTMLElement>("[data-training-action]").forEach((element) => element.addEventListener("click", async () => {
       const action = element.dataset.trainingAction;
       if (action === "quiz") {
         if (window.IMFRARewards) window.IMFRARewards.mountQuiz(container);
@@ -329,9 +364,13 @@ function mount(container: HTMLElement) {
       }
       if (action === "hub") { renderHub(); goTo(); }
       if (action === "cases") { renderCases(); goTo(".tr-back"); }
-      if (action === "flashcards") { rebuildDeck(); renderFlashcards(); goTo(".tr-back"); }
+      if (action === "flashcards") {
+        if (!(await ensureChallenge("flashcards"))) return;
+        rebuildDeck(); renderFlashcards(); goTo(".tr-back");
+      }
     }));
-    container.querySelectorAll<HTMLButtonElement>("[data-case-id]").forEach((button) => button.addEventListener("click", () => {
+    container.querySelectorAll<HTMLButtonElement>("[data-case-id]").forEach((button) => button.addEventListener("click", async () => {
+      if (!(await ensureChallenge("inspector"))) return;
       selectedCase = trainingCases.find((item) => item.id === button.dataset.caseId) || null;
       caseStep = 0; caseScore = 0; caseAnswer = null; caseFinished = false; renderCase(); goTo(".tr-case-run");
     }));
@@ -340,20 +379,27 @@ function mount(container: HTMLElement) {
       caseAnswer = Number(button.dataset.caseAnswer);
       if (caseAnswer === selectedCase.steps[caseStep].correct) {
         caseScore += 1;
-        void awardCreditForCorrect(`inspector:${selectedCase.id}:${caseStep}`, "inspector", caseAnswer)
-          .catch((error) => console.warn("[training] Crédito pendiente de sincronización", error));
+        let award: Promise<unknown>;
+        award = awardCreditForCorrect(`inspector:${selectedCase.id}:${caseStep}`, "inspector", caseAnswer)
+          .catch((error) => console.warn("[training] Crédito pendiente de sincronización", error))
+          .finally(() => pendingAwards.delete(award));
+        pendingAwards.add(award);
         celebrate("subtle");
       }
       renderCase();
     }));
-    container.querySelector<HTMLButtonElement>("[data-case-next]")?.addEventListener("click", () => {
+    container.querySelector<HTMLButtonElement>("[data-case-next]")?.addEventListener("click", async (event) => {
       if (!selectedCase) return;
       if (caseStep < selectedCase.steps.length - 1) { caseStep += 1; caseAnswer = null; renderCase(); }
       else {
+        (event.currentTarget as HTMLButtonElement).disabled = true;
+        await Promise.allSettled([...pendingAwards]);
         const previous = state.cases[selectedCase.id];
         if (!previous) state.xp += 45 + caseScore * 5;
         state.cases[selectedCase.id] = { score: Math.max(previous?.score || 0, caseScore), completedAt: new Date().toISOString() };
-        registerDay(state); persistState(); caseFinished = true; renderCase();
+        registerDay(state); persistState(); caseFinished = true;
+        await completeChallengeAttempt("inspector").catch((error) => console.warn("[training] No se pudo cerrar la partida gratuita", error));
+        renderCase();
         celebrate(caseScore === selectedCase.steps.length ? "big" : "normal");
       }
       goTo(caseFinished ? ".tr-case-result" : ".tr-case-run");
@@ -368,6 +414,19 @@ function mount(container: HTMLElement) {
       state.cards[card.id] = { confidence: Math.max(previous?.confidence || 0, confidence), lastReviewed: new Date().toISOString(), rewardDate: today() };
       if (rewardDate !== today()) state.xp += confidence;
       registerDay(state); persistState();
+      trialCardsReviewed.add(card.id);
+      if (!flashTrialCompleted && trialCardsReviewed.size >= 8) {
+        flashTrialCompleted = true;
+        void completeChallengeAttempt("flashcards").then((access) => {
+          if (access.status === "vip" || !container.isConnected) return;
+          // El turno gratuito de tarjetas termina aquí: volvemos al centro e invitamos a VIP.
+          renderHub(); goTo();
+          showChallengeBlocked(null);
+        }).catch((error) => {
+          flashTrialCompleted = false;
+          console.warn("[training] No se pudo cerrar el repaso gratuito", error);
+        });
+      }
       if (confidence === 3 && (previous?.confidence || 0) < 3) celebrate("subtle");
       cardIndex = (cardIndex + 1) % deck.length; cardFlipped = false; renderFlashcards();
     }));
@@ -376,9 +435,23 @@ function mount(container: HTMLElement) {
   const initialParams = new URLSearchParams(location.search);
   const initialView = initialParams.get("training");
   const initialCaseId = initialParams.get("case");
-  if (initialCaseId) { selectedCase = trainingCases.find((item) => item.id === initialCaseId) || null; renderCase(); }
+  if (initialCaseId) {
+    renderHub();
+    void ensureChallenge("inspector").then((allowed) => {
+      if (!allowed) return;
+      selectedCase = trainingCases.find((item) => item.id === initialCaseId) || null;
+      renderCase();
+      goTo(".tr-case-run");
+    });
+  }
   else if (initialView === "cases") renderCases();
-  else if (initialView === "flashcards") { rebuildDeck(); renderFlashcards(); }
+  else if (initialView === "flashcards") {
+    renderHub();
+    void ensureChallenge("flashcards").then((allowed) => {
+      if (!allowed) return;
+      rebuildDeck(); renderFlashcards(); goTo(".tr-back");
+    });
+  }
   else renderHub();
   const onCreditsChanged = () => {
     if (!container.isConnected) {
@@ -390,7 +463,7 @@ function mount(container: HTMLElement) {
   window.addEventListener("imfra:credits-changed", onCreditsChanged);
   void window.IMFRACredits?.hydrate().then(() => { if (view === "hub") renderHub(); })
     .catch((error) => console.warn("[training] No se pudo cargar el saldo", error));
-  if (initialCaseId || initialView === "cases" || initialView === "flashcards") requestAnimationFrame(() => container.querySelector(initialCaseId ? ".tr-case-run" : ".tr-back")?.scrollIntoView({ behavior: "auto", block: "start" }));
+  if (initialView === "cases") requestAnimationFrame(() => container.querySelector(".tr-back")?.scrollIntoView({ behavior: "auto", block: "start" }));
   void loadTrainingProgress().then((remote) => {
     if (!remote) return;
     state = mergeTrainingProgress(state, remote);

@@ -2,7 +2,7 @@ import "./rewards.css";
 import { rewardCatalog, rewardQuestions, type RewardItem, type RewardQuestion } from "./catalog";
 import { isRewardsDemo, submitQuizAttempt } from "./cloud";
 import { celebrate } from "../shared/celebration";
-import { canEarnChallengeCredits, loadCredits, redeemCreditReward, type CreditSnapshot } from "../credits/credits";
+import { canEarnChallengeCredits, completeChallengeAttempt, loadCredits, redeemCreditReward, showChallengeBlocked, startChallengeAttempt, type CreditSnapshot } from "../credits/credits";
 
 interface Redemption {
   id: string;
@@ -24,8 +24,9 @@ interface RewardState {
 
 declare global {
   interface Window {
-    IMFRARewards: { mount(container: HTMLElement): void; mountQuiz(container: HTMLElement): void };
+    IMFRARewards: { mount(container: HTMLElement): void; mountQuiz(container: HTMLElement): Promise<void> };
     UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
+    __showPaywallModal?: (options?: { title?: string; sub?: string; cta?: string }) => void;
   }
 }
 
@@ -170,6 +171,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
   let activeRoundIndex = Math.max(0, quizRounds.findIndex((round) => round.some((question) => question.id === activeQuestionId)));
   let showRoundSummary = false;
   let showQuizSummary = !firstUnanswered;
+  const pendingQuizAwards = new Set<Promise<unknown>>();
 
   const render = () => {
     const demoMode = isRewardsDemo();
@@ -389,12 +391,15 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
         state.answered[key] = { correct, earned, selected, answeredAt: new Date().toISOString() };
         saveState(state);
         if (correct) celebrate("subtle");
-        void submitQuizAttempt(answeredQuestion.id, correct, selected).then((snapshot) => {
+        let submission: Promise<unknown>;
+        submission = submitQuizAttempt(answeredQuestion.id, correct, selected).then((snapshot) => {
           if (!snapshot) return;
           state.points = snapshot.balance;
           saveState(state);
           render();
-        }).catch((error) => console.warn("[rewards] Intento pendiente de sincronización", error));
+        }).catch((error) => console.warn("[rewards] Intento pendiente de sincronización", error))
+          .finally(() => pendingQuizAwards.delete(submission));
+        pendingQuizAwards.add(submission);
         render();
       });
     });
@@ -406,10 +411,13 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
       render();
     });
 
-    container.querySelector<HTMLButtonElement>("[data-start-next-round]")?.addEventListener("click", () => {
+    container.querySelector<HTMLButtonElement>("[data-start-next-round]")?.addEventListener("click", async (event) => {
       showRoundSummary = false;
       if (activeRoundIndex >= quizRounds.length - 1) {
+        (event.currentTarget as HTMLButtonElement).disabled = true;
+        await Promise.allSettled([...pendingQuizAwards]);
         showQuizSummary = true;
+        await completeChallengeAttempt("quiz").catch((error) => console.warn("[rewards] No se pudo cerrar la partida gratuita", error));
         celebrate("big");
       } else {
         activeRoundIndex += 1;
@@ -489,6 +497,19 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
   }
 }
 
-const mountQuiz = (container: HTMLElement) => mount(container, "quiz");
+let quizStarting = false;
+const mountQuiz = async (container: HTMLElement) => {
+  if (quizStarting) return;
+  quizStarting = true;
+  try {
+    await startChallengeAttempt("quiz");
+    mount(container, "quiz");
+  } catch (error) {
+    console.warn("[rewards] Partida gratuita no disponible", error);
+    showChallengeBlocked(error);
+  } finally {
+    quizStarting = false;
+  }
+};
 window.IMFRARewards = { mount, mountQuiz };
 window.dispatchEvent(new CustomEvent("imfra:rewards-ready"));

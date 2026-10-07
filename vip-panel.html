@@ -3033,7 +3033,9 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 }
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-.fade-up{animation:fadeUp .5s ease forwards}
+/* Las vistas del panel se sustituyen de forma inmediata. Mantenerlas siempre
+   opacas evita el destello gris al navegar entre secciones o pestañas. */
+.fade-up{opacity:1;transform:none;animation:none}
 
 /* ═══════════════════════════════════════════════════════════════════
    Sprint 7 · Estados de usuario · banner FOMO · candados · paywall
@@ -5745,7 +5747,12 @@ const Sections = (function(){
         <div id="cur-list"></div>
       </div>
     `;
-    container.querySelectorAll('[data-curtab]').forEach(b=>b.addEventListener('click',()=>{cursosState.tab=b.dataset.curtab;renderCursos(container);}));
+    container.querySelectorAll('[data-curtab]').forEach(b=>b.addEventListener('click',()=>{
+      if(cursosState.tab===b.dataset.curtab)return;
+      cursosState.tab=b.dataset.curtab;
+      container.querySelectorAll('[data-curtab]').forEach(tab=>tab.classList.toggle('is-active',tab===b));
+      renderCursosList();
+    }));
     container.querySelector('#cur-search').addEventListener('input',e=>{cursosState.search=e.target.value;renderCursosList();});
     // Dropdown custom de áreas
     bindFancyDropdown('cur-area', (value) => {
@@ -6987,7 +6994,12 @@ const Sections = (function(){
         <div id="web-list"></div>
       </div>
     `;
-    container.querySelectorAll('[data-wtab]').forEach(b=>b.addEventListener('click',()=>{webState.tab=b.dataset.wtab;renderWebinars(container);}));
+    container.querySelectorAll('[data-wtab]').forEach(b=>b.addEventListener('click',()=>{
+      if(webState.tab===b.dataset.wtab)return;
+      webState.tab=b.dataset.wtab;
+      container.querySelectorAll('[data-wtab]').forEach(tab=>tab.classList.toggle('is-active',tab===b));
+      renderWebList();
+    }));
     container.querySelector('#wh-register')?.addEventListener('click',()=>{
       // ⚡ Paywall · solo VIP puede inscribirse a la lista de la clase
       const S = window.UserState;
@@ -7547,10 +7559,10 @@ const Sections = (function(){
 
   // ═══ BIBLIOTECA DE LIBROS ═══
   const IMFRA_LIBROS = [
-    {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:148,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://imfrabooks.b-cdn.net/Gu%C3%ADa%20De%20Hidrolog%C3%ADa%20B%C3%A1sica.pdf',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:false,rewardId:'book-hidrologia-basica',creditCost:280},
-    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:611,portada:'assets/libros/advanced_mechanics.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20Mechanics%20of%20Materials%20-%20Boresi.%20Schmidt.pdf',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false,rewardId:'book-advanced-mechanics',creditCost:350},
-    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:559,portada:'assets/libros/advanced_strength.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20strength%20and%20applied%20elasticity%20-%20Ugural.%20Fenster.pdf',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false,rewardId:'book-advanced-strength',creditCost:320},
-    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:180,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://imfrabooks.b-cdn.net/Resistencia%20de%20materiales%20-%20S.%20Timoshenko.pdf',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false,rewardId:'book-resistencia-materiales',creditCost:300}
+    {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:148,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://imfrabooks.b-cdn.net/Gu%C3%ADa%20De%20Hidrolog%C3%ADa%20B%C3%A1sica.pdf',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:false,rewardId:'book-hidrologia-basica',creditCost:800},
+    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:611,portada:'assets/libros/advanced_mechanics.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20Mechanics%20of%20Materials%20-%20Boresi.%20Schmidt.pdf',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false,rewardId:'book-advanced-mechanics',creditCost:800},
+    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:559,portada:'assets/libros/advanced_strength.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20strength%20and%20applied%20elasticity%20-%20Ugural.%20Fenster.pdf',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false,rewardId:'book-advanced-strength',creditCost:800},
+    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:180,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://imfrabooks.b-cdn.net/Resistencia%20de%20materiales%20-%20S.%20Timoshenko.pdf',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false,rewardId:'book-resistencia-materiales',creditCost:800}
   ];
   var _libroDetalle = null;
 
