@@ -7803,6 +7803,7 @@ const Sections = (function(){
   let _dirUnsub = null;
   window.__dirCleanup = function(){ try{ if(typeof _dirUnsub==='function'){ _dirUnsub(); _dirUnsub=null; } }catch(e){} };
   window.__dirEditar = function(){ return dirEditarMiTarjeta(); };
+  window.__dirAutoCrear = function(){ return dirAutoCrearTarjeta(); };
   let _dirCards = [];
   let _dirFiltroSector = 'todos';
   let _dirBusqueda = '';
@@ -7813,6 +7814,70 @@ const Sections = (function(){
     let h=0; const s=String(uid||'x'); for(let i=0;i<s.length;i++) h=((h<<5)-h+s.charCodeAt(i))|0;
     return colores[Math.abs(h)%colores.length];
   }
+  // Solo aceptamos fotos https o base64 de imagen: evita inyectar atributos desde una tarjeta ajena.
+  function dirFotoSegura(value){
+    const foto = String(value || '').trim();
+    if (/^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(foto)) return foto;
+    return /^https:\/\/[^\s"'<>]+$/i.test(foto) ? foto : '';
+  }
+  function dirColorSeguro(value){
+    return /^#[0-9a-f]{6}$/i.test(String(value || '')) ? value : '#F59D1A';
+  }
+  function dirEnlaceSeguro(value){
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    const url = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
+    try { const u = new URL(url); return /^https?:$/.test(u.protocol) ? u.href : ''; } catch(e){ return ''; }
+  }
+  function dirSectorDesde(texto){
+    const t = String(texto || '').trim().toLowerCase();
+    return SECTORES.find(s => s.toLowerCase() === t) || '';
+  }
+
+  // Primera entrada de un miembro VIP: crea su tarjeta con la foto de Google y
+  // los datos de su ficha profesional. Solo si aún no tiene una; si después la
+  // edita u oculta, se respeta lo que haya decidido.
+  async function dirAutoCrearTarjeta(){
+    const fs = window.__fs;
+    const S = window.UserState || {};
+    const md = window.memberData || {};
+    const esVip = S.modo === 'vip' || S.plan === 'admin' || S.isAdmin === true;
+    if (!fs?.setDoc || !S.uid || !esVip) return false;
+    const key = `imfra:dir-auto:v1:${S.uid}`;
+    try { if (localStorage.getItem(key) === '1') return false; } catch(e){}
+    try {
+      const ref = fs.doc(fs.db, 'directorio', S.uid);
+      const ds = await fs.getDoc(ref);
+      if (!ds.exists()) {
+        const email = String(S.email || '');
+        const nombre = String(md.nombre || S.nombre || S.displayName || '').trim() || email.split('@')[0] || 'Miembro IMFRA';
+        const especialidad = String(md.especialidad || '').trim();
+        const sector = dirSectorDesde(especialidad);
+        const payload = {
+          uid: S.uid,
+          nombre: nombre.slice(0, 50),
+          puesto: sector ? '' : especialidad.slice(0, 60),
+          empresa: String(md.empresa || '').trim().slice(0, 60),
+          sector,
+          bio: '',
+          whatsapp: '', email: '', linkedin: '', web: '',
+          visible: true,
+          color: dirColorFor(S.uid),
+          autoCreada: true,
+          updatedAt: fs.serverTimestamp()
+        };
+        const foto = dirFotoSegura(S.photoURL);
+        if (foto) payload.foto = foto;
+        await fs.setDoc(ref, payload, { merge: true });
+      }
+      try { localStorage.setItem(key, '1'); } catch(e){}
+      return !ds.exists();
+    } catch(e){
+      console.warn('[directorio] No se pudo crear la tarjeta automática', e);
+      return false;
+    }
+  }
+
   function dirComprimirFoto(file){
     return new Promise((resolve,reject)=>{
       const r=new FileReader();
@@ -7983,14 +8048,15 @@ const Sections = (function(){
     const uid = window.UserState?.uid;
     grid.innerHTML = cards.map(c=>{
       const inicial = (c.nombre||'?').trim().slice(0,2).toUpperCase();
-      const foto = c.foto
-        ? `<img src="${c.foto}" alt="${escapeHtml(c.nombre||'')}" class="dir-card__foto">`
-        : `<div class="dir-card__foto dir-card__foto--ini" style="background:linear-gradient(135deg,${c.color||'#F59D1A'},${(c.color||'#F59D1A')}aa);">${escapeHtml(inicial)}</div>`;
+      const fotoOk = dirFotoSegura(c.foto);
+      const foto = fotoOk
+        ? `<img src="${escapeHtml(fotoOk)}" alt="${escapeHtml(c.nombre||'')}" class="dir-card__foto" loading="lazy" referrerpolicy="no-referrer">`
+        : `<div class="dir-card__foto dir-card__foto--ini" style="background:linear-gradient(135deg,${dirColorSeguro(c.color)},${dirColorSeguro(c.color)}aa);">${escapeHtml(inicial)}</div>`;
       const contactos = [];
       if (c.whatsapp) contactos.push(`<a class="dir-cta dir-cta--wa" href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" rel="noopener" title="WhatsApp"><svg class="ic"><use href="#i-whatsapp"/></svg></a>`);
       if (c.email) contactos.push(`<button class="dir-cta dir-cta--mail" data-email="${escapeHtml(c.email)}" title="Copiar correo: ${escapeHtml(c.email)}"><svg class="ic"><use href="#i-mail"/></svg></button>`);
-      if (c.linkedin) contactos.push(`<a class="dir-cta dir-cta--li" href="${c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin}" target="_blank" rel="noopener" title="LinkedIn"><svg class="ic"><use href="#i-linkedin"/></svg></a>`);
-      if (c.web) contactos.push(`<a class="dir-cta" href="${c.web.startsWith('http')?c.web:'https://'+c.web}" target="_blank" rel="noopener" title="Sitio web"><svg class="ic"><use href="#i-link"/></svg></a>`);
+      if (dirEnlaceSeguro(c.linkedin)) contactos.push(`<a class="dir-cta dir-cta--li" href="${escapeHtml(dirEnlaceSeguro(c.linkedin))}" target="_blank" rel="noopener" title="LinkedIn"><svg class="ic"><use href="#i-linkedin"/></svg></a>`);
+      if (dirEnlaceSeguro(c.web)) contactos.push(`<a class="dir-cta" href="${escapeHtml(dirEnlaceSeguro(c.web))}" target="_blank" rel="noopener" title="Sitio web"><svg class="ic"><use href="#i-link"/></svg></a>`);
       const esMia = c.id===uid;
       return `
       <article class="dir-card${esMia?' dir-card--mia':''}" data-dircard="${c.id}">
@@ -8030,11 +8096,12 @@ const Sections = (function(){
     const uid = window.UserState?.uid;
     const esMia = c.id===uid;
     const inicial = (c.nombre||'?').trim().slice(0,2).toUpperCase();
-    const foto = c.foto
-      ? `<img src="${c.foto}" alt="" class="dir-det__foto">`
-      : `<div class="dir-det__foto dir-det__foto--ini" style="background:linear-gradient(135deg,${c.color||'#F59D1A'},${(c.color||'#F59D1A')}aa);">${escapeHtml(inicial)}</div>`;
+    const fotoOk = dirFotoSegura(c.foto);
+    const foto = fotoOk
+      ? `<img src="${escapeHtml(fotoOk)}" alt="" class="dir-det__foto" referrerpolicy="no-referrer">`
+      : `<div class="dir-det__foto dir-det__foto--ini" style="background:linear-gradient(135deg,${dirColorSeguro(c.color)},${dirColorSeguro(c.color)}aa);">${escapeHtml(inicial)}</div>`;
     const row = (icon,label,val,href,extraClass='') => val
-      ? `<a class="dir-det__row ${extraClass}" ${href?`href="${href}" target="_blank" rel="noopener"`:''}>
+      ? `<a class="dir-det__row ${extraClass}" ${href?`href="${escapeHtml(href)}" target="_blank" rel="noopener"`:''}>
            <span class="dir-det__row-ic"><svg class="ic"><use href="#${icon}"/></svg></span>
            <span class="dir-det__row-tx"><span class="dir-det__row-lbl">${label}</span><span class="dir-det__row-val">${escapeHtml(val)}</span></span>
          </a>` : '';
@@ -8055,8 +8122,8 @@ const Sections = (function(){
              <span class="dir-det__row-ic"><svg class="ic"><use href="#i-mail"/></svg></span>
              <span class="dir-det__row-tx"><span class="dir-det__row-lbl">Correo · toca para copiar</span><span class="dir-det__row-val">${escapeHtml(c.email)}</span></span>
            </button>`:''}
-          ${row('i-linkedin','LinkedIn',c.linkedin, c.linkedin?(c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin):'', 'dir-det__row--li')}
-          ${row('i-link','Sitio web',c.web, c.web?(c.web.startsWith('http')?c.web:'https://'+c.web):'')}
+          ${row('i-linkedin','LinkedIn',c.linkedin, dirEnlaceSeguro(c.linkedin), 'dir-det__row--li')}
+          ${row('i-link','Sitio web',c.web, dirEnlaceSeguro(c.web))}
         </div>
         ${(!c.whatsapp&&!c.email&&!c.linkedin&&!c.web)?'<div class="dir-det__sincontacto">Este miembro no agregó datos de contacto.</div>':''}
       </div>
@@ -8081,10 +8148,24 @@ const Sections = (function(){
     if (!uid){ Toast.error('Inicia sesión',''); return; }
     // Cargar tarjeta existente
     let data = {};
-    try { const ds = await fs.getDoc(fs.doc(fs.db,'directorio',uid)); if (ds.exists()) data = ds.data(); } catch(e){}
+    let existe = false;
+    try { const ds = await fs.getDoc(fs.doc(fs.db,'directorio',uid)); if (ds.exists()) { data = ds.data(); existe = true; } } catch(e){}
+    if (!existe) {
+      // Sin tarjeta todavía: partimos de la foto de Google y de la ficha profesional.
+      const md = window.memberData || {};
+      const especialidad = String(md.especialidad || '').trim();
+      const sector = dirSectorDesde(especialidad);
+      data = {
+        nombre: md.nombre || window.UserState?.displayName || '',
+        empresa: md.empresa || '',
+        sector,
+        puesto: sector ? '' : especialidad,
+        foto: dirFotoSegura(window.UserState?.photoURL)
+      };
+    }
     _dirFotoTmp = undefined;
 
-    const fotoActual = data.foto || '';
+    const fotoActual = dirFotoSegura(data.foto);
     const body = `
       <div class="dir-form">
         <div class="dir-form__foto-wrap">
@@ -8789,7 +8870,7 @@ const Sections = (function(){
     const vipBonus = Number(data.vipBonusCredits || 250);
     const reward = Number(data.rewardPerVip || registrationReward + vipBonus);
     const welcome = Number(data.welcomeCredits || 100);
-    const starterWelcome = Number(data.starterWelcomeCredits || 120);
+    const starterWelcome = Number(data.starterWelcomeCredits || 200);
     return `
       <section class="ref-program" aria-labelledby="ref-program-title">
         <div class="ref-program__main">
@@ -8840,7 +8921,7 @@ const Sections = (function(){
       const registrationReward = Number(data.rewardPerRegistration || 50);
       const vipBonus = Number(data.vipBonusCredits || 250);
       const reward = Number(data.rewardPerVip || 300);
-      const starterWelcome = Number(data.starterWelcomeCredits || 120);
+      const starterWelcome = Number(data.starterWelcomeCredits || 200);
       const vipWelcome = Number(data.welcomeCredits || 100);
       const text = `Te invito a IMFRA, una plataforma profesional para ingeniería y construcción. Regístrate con mi enlace. Yo recibo ${registrationReward} créditos por tu registro y ${vipBonus} adicionales si activas VIP (${reward} en total). Tú recibes ${starterWelcome} créditos al iniciar y ${vipWelcome} extra al hacerte VIP.\n\n${link}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
@@ -8851,7 +8932,7 @@ const Sections = (function(){
     const mount = container.querySelector('[data-referral-program]');
     if (!mount) return;
     if (S.modo === 'demo' || window.__isDemoMode) {
-      const demo = {code:'IMFRA-DEMO2026',balance:620,registeredCount:4,convertedCount:2,pendingCount:2,rewardPerRegistration:50,vipBonusCredits:250,rewardPerVip:300,welcomeCredits:100,starterWelcomeCredits:120};
+      const demo = {code:'IMFRA-DEMO2026',balance:620,registeredCount:4,convertedCount:2,pendingCount:2,rewardPerRegistration:50,vipBonusCredits:250,rewardPerVip:300,welcomeCredits:100,starterWelcomeCredits:200};
       window.__referralSummary = demo;
       mount.innerHTML = referralProgramMarkup(demo);
       bindReferralProgram(mount, demo);
@@ -9825,6 +9906,7 @@ window.__maybeAskProfile = function(){
 
     const finish = () => {
       window.__IMFRA_PROFILE_FLOW_READY = true;
+      try { window.__dirAutoCrear && window.__dirAutoCrear(); } catch(e){}
       const pending = window.__pendingWelcomeSplash;
       window.__pendingWelcomeSplash = null;
       let alreadySawTour = false;
@@ -9960,6 +10042,65 @@ window.__maybeAskProfile = function(){
 };
 // Alias temporal para cualquier llamada almacenada por una versión anterior.
 window.__maybeAskName = window.__maybeAskProfile;
+
+// ═══════════════════════════════════════════════════════════════════
+// Regalo de bienvenida: aviso único, justo después del primer recorrido.
+// Muestra los créditos que la cuenta recibió realmente (dato del servidor).
+// ═══════════════════════════════════════════════════════════════════
+window.__showWelcomeCreditsGift = async function(){
+  const S = window.UserState || {};
+  const id = String(S.uid || S.email || '').toLowerCase();
+  if (!id || S.modo === 'invitado' || document.getElementById('welcome-gift')) return;
+  const key = `imfra:welcome-credits-pop:v1:${id}`;
+  try { if (localStorage.getItem(key)) return; } catch(e){}
+  let amount = 0, balance = 0;
+  try {
+    const snap = await window.IMFRACredits?.hydrate();
+    amount = Math.max(0, Number(snap?.welcomeCredits) || 0);
+    balance = Math.max(0, Number(snap?.balance) || 0);
+  } catch(e){ console.warn('[bienvenida] No se pudo leer el saldo', e); }
+  if (!amount || document.getElementById('welcome-gift')) return;
+  try { localStorage.setItem(key, new Date().toISOString()); } catch(e){}
+
+  const fmt = n => Number(n).toLocaleString('es-MX');
+  const pop = document.createElement('div');
+  pop.id = 'welcome-gift';
+  pop.innerHTML = `
+    <div class="wg-backdrop"></div>
+    <section class="wg-card" role="dialog" aria-modal="true" aria-labelledby="wg-title" aria-describedby="wg-desc">
+      <button class="wg-close" type="button" aria-label="Cerrar">×</button>
+      <div class="wg-coin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 12 8 12 8s2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg><b>+${fmt(amount)}</b></div>
+      <span class="wg-kicker">Regalo de bienvenida</span>
+      <h2 id="wg-title">¡Tienes <em>${fmt(amount)} créditos</em> de regalo!</h2>
+      <p id="wg-desc">Te los damos por unirte a IMFRA. Ya están en tu saldo y puedes canjearlos por materiales PDF, herramientas profesionales y otros recursos para tu trabajo en obra.</p>
+      <div class="wg-balance"><span>Tu saldo actual</span><strong>${fmt(balance)} <small>créditos</small></strong></div>
+      <div class="wg-actions">
+        <button class="wg-later" type="button">Más tarde</button>
+        <button class="wg-cta" type="button">Canjear mis créditos <span aria-hidden="true">→</span></button>
+      </div>
+    </section>`;
+  document.body.appendChild(pop);
+  const previousFocus = document.activeElement;
+  const close = () => {
+    document.removeEventListener('keydown', onKey, true);
+    pop.classList.add('is-closing');
+    setTimeout(() => { pop.remove(); if (previousFocus && previousFocus.isConnected) previousFocus.focus?.({ preventScroll: true }); }, 200);
+  };
+  const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); close(); } };
+  document.addEventListener('keydown', onKey, true);
+  pop.querySelector('.wg-close').addEventListener('click', close);
+  pop.querySelector('.wg-later').addEventListener('click', close);
+  pop.querySelector('.wg-backdrop').addEventListener('click', close);
+  pop.querySelector('.wg-cta').addEventListener('click', () => {
+    close();
+    if (typeof window.navigateToSection === 'function') window.navigateToSection('recompensas');
+  });
+  setTimeout(() => pop.querySelector('.wg-cta')?.focus({ preventScroll: true }), 80);
+  window.IMFRACelebrate?.('big');
+};
+window.addEventListener('imfra:onboarding-finished', e => {
+  if (e.detail && e.detail.automatic) setTimeout(() => window.__showWelcomeCreditsGift(), 450);
+});
 
 function openEditField(field){
   const wrap=document.querySelector(`[data-field="${field}"]`);
@@ -11195,6 +11336,43 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   .pi-grid{grid-template-columns:1fr}.pi-actions{flex-direction:column-reverse}.pi-actions button{width:100%}
 }
 @media(prefers-reduced-motion:reduce){#profile-intake-modal,.pi-panel{animation:none}}
+/* Regalo de bienvenida · aviso posterior al primer recorrido */
+#welcome-gift{position:fixed;inset:0;z-index:2147483200;display:grid;place-items:center;padding:20px;font-family:'Inter',sans-serif;animation:piFade .22s ease-out}
+#welcome-gift.is-closing{opacity:0;transition:opacity .18s ease;pointer-events:none}
+#welcome-gift .wg-backdrop{position:absolute;inset:0;background:rgba(8,6,3,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#welcome-gift .wg-card{position:relative;width:min(440px,100%);padding:34px 30px 26px;border-radius:22px;text-align:center;color:#FBF4EC;
+  background:radial-gradient(120% 80% at 50% 0%,rgba(245,157,26,.22),transparent 60%),linear-gradient(180deg,#1c1710,#120f0b);
+  border:1px solid rgba(245,157,26,.28);box-shadow:0 30px 80px rgba(0,0,0,.5);animation:wgRise .32s cubic-bezier(.2,.9,.3,1.2)}
+#welcome-gift .wg-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#9A8E80;font-size:22px;line-height:1;cursor:pointer}
+#welcome-gift .wg-close:hover{background:rgba(255,255,255,.06);color:#FBF4EC}
+#welcome-gift .wg-coin{position:relative;width:84px;height:84px;margin:0 auto 18px;border-radius:24px;display:grid;place-items:center;color:#1a1206;
+  background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.45),transparent 48%),linear-gradient(145deg,#ffc04d,#F59D1A 50%,#d97a06);
+  box-shadow:0 14px 36px rgba(245,157,26,.38),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -3px 0 rgba(0,0,0,.14)}
+#welcome-gift .wg-coin svg{width:40px;height:40px}
+#welcome-gift .wg-coin b{position:absolute;right:-14px;bottom:-10px;padding:5px 9px;border-radius:999px;background:#141414;color:#FFB547;border:2px solid #F59D1A;font:800 12px/1 'JetBrains Mono',monospace;box-shadow:0 6px 14px rgba(0,0,0,.4)}
+#welcome-gift .wg-kicker{display:block;font:700 10.5px/1 'JetBrains Mono',monospace;letter-spacing:1.8px;text-transform:uppercase;color:#FF9D52}
+#welcome-gift h2{margin:10px 0 10px;font:800 25px/1.18 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.5px;color:#FBF4EC}
+#welcome-gift h2 em{font-style:normal;background:linear-gradient(135deg,#F59D1A,#FFCF7A);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#welcome-gift p{margin:0 auto 18px;max-width:350px;font-size:14px;line-height:1.6;color:#CDC2B5}
+#welcome-gift .wg-balance{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 20px;padding:12px 16px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-size:12.5px;color:#9A8E80}
+#welcome-gift .wg-balance strong{font:800 18px/1 'JetBrains Mono',monospace;color:#FFB547}
+#welcome-gift .wg-balance small{font:600 11px 'Inter',sans-serif;color:#9A8E80}
+#welcome-gift .wg-actions{display:grid;grid-template-columns:1fr 1.6fr;gap:10px}
+#welcome-gift .wg-actions button{height:46px;border-radius:12px;font:700 14px 'Inter',sans-serif;cursor:pointer;transition:transform .15s ease,filter .15s ease,background .15s ease}
+#welcome-gift .wg-later{border:1px solid rgba(255,255,255,.12);background:transparent;color:#CDC2B5}
+#welcome-gift .wg-later:hover{background:rgba(255,255,255,.05)}
+#welcome-gift .wg-cta{border:0;background:linear-gradient(135deg,#F59D1A,#FFB547);color:#1a1206;box-shadow:0 10px 24px rgba(245,157,26,.3)}
+#welcome-gift .wg-cta:hover{filter:brightness(1.05);transform:translateY(-1px)}
+#welcome-gift button:focus-visible{outline:2px solid #FFCF7A;outline-offset:2px}
+@keyframes wgRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@media(max-width:560px){
+  #welcome-gift{padding:16px}
+  #welcome-gift .wg-card{padding:30px 20px 20px}
+  #welcome-gift h2{font-size:22px}
+  #welcome-gift .wg-actions{grid-template-columns:1fr}
+  #welcome-gift .wg-cta{order:-1}
+}
+@media(prefers-reduced-motion:reduce){#welcome-gift,#welcome-gift .wg-card{animation:none}}
 </style>
 <style>
 /* ═══ Splash de BIENVENIDA post-pago ═══ */
@@ -12190,7 +12368,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <link id="imfra-templates-styles" rel="stylesheet" href="assets/imfra-plantillas/imfra-plantillas.css?v=1.2.1">
-<script src="onboarding-tour.js?v=2" defer></script>
+<script src="onboarding-tour.js?v=3" defer></script>
 <script src="assets/imfra-tools.js?v=20260928-1"></script>
 <script src="assets/imfra-plantillas/imfra-plantillas-logo.js?v=1.0.0"></script>
 <script src="assets/imfra-plantillas/imfra-plantillas.js?v=1.2.2"></script>

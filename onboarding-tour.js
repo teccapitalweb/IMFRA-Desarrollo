@@ -231,6 +231,8 @@
     window.removeEventListener('scroll', positionUi, true);
     if (state.previousFocus && state.previousFocus.isConnected) state.previousFocus.focus({ preventScroll: true });
     if (reason === 'completed') window.IMFRACelebrate?.('normal');
+    // El panel usa este aviso para mostrar el regalo de bienvenida justo después del recorrido.
+    window.dispatchEvent(new CustomEvent('imfra:onboarding-finished', { detail: { reason, automatic: state.automatic === true } }));
   }
 
   function onKeydown(event) {
@@ -256,6 +258,7 @@
     const first = availableIndex(0, 1);
     if (first < 0) return;
     state.accountId = id;
+    state.automatic = opts.automatic === true;
     state.previousFocus = document.activeElement;
     state.previousOverflow = document.body.style.overflow;
     state.active = true;

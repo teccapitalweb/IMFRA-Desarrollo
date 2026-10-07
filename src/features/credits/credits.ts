@@ -34,6 +34,8 @@ export interface CreditSnapshot {
   balance: number;
   lifetimeEarned: number;
   lifetimeSpent: number;
+  /** Créditos de regalo que recibió la cuenta al entrar por primera vez. */
+  welcomeCredits: number;
   redemptions: CreditRedemption[];
   benefits: Record<string, MembershipBenefitStatus>;
   notifications: CreditNotification[];
@@ -103,7 +105,7 @@ const DEMO_COSTS: Record<string, number> = {
   "pack-plantillas-pro": 450
 };
 const EMPTY_ACCESS: ChallengeAccess = { vip: false, status: "available", mode: null, expiresAt: null };
-const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, redemptions: [], benefits: {}, notifications: [], challengeAccess: EMPTY_ACCESS };
+const EMPTY: CreditSnapshot = { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0, welcomeCredits: 0, redemptions: [], benefits: {}, notifications: [], challengeAccess: EMPTY_ACCESS };
 let current: CreditSnapshot = { ...EMPTY };
 let loaded = false;
 let loading: Promise<CreditSnapshot> | null = null;
@@ -158,6 +160,7 @@ function demoSnapshot() {
     balance: Math.max(0, Number(saved.points ?? 620) || 0),
     lifetimeEarned: 620,
     lifetimeSpent: redemptions.reduce((total, item) => total + Math.max(0, Number(item.points) || 0), 0),
+    welcomeCredits: 200,
     redemptions,
     benefits: {
       "imdac-control-obra-30d": {
@@ -222,6 +225,7 @@ function publish(snapshot: CreditSnapshot) {
     balance: Math.max(0, Number(snapshot.balance) || 0),
     lifetimeEarned: Math.max(0, Number(snapshot.lifetimeEarned) || 0),
     lifetimeSpent: Math.max(0, Number(snapshot.lifetimeSpent) || 0),
+    welcomeCredits: Math.max(0, Number(snapshot.welcomeCredits) || 0),
     redemptions: Array.isArray(snapshot.redemptions) ? snapshot.redemptions : [],
     benefits: snapshot.benefits && typeof snapshot.benefits === "object" ? snapshot.benefits : {},
     notifications: Array.isArray(snapshot.notifications) ? snapshot.notifications : [],
