@@ -2198,7 +2198,8 @@ body::after{
 .dir-vip__estado--ok{background:color-mix(in srgb,var(--success) 12%,transparent);color:var(--success)}
 .dir-vip__estado--info{background:rgba(47,111,221,.1);color:#2f6fdd}
 :root[data-theme="night"] .dir-vip__estado--info{color:#7cb4ff}
-.dir-vip__certs{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-bottom:12px}
+.dir-vip__certs{display:inline-flex;align-items:center;gap:5px;margin-bottom:12px;padding:4px 11px;border-radius:999px;border:1px solid color-mix(in srgb,var(--success) 35%,transparent);background:color-mix(in srgb,var(--success) 8%,transparent);color:var(--text-2);font-size:11px;font-weight:700}
+.dir-vip__certs .ic{width:12px;height:12px;color:var(--success);stroke-width:3}
 .dir-vip__cert{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;border:1px solid var(--border-2);background:var(--surface);font-size:10.5px;font-weight:600;color:var(--text-2);line-height:1.35}
 .dir-vip__cert .ic{width:11px;height:11px;color:var(--success);stroke-width:3}
 .dir-card--vip .dir-cta-lock{border-color:color-mix(in srgb,#e0a83a 60%,transparent);color:#a8740e}
@@ -2222,7 +2223,7 @@ body::after{
 .dir-form__swatch:hover{transform:translateY(-1px)}
 .dir-form__swatch.is-active{box-shadow:0 0 0 2px var(--primary)}
 .dir-form__portada.is-locked{opacity:.55;pointer-events:none}
-.dir-det__certs{width:100%;display:grid;gap:7px;margin:16px 0 4px;padding:14px;border-radius:14px;border:1px solid color-mix(in srgb,#e0a83a 35%,transparent);background:color-mix(in srgb,#e0a83a 7%,var(--surface));text-align:left}
+.dir-det__certs{width:100%;display:grid;gap:7px;max-height:260px;overflow:auto;margin:16px 0 4px;padding:14px;border-radius:14px;border:1px solid color-mix(in srgb,#e0a83a 35%,transparent);background:color-mix(in srgb,#e0a83a 7%,var(--surface));text-align:left}
 .dir-det__certs>span{font:700 10px/1 'JetBrains Mono',monospace;letter-spacing:1.4px;text-transform:uppercase;color:#c08a1d}
 .dir-det__certs>div{display:grid;grid-template-columns:16px minmax(0,1fr);gap:2px 8px;align-items:center}
 .dir-det__certs .ic{width:14px;height:14px;color:var(--success);stroke-width:3;grid-row:span 2}
@@ -8461,7 +8462,7 @@ const Sections = (function(){
           ${c.empresa?`<div class="dir-card__empresa"><svg class="ic"><use href="#i-briefcase"/></svg>${escapeHtml(c.empresa)}</div>`:''}
           ${estado?`<span class="dir-vip__estado dir-vip__estado--${estado.cls}"><i></i>${estado.label}</span>`:''}
           ${c.sector?`<span class="dir-card__sector">${escapeHtml(c.sector)}</span>`:''}
-          ${certs.length?`<div class="dir-vip__certs">${certs.slice(0,2).map(x=>`<span class="dir-vip__cert" title="Certificado IMFRA · folio ${escapeHtml(x.folio)}"><svg class="ic"><use href="#i-check"/></svg>${escapeHtml(x.curso)}</span>`).join('')}${certs.length>2?`<span class="dir-vip__cert">+${certs.length-2}</span>`:''}</div>`:''}
+          ${certs.length?`<span class="dir-vip__certs" title="Ver certificados en la tarjeta"><svg class="ic"><use href="#i-check"/></svg>${certs.length} certificado${certs.length!==1?"s":""} IMFRA</span>`:""}
           ${c.bio?`<div class="dir-card__bio">${escapeHtml(c.bio)}</div>`:''}
           ${dirCtasHtml(dirContactoVisible(c))}
         </div>
