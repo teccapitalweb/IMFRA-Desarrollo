@@ -224,21 +224,30 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" | "prizes" = "re
       if (redeemed && reward.accessRoute) return `<button type="button" class="btn btn--accent rw-redeem" data-open-reward="${reward.accessRoute}">${escapeHtml(reward.openLabel || "Abrir beneficio")}</button>`;
       if (redeemed) return `<button type="button" class="btn btn--ghost rw-redeem" disabled>${redeemed.status === "pending" ? "Solicitud en revisión" : "Beneficio canjeado"}</button>`;
       if (state.points >= reward.points) return `<button type="button" class="btn btn--accent rw-redeem" data-redeem="${reward.id}">Canjear por ${reward.points.toLocaleString("es-MX")} créditos</button>`;
-      return `<button type="button" class="btn btn--ghost rw-redeem" disabled>Te faltan ${(reward.points - state.points).toLocaleString("es-MX")} créditos</button>`;
+      return `<button type="button" class="btn btn--ghost rw-redeem" disabled>Te faltan ${(reward.points - state.points).toLocaleString("es-MX")}</button>`;
+    };
+    // Tarjetas limpias: categoría, nombre, descripción breve, precio y avance hacia el premio.
+    const prizeCard = (reward: RewardItem) => {
+      const aniversario = reward.unlockMode === "membership_anniversary";
+      const avance = aniversario ? 0 : Math.min(100, Math.round((state.points / Math.max(1, reward.points)) * 100));
+      return `<article class="rw-prize" style="--prize:${reward.accent}">
+          <div class="rw-prize__top">
+            <span class="rw-prize__icon"><img src="${rewardIcon(reward)}" alt="" loading="lazy"></span>
+            <span class="rw-prize__type">${aniversario ? "Por permanencia" : reward.category}</span>
+          </div>
+          <h3 class="rw-prize__name">${escapeHtml(reward.name)}</h3>
+          <p class="rw-prize__desc">${escapeHtml(reward.description)}</p>
+          <div class="rw-prize__price"><strong>${aniversario ? "Gratis · 30 días" : `${reward.points.toLocaleString("es-MX")} créditos`}</strong></div>
+          ${aniversario ? '<div class="rw-prize__bar rw-prize__bar--none"></div>' : `<div class="rw-prize__bar" role="progressbar" aria-valuenow="${avance}" aria-valuemin="0" aria-valuemax="100" aria-label="Avance hacia este premio"><i style="width:${avance}%"></i></div>`}
+          ${prizeButton(reward)}
+        </article>`;
     };
     const prizesHtml = `<section class="rw-prizes fade-up">
         <div class="rw-prizes__head">
-          <div><span class="rw-eyebrow">Premios IMFRA</span><h2>Canjea tus créditos por herramientas profesionales</h2><p>Además de los materiales, tus créditos desbloquean software y recursos premium. Gánalos en Retos y en cada clase.</p></div>
-          <div class="rw-prizes__balance"><span>Tu saldo</span><strong>${state.points.toLocaleString("es-MX")}</strong><small>créditos</small></div>
+          <div><span class="rw-eyebrow">Premios IMFRA</span><h2>Canjea tus créditos por herramientas profesionales</h2><p>Gánalos en Retos y en cada clase.</p></div>
+          <div class="rw-prizes__balance"><span>Tu saldo</span><strong>${state.points.toLocaleString("es-MX")}</strong></div>
         </div>
-        <div class="rw-prizes__grid">${[...rewardCatalog].sort((x, y) => (x.unlockMode === "membership_anniversary" ? 1 : 0) - (y.unlockMode === "membership_anniversary" ? 1 : 0) || x.points - y.points).map((reward) => `<article class="rw-reward" style="--reward-accent:${reward.accent}">
-            <img class="rw-reward__icon" src="${rewardIcon(reward)}" alt="" loading="lazy">
-            <span class="rw-reward__type">${reward.unlockMode === "membership_anniversary" ? "Beneficio por permanencia" : reward.category}</span>
-            <h3>${escapeHtml(reward.name)}</h3>
-            <p class="rw-reward__description">${escapeHtml(reward.description)}</p>
-            <div class="rw-reward__meta"><strong>${reward.unlockMode === "membership_anniversary" ? "0 créditos" : `${reward.points.toLocaleString("es-MX")} créditos`}</strong><span>${escapeHtml(reward.availability)}</span></div>
-            ${prizeButton(reward)}
-          </article>`).join("")}</div>
+        <div class="rw-prizes__grid">${[...rewardCatalog].sort((x, y) => (x.unlockMode === "membership_anniversary" ? 1 : 0) - (y.unlockMode === "membership_anniversary" ? 1 : 0) || x.points - y.points).map(prizeCard).join("")}</div>
       </section>`;
     const dialogHtml = `      ${pendingReward ? `<div class="rw-dialog-backdrop" data-close-dialog>
           <section class="rw-dialog" role="dialog" aria-modal="true" aria-labelledby="rw-dialog-title">

@@ -40,16 +40,29 @@
 /* Catálogo de beneficios · presentación editorial limpia */
 .rw-imdac-wordmark{display:block;width:122px;height:auto}.rw-featured{border-left:1px solid var(--border-2);border-radius:24px;box-shadow:0 18px 52px rgba(19,21,26,.08)}.rw-featured__main{position:relative;background-image:linear-gradient(rgba(155,210,54,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(155,210,54,.055) 1px,transparent 1px);background-size:34px 34px}.rw-featured__main:after{content:"";position:absolute;right:-110px;top:-120px;width:300px;height:300px;border-radius:50%;background:color-mix(in srgb,#9bd236 12%,transparent);pointer-events:none}.rw-featured__topline,.rw-featured__main>.rw-eyebrow,.rw-featured__main>h2,.rw-featured__main>p,.rw-featured__facts{position:relative;z-index:1}.rw-featured__side{background:#171a18}.rw-feature-list li .ic{color:#9bd236}.rw-featured__facts{background:color-mix(in srgb,#9bd236 16%,var(--border))}.rw-featured__facts div{background:color-mix(in srgb,#9bd236 3%,var(--surface))}.rw-featured__cta:not(:disabled),.rw-access-button{background:#9bd236!important;border-color:#9bd236!important;color:#17200f!important}.rw-rewards{gap:12px}.rw-reward{border-radius:16px;box-shadow:none}.rw-reward:hover{box-shadow:0 12px 30px rgba(15,15,15,.08)}
 
-/* Premios dentro de "Materiales y premios" */
-.rw-prizes{margin-top:34px;padding-top:28px;border-top:1px solid var(--border)}
+/* Premios dentro de "Materiales y premios" · tarjetas limpias */
+.rw-prizes{margin-top:36px;padding-top:28px;border-top:1px solid var(--border)}
 .rw-prizes__head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px}
-.rw-prizes__head h2{margin:6px 0 4px;font:800 22px/1.2 "Plus Jakarta Sans",Inter,sans-serif;letter-spacing:-.4px}
-.rw-prizes__head p{margin:0;max-width:58ch;color:var(--text-2);font-size:13.5px;line-height:1.55}
-.rw-prizes__balance{display:grid;justify-items:end;flex:none;padding:12px 16px;border-radius:14px;border:1px solid color-mix(in srgb,var(--primary) 30%,var(--border));background:color-mix(in srgb,var(--primary) 7%,var(--surface))}
-.rw-prizes__balance span{font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-3)}
-.rw-prizes__balance strong{margin-top:4px;font:800 26px/1 "JetBrains Mono",monospace;color:var(--primary)}
-.rw-prizes__balance small{font-size:11px;color:var(--text-3)}
-.rw-prizes__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:16px}
-.rw-prizes .rw-reward{display:flex;flex-direction:column}
-.rw-prizes .rw-reward .rw-redeem{margin-top:auto;width:100%;justify-content:center}
-@media(max-width:600px){.rw-prizes__head{flex-direction:column;align-items:stretch}.rw-prizes__balance{justify-items:start}}
+.rw-prizes__head h2{margin:6px 0 4px;font:800 21px/1.2 "Plus Jakarta Sans",Inter,sans-serif;letter-spacing:-.4px}
+.rw-prizes__head p{margin:0;color:var(--text-3);font-size:13px}
+.rw-prizes__balance{display:inline-flex;align-items:baseline;gap:8px;flex:none;padding:8px 14px;border-radius:999px;border:1px solid var(--border-2);background:var(--surface)}
+.rw-prizes__balance span{font:700 10px/1 "JetBrains Mono",monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3)}
+.rw-prizes__balance strong{font:800 17px/1 "JetBrains Mono",monospace;color:var(--primary)}
+.rw-prizes__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.rw-prize{display:flex;flex-direction:column;padding:20px;border-radius:16px;border:1px solid var(--border);background:var(--surface);transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+.rw-prize:hover{border-color:color-mix(in srgb,var(--prize) 45%,var(--border));box-shadow:0 12px 28px rgba(0,0,0,.06);transform:translateY(-2px)}
+.rw-prize__top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}
+.rw-prize__icon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:var(--surface-2);border:1px solid var(--border)}
+.rw-prize__icon img{width:28px;height:28px;object-fit:contain}
+.rw-prize__type{font:700 9.5px/1 "JetBrains Mono",monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3)}
+.rw-prize__name{margin:0 0 6px;font:750 16px/1.3 "Plus Jakarta Sans",Inter,sans-serif;letter-spacing:-.2px;color:var(--text)}
+.rw-prize__desc{margin:0 0 18px;color:var(--text-3);font-size:12.5px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rw-prize__price{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:auto;margin-bottom:10px}
+.rw-prize__price strong{font:800 15px/1 "JetBrains Mono",monospace;color:var(--text);white-space:nowrap}
+.rw-prize__price span{min-width:0;font-size:11px;color:var(--text-3);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rw-prize__bar{height:4px;margin-bottom:14px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.rw-prize__bar i{display:block;height:100%;border-radius:inherit;background:var(--prize)}
+.rw-prize__bar--none{background:transparent}
+.rw-prize .rw-redeem{width:100%;justify-content:center;min-height:40px}
+@media(max-width:900px){.rw-prizes__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.rw-prizes__head{flex-direction:column;align-items:flex-start}.rw-prizes__grid{grid-template-columns:minmax(0,1fr)}}
