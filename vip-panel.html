@@ -808,6 +808,27 @@ body::after{
 .certs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
 /* Banners compactos de certificado (lista) */
 .certs-list{display:flex;flex-direction:column;gap:12px}
+.certl{border:1px solid var(--border);border-radius:16px;background:var(--surface);overflow:hidden}
+.certl__row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .18s ease}
+.certl__row:last-child{border-bottom:0}
+.certl__row:hover,.certl__row:focus-visible{background:var(--surface-2);outline:none}
+.certl__seal{width:38px;height:38px;display:grid;place-items:center;border-radius:50%;border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border));color:var(--primary);background:color-mix(in srgb,var(--primary) 6%,transparent)}
+.certl__seal svg{width:19px;height:19px}
+.certl__title{margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.2px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.certl__meta{margin-top:3px;font-size:12px;color:var(--text-3)}
+.certl__id{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.certl__folio{font:600 11px/1 'JetBrains Mono',monospace;color:var(--text-2);padding:5px 8px;border-radius:7px;background:var(--surface-2);border:1px solid var(--border)}
+.certl__ok{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--success)}
+.certl__ok svg{width:12px;height:12px}
+.certl__go{width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--text-3);transition:transform .18s ease,color .18s ease,background .18s ease}
+.certl__go .ic{width:15px;height:15px}
+.certl__row:hover .certl__go{color:var(--primary);background:color-mix(in srgb,var(--primary) 10%,transparent);transform:translateX(2px)}
+@media(max-width:600px){
+  .certl__row{grid-template-columns:auto minmax(0,1fr) auto;gap:12px;padding:14px 14px}
+  .certl__id{grid-column:2;grid-row:2;flex-direction:row;align-items:center;gap:8px}
+  .certl__go{grid-column:3;grid-row:1/span 2}
+  .certl__title{white-space:normal}
+}
 .certb{display:flex;align-items:center;gap:18px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px 20px;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .25s}
 .certb:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--primary) 45%,transparent);box-shadow:0 14px 34px color-mix(in srgb,var(--primary) 14%,rgba(0,0,0,.1))}
 .certb__seal{width:52px;height:52px;flex-shrink:0;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-deep));color:#fff;display:flex;align-items:center;justify-content:center}
@@ -6531,7 +6552,13 @@ const Sections = (function(){
         }
       }
     }
-    return lista.sort((a, b) => new Date(b.emitido) - new Date(a.emitido));
+    // Un certificado por curso: si se emitió dos veces, el primero es el original.
+    const porCurso = new Map();
+    lista.slice().sort((a, b) => new Date(a.emitido) - new Date(b.emitido)).forEach(c => {
+      const clave = String(c.titulo || c.id).trim().toLowerCase();
+      if (!porCurso.has(clave)) porCurso.set(clave, c);
+    });
+    return [...porCurso.values()].sort((a, b) => new Date(b.emitido) - new Date(a.emitido));
   }
 
   // ─── Widgets del dashboard con datos REALES ───
@@ -6684,28 +6711,22 @@ const Sections = (function(){
           <div class="kpi-card"><div class="kpi-card__label">Verificables</div><div class="kpi-card__value">100<span class="kpi-card__value-sub">%</span></div></div>
         </div>
         <div class="section-header"><h2 class="section-header__title">Tus ${certs.length} certificado${certs.length!==1?'s':''}<span class="section-header__badge">${certs.length} activo${certs.length!==1?'s':''}</span></h2></div>
-        <div class="certs-list">${certs.map(c=>`
-          <article class="certb" data-certid="${c.id}" tabindex="0">
-            <div class="certb__seal">
-              <svg viewBox="0 0 40 48" fill="none"><circle cx="20" cy="17" r="14" stroke="currentColor" stroke-width="1.6"/><circle cx="20" cy="17" r="9" stroke="currentColor" stroke-width="1" opacity=".5"/><path d="M13 28 L10 46 L20 39 L30 46 L27 28" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <div class="certl">${certs.map(c=>`
+          <article class="certl__row" data-certid="${c.id}" tabindex="0" role="button" aria-label="Ver certificado ${escapeHtml(c.titulo)}">
+            <span class="certl__seal" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="6"/><path d="M9 14.2 7.5 21l4.5-2.5 4.5 2.5L15 14.2"/></svg></span>
+            <div class="certl__main">
+              <h3 class="certl__title">${escapeHtml(c.titulo)}</h3>
+              <div class="certl__meta">${escapeHtml(c.area)} · ${c.horas} h · ${formatDate(c.emitido)}</div>
             </div>
-            <div class="certb__main">
-              <div class="certb__eyebrow">Certificado de acreditación</div>
-              <h3 class="certb__title">${c.titulo}</h3>
-              <div class="certb__meta"><span>${c.horas}h</span><span class="certb__sep"></span><span>${c.area}</span><span class="certb__sep"></span><span>${formatDate(c.emitido)}</span></div>
-              <div class="certb__folio">${c.folio}</div>
-            </div>
-            <div class="certb__action">
-              <span class="certb__verify">Verificable</span>
-              <span class="certb__view">Ver certificado <svg class="ic"><use href="#i-arrow-right"/></svg></span>
-            </div>
+            <div class="certl__id"><span class="certl__folio">${escapeHtml(c.folio)}</span><span class="certl__ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Verificado</span></div>
+            <span class="certl__go" aria-hidden="true"><svg class="ic"><use href="#i-arrow-right"/></svg></span>
           </article>
         `).join('')}</div>
       </div>
     `;
     // Guardar la lista para que openCertDetalle pueda encontrar el cert
     window.__certsReales = certs;
-    container.querySelectorAll('.certb').forEach(c=>{
+    container.querySelectorAll('.certl__row').forEach(c=>{
       c.addEventListener('click',()=>openCertDetalleReal(c.dataset.certid));
       c.addEventListener('keydown',e=>{if(e.key==='Enter')openCertDetalleReal(c.dataset.certid);});
     });
