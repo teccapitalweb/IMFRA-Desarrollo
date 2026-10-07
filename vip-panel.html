@@ -3423,8 +3423,16 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 /* Curso gratis elegido por la cuenta */
-.free-course-banner{display:flex;align-items:center;gap:14px;margin:0 0 18px;padding:16px 18px;border-radius:16px;border:1px solid color-mix(in srgb,var(--success) 40%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--success) 12%,var(--surface)),var(--surface))}
-.free-course-banner__icon{width:42px;height:42px;flex-shrink:0;border-radius:12px;display:grid;place-items:center;background:var(--success);color:#0d0d0d}
+.free-course-banner{position:relative;display:flex;align-items:center;gap:16px;margin:0 0 20px;padding:18px 20px;border-radius:18px;overflow:hidden;border:1px solid color-mix(in srgb,var(--primary) 40%,transparent);
+  background:radial-gradient(120% 160% at 0% 0%,color-mix(in srgb,var(--primary) 16%,transparent),transparent 55%),var(--surface);box-shadow:0 12px 30px color-mix(in srgb,var(--primary) 12%,transparent)}
+.free-course-banner.is-pulse{animation:fcbPulse 1.4s ease 2}
+@keyframes fcbPulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--primary) 25%,transparent),0 12px 30px color-mix(in srgb,var(--primary) 18%,transparent)}}
+.free-course-banner__copy{flex:1;min-width:0}
+.free-course-banner__copy>span{display:block;margin-bottom:3px;font:700 10px/1 'JetBrains Mono',monospace;letter-spacing:1.4px;text-transform:uppercase;color:var(--primary)}
+.free-course-banner__hint{display:inline-flex;align-items:center;gap:6px;flex:none;padding:8px 13px;border-radius:999px;background:var(--primary);color:#1a1206;font-size:12px;font-weight:800}
+.free-course-banner__hint .ic{width:14px;height:14px;transform:rotate(90deg)}
+.free-course-banner__icon{width:46px;height:46px;flex-shrink:0;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#ffc04d,var(--primary));color:#1a1206;box-shadow:0 8px 18px color-mix(in srgb,var(--primary) 30%,transparent)}
+.free-course-banner__icon .ic{width:22px;height:22px}
 .free-course-banner strong{display:block;font:800 16px/1.25 'Plus Jakarta Sans','Inter',sans-serif}
 .free-course-banner p{margin:3px 0 0;color:var(--text-2);font-size:13px;line-height:1.5}
 .curso-card--choose-free{outline:2px solid color-mix(in srgb,var(--success) 55%,transparent);outline-offset:-2px}
@@ -3436,7 +3444,44 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .free-course-confirm strong{color:var(--text)}
 .free-course-confirm__warn{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--text)!important;font-weight:600}
 .free-course-confirm__warn .ic{flex-shrink:0;color:var(--primary);margin-top:1px}
-@media(max-width:560px){.free-course-banner{align-items:flex-start;padding:14px}}
+@media(max-width:560px){.free-course-banner{flex-wrap:wrap;align-items:flex-start;padding:16px}.free-course-banner__hint{width:100%;justify-content:center}}
+/* Invitación "Elige tu curso gratis" */
+#free-course-intro{position:fixed;inset:0;z-index:2147483100;display:grid;place-items:center;padding:16px;opacity:0;transition:opacity .25s ease;font-family:'Inter',sans-serif}
+#free-course-intro.is-open{opacity:1}
+#free-course-intro.is-closing{opacity:0}
+.fci__backdrop{position:absolute;inset:0;background:rgba(10,8,5,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.fci__card{position:relative;width:min(440px,100%);padding:26px 26px 22px;border-radius:24px;text-align:center;background:var(--surface);border:1px solid var(--border);box-shadow:0 30px 80px rgba(0,0,0,.35);transform:translateY(14px) scale(.97);transition:transform .35s cubic-bezier(.2,1.2,.4,1)}
+#free-course-intro.is-open .fci__card{transform:none}
+.fci__close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:var(--text-3);font-size:22px;line-height:1;cursor:pointer}
+.fci__close:hover{background:var(--surface-2);color:var(--text)}
+.fci__art{position:relative;height:132px;margin:4px auto 18px;width:250px}
+.fci__cover{position:absolute;top:10px;left:50%;width:120px;height:96px;margin-left:-60px;border-radius:14px;background:var(--surface-2) center/cover no-repeat;border:3px solid var(--surface);box-shadow:0 12px 26px rgba(0,0,0,.22);transition:transform .5s cubic-bezier(.2,1.2,.4,1)}
+.fci__cover--0{transform:translateX(-70px) rotate(-10deg) scale(.9)}
+.fci__cover--1{z-index:2;transform:translateY(-6px)}
+.fci__cover--2{transform:translateX(70px) rotate(10deg) scale(.9)}
+#free-course-intro.is-open .fci__cover--0{animation:fciFanL .6s cubic-bezier(.2,1.2,.4,1)}
+#free-course-intro.is-open .fci__cover--2{animation:fciFanR .6s cubic-bezier(.2,1.2,.4,1)}
+@keyframes fciFanL{from{transform:translateX(0) rotate(0) scale(.9)}}
+@keyframes fciFanR{from{transform:translateX(0) rotate(0) scale(.9)}}
+.fci__badge{position:absolute;z-index:3;left:50%;bottom:0;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:linear-gradient(135deg,#ffc04d,var(--primary));color:#1a1206;font:800 11px/1 'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;box-shadow:0 8px 18px color-mix(in srgb,var(--primary) 40%,transparent)}
+.fci__badge .ic{width:14px;height:14px}
+.fci__kicker{display:block;font:700 10.5px/1 'JetBrains Mono',monospace;letter-spacing:1.6px;text-transform:uppercase;color:var(--primary)}
+.fci__card h2{margin:10px 0 8px;font:800 24px/1.18 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.5px;color:var(--text)}
+.fci__card h2 em{font-style:normal;color:var(--primary)}
+.fci__card p{margin:0 auto 16px;max-width:36ch;color:var(--text-2);font-size:13.5px;line-height:1.6}
+.fci__card p strong{color:var(--text)}
+.fci__steps{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0 0 20px;padding:0}
+.fci__steps li{display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text-2)}
+.fci__steps b{width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--primary) 16%,transparent);color:var(--primary);font:800 11px/1 'JetBrains Mono',monospace}
+.fci__actions{display:grid;grid-template-columns:1fr 1.7fr;gap:10px}
+.fci__actions button{min-height:46px;border-radius:12px;font:700 14px 'Inter',sans-serif;cursor:pointer;transition:transform .15s ease,filter .15s ease}
+.fci__later{border:1px solid var(--border-2);background:transparent;color:var(--text-2)}
+.fci__later:hover{background:var(--surface-2)}
+.fci__cta{border:0;background:linear-gradient(135deg,#ffac38,#f58c12);color:#1a1206;box-shadow:0 10px 24px color-mix(in srgb,var(--primary) 32%,transparent)}
+.fci__cta:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.fci__card button:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+@media(max-width:480px){.fci__card{padding:24px 18px 18px}.fci__card h2{font-size:21px}.fci__actions{grid-template-columns:1fr}.fci__cta{order:-1}.fci__art{width:220px}}
+@media(prefers-reduced-motion:reduce){#free-course-intro,.fci__card{transition:none}#free-course-intro.is-open .fci__cover--0,#free-course-intro.is-open .fci__cover--2,.free-course-banner.is-pulse{animation:none}}
 </style>
 <link rel="stylesheet" href="./src/styles/tokens.css">
 </head>
@@ -5005,9 +5050,100 @@ const Sections = (function(){
     refrescarVistaCursos();
     const bannerText = document.getElementById('fomo-banner-text');
     if (bannerText && window.UserState?.modo === 'sin-membresia') bannerText.innerHTML = textoOfertaGratis();
+    if (cursoGratisPendiente()) programarInvitacionCursoGratis();
     return cursoGratisEstado;
   }
   window.__cargarCursoGratis = cargarCursoGratisEstado;
+
+  // ─── Invitación "Elige tu curso gratis" ───
+  // Aparece una vez por visita a quien aún no elige, cuando ya terminaron la
+  // ficha inicial, el recorrido guiado y el regalo de bienvenida.
+  let _invitacionCursoGratis = false;
+  let _tourTerminadoEn = 0;
+  window.addEventListener('imfra:onboarding-finished', () => { _tourTerminadoEn = Date.now(); });
+
+  function esperarPanelLibre(cb){
+    const inicio = Date.now();
+    let libreDesde = 0;
+    const id = String(window.UserState?.uid || window.UserState?.email || '').toLowerCase();
+    const iv = setInterval(() => {
+      let tourVisto = true;
+      try { tourVisto = !!localStorage.getItem(`imfra:onboarding:panel:v2:${id}`); } catch(e) {}
+      const ocupado = (!tourVisto && Date.now() - inicio < 300000)
+        || Date.now() - _tourTerminadoEn < 3500
+        || document.body.classList.contains('onboarding-tour-open')
+        || document.querySelector('#profile-intake-modal, #welcome-gift, .cc-overlay, .cg-overlay, .modal-backdrop, #splash-bienvenida, #free-course-intro');
+      if (ocupado) libreDesde = 0;
+      else if (!libreDesde) libreDesde = Date.now();
+      if ((libreDesde && Date.now() - libreDesde > 1500 && Date.now() - inicio > 3000) || Date.now() - inicio > 600000) {
+        clearInterval(iv);
+        cb();
+      }
+    }, 600);
+  }
+
+  function programarInvitacionCursoGratis(){
+    if (_invitacionCursoGratis || !window.UserState?.uid) return;
+    const clave = `imfra:curso-gratis-intro:${window.UserState.uid}`;
+    try { if (sessionStorage.getItem(clave)) return; } catch(e) {}
+    _invitacionCursoGratis = true;
+    esperarPanelLibre(async () => {
+      if (!cursoGratisPendiente()) return;
+      if (!_cursosLoaded) { try { await cargarCursosFirestore(); } catch(e) {} }
+      if (!cursoGratisPendiente() || document.getElementById('free-course-intro')) return;
+      try { sessionStorage.setItem(clave, '1'); } catch(e) {}
+      mostrarInvitacionCursoGratis();
+    });
+  }
+
+  function irAElegirCursoGratis(){
+    navigateToSection('cursos');
+    setTimeout(() => {
+      const banner = document.querySelector('.free-course-banner');
+      if (!banner) return;
+      banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      banner.classList.remove('is-pulse'); void banner.offsetWidth; banner.classList.add('is-pulse');
+    }, 450);
+  }
+
+  function mostrarInvitacionCursoGratis(){
+    if (document.getElementById('free-course-intro')) return;
+    const opciones = cursos.filter(cursoPuedeSerGratis);
+    const gratis = opciones.length ? Math.max(...opciones.map(c => cantidadClasesGratis(c.sesiones.length))) : CLASES_GRATIS_TOPE;
+    const portadas = opciones.slice(0, 3).map((c, i) => `<span class="fci__cover fci__cover--${i}" style="background-image:url('${String(c.portada || PORTADA_DEFAULT).replace(/'/g, '%27')}')"></span>`).join('');
+    const nombre = String(window.UserState?.nombre || window.UserState?.displayName || '').trim().split(' ')[0];
+    const pop = document.createElement('div');
+    pop.id = 'free-course-intro';
+    pop.innerHTML = `<div class="fci__backdrop" data-fci-later></div>
+      <section class="fci__card" role="dialog" aria-modal="true" aria-labelledby="fci-title">
+        <button type="button" class="fci__close" data-fci-later aria-label="Cerrar">×</button>
+        <div class="fci__art" aria-hidden="true">${portadas}<span class="fci__badge"><svg class="ic"><use href="#i-gift"/></svg>Gratis</span></div>
+        <span class="fci__kicker">Para usuarios nuevos</span>
+        <h2 id="fci-title">${nombre ? `${escapeHtml(nombre)}, elige` : 'Elige'} tu <em>curso gratis</em></h2>
+        <p>Te regalamos las primeras <strong>${gratis} clases</strong> del curso que tú elijas. Solo puedes elegir uno, así que escoge el que más te sirva.</p>
+        <ol class="fci__steps">
+          <li><b>1</b>Elige tu curso</li>
+          <li><b>2</b>Ve ${gratis} clases gratis</li>
+          <li><b>3</b>Gana créditos en cada reto</li>
+        </ol>
+        <div class="fci__actions">
+          <button type="button" class="fci__later" data-fci-later>Más tarde</button>
+          <button type="button" class="fci__cta" data-fci-go>Elegir mi curso gratis <span aria-hidden="true">→</span></button>
+        </div>
+      </section>`;
+    document.body.appendChild(pop);
+    requestAnimationFrame(() => pop.classList.add('is-open'));
+    const cerrar = (despues) => {
+      document.removeEventListener('keydown', onKey, true);
+      pop.classList.add('is-closing');
+      setTimeout(() => { pop.remove(); if (despues) despues(); }, 220);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); cerrar(); } };
+    document.addEventListener('keydown', onKey, true);
+    pop.querySelectorAll('[data-fci-later]').forEach(el => el.addEventListener('click', () => cerrar()));
+    pop.querySelector('[data-fci-go]').addEventListener('click', () => cerrar(irAElegirCursoGratis));
+    setTimeout(() => pop.querySelector('[data-fci-go]')?.focus({ preventScroll: true }), 120);
+  }
 
   function confirmarCursoGratis(curso) {
     if (!curso || !cursoGratisPendiente()) return;
@@ -6086,8 +6222,9 @@ const Sections = (function(){
     const eligiendoGratis = cursoGratisPendiente();
     const gratisMax = Math.max(0, ...cursos.filter(cursoPuedeSerGratis).map(c => cantidadClasesGratis(c.sesiones.length)));
     const bannerGratis = eligiendoGratis ? `<section class="free-course-banner">
-        <span class="free-course-banner__icon"><svg class="ic"><use href="#i-play"/></svg></span>
-        <div><strong>Elige tu curso gratis</strong><p>Toca el curso que más te interese: verás gratis sus primeras ${gratisMax || 4} clases. Solo puedes elegir uno.</p></div>
+        <span class="free-course-banner__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
+        <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca el curso que más te interese y verás gratis sus primeras ${gratisMax || 4} clases. Solo puedes elegir uno.</p></div>
+        <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
       </section>` : '';
     list.innerHTML=`${bannerGratis}<div class="cursos-grid">${items.map((c, idx)=>{
       const cursoIdx = cursos.findIndex(x => x.id === c.id);
