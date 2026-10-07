@@ -488,9 +488,7 @@ body{display:block}
     </div>
 
     <div class="hero-main">
-      <span class="hero-eyebrow"><i></i>Plataforma para ingeniería civil y construcción</span>
       <h1 class="auth-hero__title">Domina la obra y la gestión que tu proyecto <em>te está pidiendo</em>.</h1>
-      <p class="auth-hero__desc">Cursos con certificado de folio oficial, herramientas profesionales y clases en vivo, en un solo lugar.</p>
 
       <div class="hero-features">
         <div class="hero-feature"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2"/><path d="M9 8h6M9 12h4"/></svg></span><div><b>Cursos con certificado</b><small>Folio oficial verificable al terminar cada curso.</small></div></div>
@@ -498,6 +496,10 @@ body{display:block}
         <div class="hero-feature"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M16.2 16.2a6 6 0 1 0-8.4 0M19 19a10 10 0 1 0-14 0"/></svg></span><div><b>Clases en vivo</b><small>Con especialistas del sector construcción.</small></div></div>
         <div class="hero-feature"><span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M14.8 9.5a3.2 3.2 0 1 0 0 5"/></svg></span><div><b>Retos y créditos</b><small>Mini juegos en cada clase que suman créditos.</small></div></div>
       </div>
+      <button type="button" class="hero-cta" data-cta-registro>
+        <span><b>Regístrate gratis</b><small>200 créditos de regalo · 4 clases del curso que elijas</small></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
     </div>
 
     <div class="hero-showcase">
@@ -512,7 +514,6 @@ body{display:block}
         <li><b>2</b><div><strong>Elige tu curso gratis</strong><small>Y recibe 200 créditos de regalo.</small></div></li>
         <li><b>3</b><div><strong>Aprende y gana</strong><small>Supera los retos y canjea tus créditos.</small></div></li>
       </ol>
-      <p class="hero-trust"><span>Pago seguro con Stripe</span><span>Sin permanencia</span><span>Acceso inmediato</span></p>
     </div>
   </aside>
 
@@ -529,7 +530,7 @@ body{display:block}
   <div class="card">
     <p class="auth-free">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-      <span>Cuenta gratis: <b>200 créditos de regalo</b> y 4 clases del curso que elijas</span>
+      <span><strong>Regístrate gratis</strong><small>Recibe <b>200 créditos de regalo</b> y 4 clases del curso que elijas.</small></span>
     </p>
     <div class="referral-invite" id="referral-invite" role="status">
       <span class="referral-invite__coin">C</span>
@@ -616,7 +617,7 @@ body{display:block}
       </div>
       <label class="checkbox-row">
         <input type="checkbox" id="re-terms">
-        <span>Acepto los <a href="#" target="_blank">Términos y condiciones</a> y la <a href="#" target="_blank">Política de privacidad</a> de IMFRA.</span>
+        <span>Acepto los <a href="#" target="_blank">Términos y condiciones</a> y la <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a> de IMFRA.</span>
       </label>
       <button class="btn" id="btn-register">
         <span class="btn-label">Crear cuenta</span>
@@ -868,9 +869,14 @@ async function ensureMiembroDoc(user, displayName, origen) {
   }
 }
 
+/* Mientras se crea una cuenta con correo, el propio registro guarda el perfil y
+   redirige; si este listener actuara también, entraría al panel antes de guardar
+   el nombre (Firebase avisa de la sesión en cuanto se crea el usuario). */
+let registrandoConCorreo = false;
+
 /* Si ya está logueado, redirige inmediatamente · pero PRIMERO asegura el doc */
 onAuthStateChanged(auth, async (user) => {
-  if (user) {
+  if (user && !registrandoConCorreo) {
     // Asegurar que existe el doc (si entró por login y no tenía uno, lo creamos)
     await ensureMiembroDoc(user, user.displayName, 'login-web');
     await claimPendingReferral(user);
@@ -935,9 +941,12 @@ document.getElementById('btn-register').addEventListener('click', async () => {
   if (!terms) { showAlert('error', 'Debes aceptar los términos'); return; }
   const btn = document.getElementById('btn-register');
   setLoading(btn, true);
+  registrandoConCorreo = true;
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(cred.user, { displayName: name });
+    await claimPendingReferral(cred.user);
+    try { localStorage.setItem('imfra_last_user', JSON.stringify({ email, nombre: name })); } catch(e){}
 
     // ⚡ Crear doc en col `miembros` con activa:false + fechaRegistro
     // Así el admin puede ver TODOS los registrados, no solo los que pagan
@@ -981,6 +990,7 @@ document.getElementById('btn-register').addEventListener('click', async () => {
       window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html';
     }, 900);
   } catch (e) {
+    registrandoConCorreo = false;
     setLoading(btn, false, 'Crear cuenta');
     showAlert('error', 'No pudimos crear tu cuenta', translateError(e.code));
   }

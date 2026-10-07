@@ -57,3 +57,16 @@
   .hero-showcase .hero-mcaption{text-align:left}
   .hero-trust{justify-content:flex-start;font-size:9px}
 }
+
+/* "Regístrate gratis" destacado */
+.auth-free{align-items:center !important;padding:14px 16px !important}
+.auth-free svg{width:26px !important;height:26px !important;padding:5px !important}
+.auth-free strong{display:block;font:800 18px/1.15 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.3px;color:var(--primary)}
+.auth-free small{display:block;margin-top:3px;font-size:12.5px;line-height:1.4;color:var(--text-2)}
+.hero-cta{display:flex;align-items:center;justify-content:space-between;gap:16px;width:min(100%,460px);margin-top:22px;padding:16px 20px;border-radius:16px;border:0;cursor:pointer;text-align:left;
+  background:linear-gradient(135deg,#ffac38,#f58c12);color:#1B0F05;box-shadow:0 14px 34px rgba(245,140,18,.32);transition:transform .2s ease,box-shadow .2s ease}
+.hero-cta:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(245,140,18,.4)}
+.hero-cta b{display:block;font:800 21px/1.1 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.4px}
+.hero-cta small{display:block;margin-top:4px;font-size:12.5px;font-weight:600;opacity:.78}
+.hero-cta svg{width:26px;height:26px;flex:none}
+@media (max-width:920px){.hero-cta{width:100%}}
