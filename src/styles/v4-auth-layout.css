@@ -1,0 +1,59 @@
+/* IMFRA · acceso · estructura 2026
+ * Reorganiza la página (presentación por bloques, pasos y formulario más claro)
+ * conservando los colores y la tipografía de v2/v3. Se carga al final, por eso
+ * repite !important solo donde esas hojas ya lo usan. */
+
+/* Presentación */
+.auth-hero{justify-content:flex-start !important;gap:30px !important;padding:44px clamp(32px,4vw,64px) 40px !important}
+.hero-main{display:grid;max-width:620px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:9px;justify-self:start;margin-bottom:18px;padding:7px 13px;border-radius:999px;border:1px solid rgba(245,157,26,.3);background:rgba(245,157,26,.08);font:700 10.5px/1 'JetBrains Mono',monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--primary-soft,#ffcf7a)}
+.hero-eyebrow i{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px rgba(245,157,26,.2);animation:pulseDotSmall 2.4s ease-in-out infinite}
+.auth-hero__title{font-size:clamp(32px,3vw,46px) !important;line-height:1.04 !important;max-width:17ch !important}
+.auth-hero__desc{margin-top:16px;max-width:46ch}
+.hero-features{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:28px}
+.hero-feature{display:flex;gap:12px;align-items:flex-start;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);transition:border-color .2s ease,transform .2s ease}
+.hero-feature:hover{border-color:rgba(245,157,26,.38);transform:translateY(-2px)}
+.hero-feature>span{width:38px;height:38px;flex:none;display:grid;place-items:center;border-radius:11px;background:rgba(245,157,26,.14);color:var(--primary)}
+.hero-feature>span svg{width:20px;height:20px}
+.hero-feature b{display:block;font:700 14px/1.25 'Plus Jakarta Sans','Inter',sans-serif;color:var(--text)}
+.hero-feature small{display:block;margin-top:3px;font-size:12px;line-height:1.45;color:var(--text-2)}
+.hero-showcase{max-width:640px}
+.hero-showcase .hero-mcaption{margin:0 0 4px}
+.hero-showcase .hero-marquee{margin:10px 0 0}
+.hero-start{display:grid;gap:14px;max-width:640px;margin-top:auto;padding-top:22px;border-top:1px solid rgba(255,255,255,.09)}
+.hero-start__title{font:700 10.5px/1 'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;color:var(--primary)}
+.hero-steps{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0;padding:0}
+.hero-steps li{display:flex;gap:10px;align-items:flex-start}
+.hero-steps li>b{width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:50%;background:var(--primary);color:#1B0F05;font:800 12px/1 'JetBrains Mono',monospace;box-shadow:0 0 0 4px rgba(245,157,26,.16)}
+.hero-steps strong{display:block;font:700 13px/1.25 'Plus Jakarta Sans','Inter',sans-serif;color:var(--text)}
+.hero-steps small{display:block;margin-top:2px;font-size:11.5px;line-height:1.4;color:var(--text-2)}
+.hero-trust{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+.hero-trust span{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.03)}
+.hero-trust span::before{content:"";width:6px;height:6px;border-radius:50%;background:#34D399}
+
+/* Formulario */
+.auth-free{justify-content:flex-start !important;gap:10px;margin:0 0 18px !important;padding:11px 14px !important;border:1px solid color-mix(in srgb,var(--primary) 28%,transparent) !important;border-radius:14px !important;background:color-mix(in srgb,var(--primary) 8%,var(--surface)) !important;font-size:.82rem;line-height:1.4;text-align:left}
+.auth-free svg{width:20px;height:20px}
+.pane-head{margin-bottom:16px}
+.auth-divider{text-transform:none;letter-spacing:.2px}
+.auth-after{margin-top:12px;text-align:center}
+
+@media (max-width:1180px) and (min-width:921px){
+  .hero-features,.hero-steps{grid-template-columns:1fr}
+}
+/* Celular: el formulario va primero y la presentación queda debajo. */
+@media (max-width:920px){
+  .auth-shell{display:flex !important;flex-direction:column}
+  .auth-main{order:1;padding:52px 16px 12px !important}
+  .auth-main .wrap{margin-top:0 !important}
+  .auth-hero{order:2;display:flex !important;align-items:stretch !important;text-align:left !important;gap:22px !important;padding:28px 18px 34px !important;border-right:0 !important;border-top:1px solid rgba(245,157,26,.2)}
+  .brand--hero{display:none !important}
+  .hero-eyebrow{margin-bottom:12px}
+  .auth-hero__title{font-size:30px !important;max-width:100% !important}
+  .auth-hero__desc{display:block !important;font-size:13.5px;margin-top:10px}
+  .hero-features,.hero-steps{grid-template-columns:1fr;gap:10px}
+  .hero-features{margin-top:18px}
+  .hero-start{margin-top:0}
+  .hero-showcase .hero-mcaption{text-align:left}
+  .hero-trust{justify-content:flex-start;font-size:9px}
+}
