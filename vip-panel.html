@@ -7981,23 +7981,37 @@ const Sections = (function(){
     return SECTORES.find(s => s.toLowerCase() === t) || '';
   }
 
-  // Primera entrada de un miembro VIP: crea su tarjeta con la foto de Google y
-  // los datos de su ficha profesional. Solo si aún no tiene una; si después la
-  // edita u oculta, se respeta lo que haya decidido.
+  // Contacto que la cuenta ya nos dio: correo de acceso y WhatsApp de su ficha.
+  function dirContactoCuenta(){
+    const S = window.UserState || {};
+    const md = window.memberData || {};
+    let local = {};
+    try { local = JSON.parse(localStorage.getItem('imfra_profile') || '{}'); } catch(e){}
+    return {
+      email: String(S.email || md.email || '').trim().toLowerCase().slice(0, 80),
+      whatsapp: String(md.whatsapp || local.whatsapp || '').trim().slice(0, 20)
+    };
+  }
+
+  // Primera entrada de un miembro VIP: crea su tarjeta con la foto de Google, los
+  // datos de su ficha profesional y su contacto. Si ya tiene tarjeta sin ningún
+  // dato de contacto y nunca la editó, se completa con ese mismo contacto.
+  // Lo que la persona edite u oculte después siempre se respeta.
   async function dirAutoCrearTarjeta(){
     const fs = window.__fs;
     const S = window.UserState || {};
     const md = window.memberData || {};
     const esVip = S.modo === 'vip' || S.plan === 'admin' || S.isAdmin === true;
-    if (!fs?.setDoc || !S.uid || !esVip) return false;
-    const key = `imfra:dir-auto:v1:${S.uid}`;
+    if (!fs?.setDoc || !S.uid) return false;
+    const key = `imfra:dir-auto:v2:${S.uid}`;
     try { if (localStorage.getItem(key) === '1') return false; } catch(e){}
     try {
       const ref = fs.doc(fs.db, 'directorio', S.uid);
       const ds = await fs.getDoc(ref);
+      const contacto = dirContactoCuenta();
       if (!ds.exists()) {
-        const email = String(S.email || '');
-        const nombre = String(md.nombre || S.nombre || S.displayName || '').trim() || email.split('@')[0] || 'Miembro IMFRA';
+        if (!esVip) return false;
+        const nombre = String(md.nombre || S.nombre || S.displayName || '').trim() || contacto.email.split('@')[0] || 'Miembro IMFRA';
         const especialidad = String(md.especialidad || '').trim();
         const sector = dirSectorDesde(especialidad);
         const payload = {
@@ -8007,7 +8021,7 @@ const Sections = (function(){
           empresa: String(md.empresa || '').trim().slice(0, 60),
           sector,
           bio: '',
-          whatsapp: '', email: '', linkedin: '', web: '',
+          whatsapp: contacto.whatsapp, email: contacto.email, linkedin: '', web: '',
           visible: true,
           color: dirColorFor(S.uid),
           autoCreada: true,
@@ -8016,11 +8030,17 @@ const Sections = (function(){
         const foto = dirFotoSegura(S.photoURL);
         if (foto) payload.foto = foto;
         await fs.setDoc(ref, payload, { merge: true });
+      } else {
+        const data = ds.data() || {};
+        const sinContacto = !data.email && !data.whatsapp && !data.linkedin && !data.web;
+        if (sinContacto && data.editadaPorUsuario !== true && (contacto.email || contacto.whatsapp)) {
+          await fs.setDoc(ref, { uid: S.uid, email: contacto.email, whatsapp: contacto.whatsapp, updatedAt: fs.serverTimestamp() }, { merge: true });
+        }
       }
       try { localStorage.setItem(key, '1'); } catch(e){}
-      return !ds.exists();
+      return true;
     } catch(e){
-      console.warn('[directorio] No se pudo crear la tarjeta automática', e);
+      console.warn('[directorio] No se pudo preparar la tarjeta automática', e);
       return false;
     }
   }
@@ -8307,7 +8327,8 @@ const Sections = (function(){
         empresa: md.empresa || '',
         sector,
         puesto: sector ? '' : especialidad,
-        foto: dirFotoSegura(window.UserState?.photoURL)
+        foto: dirFotoSegura(window.UserState?.photoURL),
+        ...dirContactoCuenta()
       };
     }
     _dirFotoTmp = undefined;
@@ -8384,6 +8405,7 @@ const Sections = (function(){
         linkedin: document.getElementById('dirf-linkedin').value.trim(),
         web: document.getElementById('dirf-web').value.trim(),
         visible: document.getElementById('dirf-visible').checked,
+        editadaPorUsuario: true,
         color: dirColorFor(uid),
         updatedAt: fs.serverTimestamp()
       };
@@ -10107,7 +10129,7 @@ window.__maybeAskProfile = function(){
             <label class="pi-field"><span>Empresa / despacho <em>(opcional)</em></span><input name="empresa" value="${escAttr(md.empresa || local.empresa)}" maxlength="80" autocomplete="organization" placeholder="Constructora del Centro"></label>
           </div>
           <p class="pi-error" role="alert" hidden></p>
-          <p class="pi-privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>Tus datos se guardan en tu cuenta y no aparecen en la clasificación del club.</p>
+          <p class="pi-privacy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>Tu nombre, correo y WhatsApp aparecerán en tu tarjeta del Directorio VIP; puedes editarlos u ocultarla cuando quieras. No se muestran en la clasificación del club.</p>
           <div class="pi-actions"><button class="pi-later" type="button">Ahora no</button><button class="pi-save" type="submit">Guardar y continuar <span>→</span></button></div>
         </form>
       </section>`;
