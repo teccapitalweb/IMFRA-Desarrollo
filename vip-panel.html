@@ -6129,6 +6129,30 @@ const Sections = (function(){
     }
   }
 
+  // Créditos por ganar el mini juego de una clase. El servidor decide si
+  // corresponden (acceso a la clase) y los paga una sola vez por clase.
+  const CREDITOS_JUEGO_CLASE = 10;
+  async function acreditarJuegoClase(curso, numeroClase){
+    const user = window.__currentUser;
+    if (!user || !curso?.bunnyCollectionId) return;
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`${window.WEBHOOK_URL}/api/bunny/class-game-reward`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collectionId: curso.bunnyCollectionId, classNumber: Number(numeroClase) })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'No se pudieron acreditar los créditos');
+      if (data.awarded) {
+        setTimeout(() => Toast.success(`+${data.credits} Créditos IMFRA`, 'Por ganar el mini juego de la clase'), 700);
+        window.IMFRACredits?.hydrate?.(true);
+      }
+    } catch (error) {
+      console.warn('[mini juego] créditos', error.message);
+    }
+  }
+
   function renderClaseDetalle(cursoId, numeroClase, container){
     const curso=cursos.find(x=>String(x.id)===String(cursoId));
     if(!curso){
@@ -6159,7 +6183,8 @@ const Sections = (function(){
     const minutos=Math.max(25,Math.round(((Number(curso.horas)||sesiones.length)*60)/Math.max(1,sesiones.length)));
     const juegoInfo=window.IMFRAClassGames?.describe(curso.titulo,sesionIdx)||{nombre:'Mini juego de la clase',instruccion:'Pon a prueba lo que aprendiste con un reto rápido.',icono:'🎯'};
     const juegoGanado=!!window.IMFRAClassGames?.hasWon(String(cursoId),num);
-    const juegoNota=yaVista?'Ya completaste esta clase: puedes jugarlo otra vez para repasar.':'Al ganarlo, la clase queda marcada como vista y se desbloquea la siguiente.';
+    const conCreditosJuego=!!window.UserState?.uid&&!!curso.bunnyCollectionId;
+    const juegoNota=yaVista?'Ya completaste esta clase: puedes jugarlo otra vez para repasar.':`Al ganarlo, la clase queda marcada como vista, se desbloquea la siguiente${conCreditosJuego?` y ganas ${CREDITOS_JUEGO_CLASE} Créditos IMFRA`:''}.`;
     let notas='';try{notas=localStorage.getItem(claveNotasClase(cursoId,num))||'';}catch(e){}
 
     const temarioHtml=sesiones.map((item,i)=>{
@@ -6232,9 +6257,9 @@ const Sections = (function(){
       if(!juegos){if(!yaVista)completarClase();return;}
       jugando=true;
       try{
-        const ganado=await juegos.play({cursoId:String(cursoId),cursoTitulo:curso.titulo,claseIndex:sesionIdx,claseNumero:num,claseTitulo:contenido.titulo,portada:curso.portada||PORTADA_DEFAULT,practica:yaVista});
+        const ganado=await juegos.play({cursoId:String(cursoId),cursoTitulo:curso.titulo,claseIndex:sesionIdx,claseNumero:num,claseTitulo:contenido.titulo,portada:curso.portada||PORTADA_DEFAULT,practica:yaVista,creditos:!yaVista&&conCreditosJuego?CREDITOS_JUEGO_CLASE:0});
         if(!ganado||!container.isConnected)return;
-        if(!yaVista){completarClase();return;}
+        if(!yaVista){completarClase();void acreditarJuegoClase(curso,num);return;}
         container.querySelectorAll('.lesson-game-card__state,.lesson-side-game__state').forEach(el=>{el.classList.add('is-won');el.textContent='✓ Ganado';});
       }finally{jugando=false;}
     };

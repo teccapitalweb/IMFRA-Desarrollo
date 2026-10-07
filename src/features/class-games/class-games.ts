@@ -17,6 +17,8 @@ export interface PlayOptions {
   portada?: string;
   /** true cuando la clase ya estaba vista: el juego es solo práctica. */
   practica?: boolean;
+  /** Créditos IMFRA que se ganan al completarlo por primera vez (0 = no se menciona). */
+  creditos?: number;
 }
 
 interface GameContext {
@@ -663,7 +665,7 @@ function play(options: PlayOptions): Promise<boolean> {
       <p class="cg-feedback" data-feedback role="status" hidden></p>
     </div>
     <footer class="cg-foot">
-      <span class="cg-foot__note">${options.practica ? "Modo práctica: esta clase ya está marcada como vista." : "Gánalo para marcar la clase como vista y desbloquear la siguiente."}</span>
+      <span class="cg-foot__note">${options.practica ? "Modo práctica: esta clase ya está marcada como vista." : `Gánalo para marcar la clase como vista y desbloquear la siguiente${options.creditos ? ` · <b>+${options.creditos} créditos</b>` : ""}.`}</span>
       <button type="button" class="cg-continue" data-continue disabled>${options.practica ? "Terminar" : "Continuar"} <span aria-hidden="true">→</span></button>
     </footer>
   </section>`;
