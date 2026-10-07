@@ -2,6 +2,7 @@ import "./class-games.css";
 import { GAME_INFO, juegoDeClase, type GameConfig, type GameType } from "./content";
 import { planSvg } from "./plans";
 import { celebrate } from "../shared/celebration";
+import "../shared/coin-chest";
 
 // ═══════════════════════════════════════════════════════════════════
 // Mini juegos de clase · uno distinto por clase.
@@ -428,15 +429,22 @@ function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" 
 }
 
 // ─────────────────────────── Memorama ───────────────────────────
+const PAIR_COLORS = ["#f59d1a", "#2f8fdd", "#14a37f", "#8b62d9", "#e2577b", "#d9a400", "#1fa8b8", "#e46b2e"];
+
 function gameMemorama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "memorama" }>, ctx: GameContext) {
   const pairs = cfg.pares.slice(0, 8);
   const cards = shuffle(pairs.flatMap((p, i) => [{ pair: i, text: p.termino, kind: "term" }, { pair: i, text: p.definicion, kind: "def" }]));
   const matched = new Set<number>();
   let open: number[] = [];
   let busy = false;
-  stage.innerHTML = `<div class="cg-memo" style="--count:${cards.length}">${cards.map((card, i) => `<button type="button" class="cg-memo__card cg-memo__card--${card.kind}" data-i="${i}" aria-label="Carta ${i + 1}">
-    <span class="cg-memo__back">IMFRA</span><span class="cg-memo__front"><small>${card.kind === "term" ? "Término" : "Definición"}</small>${esc(card.text)}</span></button>`).join("")}</div>`;
+  let found = 0;
+  stage.innerHTML = `<div class="cg-memo">${cards.map((card, i) => `<button type="button" class="cg-memo__card cg-memo__card--${card.kind}" data-i="${i}" aria-label="Carta ${i + 1}">
+    <span class="cg-memo__inner">
+      <span class="cg-memo__back"><span class="cg-memo__emblem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17h18M5 17v-2.2a7 7 0 0 1 14 0V17"/><path d="M10 8.3V6.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.8M8.5 10.5v3M15.5 10.5v3"/></svg></span><small>IMFRA</small></span>
+      <span class="cg-memo__front"><span class="cg-memo__tag">${card.kind === "term" ? "Término" : "Definición"}</span><span class="cg-memo__text">${esc(card.text)}</span><span class="cg-memo__pair" aria-hidden="true"></span></span>
+    </span></button>`).join("")}</div>`;
   ctx.progress(0, pairs.length);
+  const cardEl = (i: number) => stage.querySelector<HTMLElement>(`[data-i="${i}"]`);
   stage.querySelector(".cg-memo")!.addEventListener("click", (event) => {
     const btn = (event.target as Element).closest<HTMLElement>("[data-i]");
     if (!btn || busy) return;
@@ -448,18 +456,27 @@ function gameMemorama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "memo
     const [a, b] = open;
     if (cards[a].pair === cards[b].pair && cards[a].kind !== cards[b].kind) {
       matched.add(cards[a].pair);
-      open.forEach((idx) => stage.querySelector(`[data-i="${idx}"]`)?.classList.add("is-matched"));
+      found += 1;
+      const color = PAIR_COLORS[(found - 1) % PAIR_COLORS.length];
+      open.forEach((idx) => {
+        const el = cardEl(idx);
+        if (!el) return;
+        el.style.setProperty("--pair", color);
+        el.querySelector(".cg-memo__pair")!.textContent = `✓ ${found}`;
+        el.classList.add("is-matched");
+      });
       open = [];
       ctx.progress(matched.size, pairs.length);
       if (matched.size === pairs.length) ctx.win("¡Encontraste todas las parejas!");
       return;
     }
     busy = true;
+    open.forEach((idx) => cardEl(idx)?.classList.add("is-wrong"));
     setTimeout(() => {
-      open.forEach((idx) => stage.querySelector(`[data-i="${idx}"]`)?.classList.remove("is-open"));
+      open.forEach((idx) => cardEl(idx)?.classList.remove("is-open", "is-wrong"));
       open = [];
       busy = false;
-    }, 950);
+    }, 1000);
   });
 }
 

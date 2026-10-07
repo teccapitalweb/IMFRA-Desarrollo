@@ -17,16 +17,19 @@ export type GameConfig =
 
 export type GameType = GameConfig["tipo"];
 
+// Íconos dibujados (los emojis se ven distintos en cada sistema operativo).
+const svg = (paths: string) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+
 export const GAME_INFO: Record<GameType, { nombre: string; instruccion: string; icono: string }> = {
-  sopa: { nombre: "Sopa de letras", instruccion: "Encuentra los términos clave escondidos en el tablero.", icono: "🔎" },
-  crucigrama: { nombre: "Crucigrama técnico", instruccion: "Resuelve el crucigrama con las pistas de la clase.", icono: "✏️" },
-  rompecabezas: { nombre: "Rompecabezas", instruccion: "Intercambia las piezas hasta armar la imagen completa.", icono: "🧩" },
-  plano: { nombre: "Señala en el plano", instruccion: "Toca en el plano el lugar correcto para cada situación.", icono: "📐" },
-  memorama: { nombre: "Memorama", instruccion: "Encuentra cada término con su definición.", icono: "🃏" },
-  ordenar: { nombre: "Ordena el proceso", instruccion: "Acomoda los pasos en el orden correcto.", icono: "🔢" },
-  clasificar: { nombre: "Clasifica", instruccion: "Coloca cada elemento en la categoría que le corresponde.", icono: "🗂️" },
-  ahorcado: { nombre: "Adivina la palabra", instruccion: "Descubre el término técnico antes de cometer 6 errores.", icono: "🔤" },
-  completar: { nombre: "Completa la frase", instruccion: "Coloca cada palabra en el espacio correcto.", icono: "🧱" }
+  sopa: { nombre: "Sopa de letras", instruccion: "Encuentra los términos clave escondidos en el tablero.", icono: svg('<rect x="3" y="3" width="12" height="12" rx="2"/><path d="M7 3v12M11 3v12M3 7h12M3 11h12"/><circle cx="16.5" cy="16.5" r="3.6"/><path d="m19.2 19.2 2.3 2.3"/>') },
+  crucigrama: { nombre: "Crucigrama técnico", instruccion: "Resuelve el crucigrama con las pistas de la clase.", icono: svg('<path d="M3 9h6V3h6v6h6v6h-6v6H9v-6H3z"/><path d="M9 9h6v6H9z"/>') },
+  rompecabezas: { nombre: "Rompecabezas", instruccion: "Intercambia las piezas hasta armar la imagen completa.", icono: svg('<path d="M4 7h3a1 1 0 0 0 1-1V5a2 2 0 0 1 4 0v1a1 1 0 0 0 1 1h3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 1 0 4h-1a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-1a2 2 0 0 0-4 0v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a2 2 0 0 0 0-4H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1"/>') },
+  plano: { nombre: "Señala en el plano", instruccion: "Toca en el plano el lugar correcto para cada situación.", icono: svg('<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/>') },
+  memorama: { nombre: "Memorama", instruccion: "Encuentra cada término con su definición.", icono: svg('<rect x="2.5" y="6" width="10" height="14" rx="2"/><path d="M14 4.4l5.3 1.1a2 2 0 0 1 1.6 2.4l-2.3 10.9a2 2 0 0 1-2.4 1.5l-1.7-.4"/><path d="M7.5 10.5v5M5 13h5"/>') },
+  ordenar: { nombre: "Ordena el proceso", instruccion: "Acomoda los pasos en el orden correcto.", icono: svg('<path d="M10 6h11M10 12h11M10 18h11"/><path d="M4 4h1.5v4M4 8h3"/><path d="M3.5 14.5a1.6 1.6 0 0 1 3.2 0c0 1.1-3.2 2.3-3.2 3.5h3.2"/>') },
+  clasificar: { nombre: "Clasifica", instruccion: "Coloca cada elemento en la categoría que le corresponde.", icono: svg('<rect x="3" y="4" width="7.5" height="16" rx="1.8"/><rect x="13.5" y="4" width="7.5" height="16" rx="1.8"/><path d="M5.5 8.5h2.5M5.5 12h2.5M16 8.5h2.5"/>') },
+  ahorcado: { nombre: "Adivina la palabra", instruccion: "Descubre el término técnico antes de cometer 6 errores.", icono: svg('<path d="M3.5 17 7.5 6l4 11M5 13h5"/><path d="M14 17h7"/><path d="M16.5 7h2.5a1.5 1.5 0 0 1 0 3h-2.5V5.5"/>') },
+  completar: { nombre: "Completa la frase", instruccion: "Coloca cada palabra en el espacio correcto.", icono: svg('<path d="M4 6h16M4 12h4M16 12h4M4 18h10"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>') }
 };
 
 const CALIDAD: GameConfig[] = [

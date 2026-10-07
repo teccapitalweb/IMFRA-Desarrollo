@@ -5,7 +5,8 @@
 .cg-modal{width:min(980px,100%);max-height:calc(100dvh - 40px);display:flex;flex-direction:column;overflow:hidden;border-radius:22px;background:var(--surface,#fff);color:var(--text,#141414);border:1px solid var(--border,#e6e1d8);box-shadow:0 30px 80px rgba(0,0,0,.35);transform:translateY(12px) scale(.98);transition:transform .25s cubic-bezier(.2,.9,.3,1.1)}
 .cg-overlay.is-open .cg-modal{transform:none}
 .cg-head{display:flex;align-items:center;gap:14px;padding:18px 22px;border-bottom:1px solid var(--border,#e6e1d8)}
-.cg-head__icon{width:46px;height:46px;flex-shrink:0;display:grid;place-items:center;border-radius:14px;font-size:22px;background:color-mix(in srgb,var(--primary,#f59d1a) 14%,transparent)}
+.cg-head__icon{width:46px;height:46px;flex-shrink:0;display:grid;place-items:center;border-radius:14px;font-size:22px;color:var(--primary,#f59d1a);background:color-mix(in srgb,var(--primary,#f59d1a) 14%,transparent)}
+.cg-head__icon svg{width:24px;height:24px}
 .cg-head>div{flex:1;min-width:0}
 .cg-kicker{display:block;font:700 10.5px/1 "JetBrains Mono",monospace;letter-spacing:1.6px;text-transform:uppercase;color:var(--primary,#f59d1a)}
 .cg-head h2{margin:5px 0 2px;font:800 21px/1.15 "Plus Jakarta Sans",Inter,sans-serif;letter-spacing:-.4px}
@@ -123,17 +124,39 @@
 .cg-plan__label{font:800 13px Inter,sans-serif;fill:#0c6537;paint-order:stroke;stroke:#fff;stroke-width:4px;opacity:0;pointer-events:none;transition:opacity .2s ease}
 .cg-plan__label.is-visible{opacity:1}
 
-/* Memorama */
-.cg-memo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.cg-memo__card{position:relative;min-height:104px;padding:0;border:0;border-radius:14px;background:transparent;cursor:pointer;perspective:800px}
-.cg-memo__back,.cg-memo__front{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:10px 12px;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .35s ease}
-.cg-memo__back{align-items:center;background:linear-gradient(145deg,#1c1710,#3a2a12);color:var(--primary,#f59d1a);font:800 13px/1 "JetBrains Mono",monospace;letter-spacing:2px;border:1px solid rgba(245,157,26,.35)}
-.cg-memo__front{transform:rotateY(180deg);background:var(--surface,#fff);border:1px solid var(--border-2,#d5cec2);color:var(--text,#141414);font:650 12.5px/1.35 Inter,sans-serif;text-align:left}
-.cg-memo__front small{font:700 9px/1 "JetBrains Mono",monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--primary,#f59d1a)}
-.cg-memo__card--term .cg-memo__front{font:800 14.5px/1.25 "Plus Jakarta Sans",Inter,sans-serif}
-.cg-memo__card.is-open .cg-memo__back{transform:rotateY(180deg)}
-.cg-memo__card.is-open .cg-memo__front{transform:rotateY(0)}
-.cg-memo__card.is-matched .cg-memo__front{border-color:var(--success,#0f9d58);background:color-mix(in srgb,var(--success,#0f9d58) 12%,var(--surface,#fff))}
+/* Memorama · cartas con giro 3D, reverso tipo plano técnico y parejas por color */
+.cg-memo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;perspective:1100px}
+.cg-memo__card{position:relative;min-height:118px;padding:0;border:0;background:transparent;cursor:pointer;border-radius:16px;--pair:var(--success,#0f9d58)}
+.cg-memo__inner{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.3,1.25,.5,1)}
+.cg-memo__card.is-open .cg-memo__inner,.cg-memo__card.is-matched .cg-memo__inner{transform:rotateY(180deg)}
+.cg-memo__back,.cg-memo__front{position:absolute;inset:0;border-radius:16px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+.cg-memo__back{display:grid;place-content:center;justify-items:center;gap:7px;color:#ffb547;
+  background:
+    linear-gradient(rgba(255,181,71,.09) 1px,transparent 1px) 0 0/14px 14px,
+    linear-gradient(90deg,rgba(255,181,71,.09) 1px,transparent 1px) 0 0/14px 14px,
+    radial-gradient(circle at 50% 38%,rgba(245,157,26,.35),transparent 60%),
+    linear-gradient(150deg,#2a1d0d,#120d07 70%);
+  border:1px solid rgba(255,181,71,.35);box-shadow:inset 0 0 0 5px rgba(18,13,7,.6),inset 0 0 0 6px rgba(255,181,71,.22);transition:box-shadow .2s ease}
+.cg-memo__emblem{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ffd27a,#f59d1a 55%,#b86a08);color:#2a1a06;box-shadow:0 6px 16px rgba(245,157,26,.35),inset 0 1px 0 rgba(255,255,255,.5)}
+.cg-memo__emblem svg{width:26px;height:26px}
+.cg-memo__back small{font:800 10px/1 "JetBrains Mono",monospace;letter-spacing:3px;color:rgba(255,200,120,.8)}
+.cg-memo__card:not(.is-open):not(.is-matched):hover .cg-memo__inner{transform:translateY(-3px) rotateX(4deg)}
+.cg-memo__card:not(.is-open):not(.is-matched):hover .cg-memo__back{box-shadow:inset 0 0 0 5px rgba(18,13,7,.6),inset 0 0 0 6px rgba(255,181,71,.5),0 12px 26px rgba(245,157,26,.25)}
+.cg-memo__front{transform:rotateY(180deg);display:flex;flex-direction:column;justify-content:center;gap:7px;padding:14px 14px 12px;text-align:left;
+  background:var(--surface,#fff);border:1px solid var(--border-2,#d5cec2);box-shadow:0 8px 20px rgba(0,0,0,.06);transition:border-color .25s ease,box-shadow .25s ease,background .25s ease}
+.cg-memo__card--term .cg-memo__front{background:linear-gradient(160deg,color-mix(in srgb,var(--primary,#f59d1a) 12%,var(--surface,#fff)),var(--surface,#fff) 60%)}
+.cg-memo__card--def .cg-memo__front{border-left:4px solid color-mix(in srgb,var(--primary,#f59d1a) 55%,transparent)}
+.cg-memo__tag{align-self:flex-start;padding:4px 8px;border-radius:99px;font:800 9px/1 "JetBrains Mono",monospace;letter-spacing:1.3px;text-transform:uppercase;background:color-mix(in srgb,var(--primary,#f59d1a) 15%,transparent);color:color-mix(in srgb,var(--primary,#f59d1a) 80%,#5a3300)}
+.cg-memo__card--def .cg-memo__tag{background:var(--surface-2,#f1ede6);color:var(--text-3,#8a8478)}
+.cg-memo__text{color:var(--text,#141414);font:600 13px/1.38 Inter,sans-serif}
+.cg-memo__card--term .cg-memo__text{font:800 16px/1.2 "Plus Jakarta Sans",Inter,sans-serif;letter-spacing:-.2px}
+.cg-memo__pair{position:absolute;top:10px;right:10px;padding:4px 8px;border-radius:99px;font:800 10px/1 "JetBrains Mono",monospace;color:#fff;background:var(--pair);opacity:0;transform:scale(.6);transition:opacity .25s ease .2s,transform .3s cubic-bezier(.3,1.6,.5,1) .2s}
+.cg-memo__card.is-matched .cg-memo__front{border-color:var(--pair);background:color-mix(in srgb,var(--pair) 10%,var(--surface,#fff));box-shadow:0 0 0 3px color-mix(in srgb,var(--pair) 22%,transparent),0 10px 22px color-mix(in srgb,var(--pair) 18%,transparent)}
+.cg-memo__card.is-matched .cg-memo__pair{opacity:1;transform:none}
+.cg-memo__card.is-matched{animation:cgMemoMatch .5s ease .15s}
+@keyframes cgMemoMatch{40%{transform:scale(1.05)}}
+.cg-memo__card.is-wrong .cg-memo__front{border-color:var(--danger,#dc2d3f);box-shadow:0 0 0 3px color-mix(in srgb,var(--danger,#dc2d3f) 18%,transparent)}
+.cg-memo__card.is-wrong{animation:cgShake .4s ease .35s}
 
 /* Ordenar y clasificar */
 .cg-order{display:grid;gap:12px}
@@ -193,7 +216,9 @@
   .cg-lead>span{grid-column:1/-1}
   .cg-sopa,.cg-cross,.cg-puzzle{grid-template-columns:minmax(0,1fr)}
   .cg-memo{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .cg-memo__card{min-height:96px}
+  .cg-memo__card{min-height:108px}
+  .cg-memo__card--term .cg-memo__text{font-size:14px}
+  .cg-memo__text{font-size:12px}
   .cg-sort__cols{grid-template-columns:minmax(0,1fr)}
   .cg-sort__col{min-height:90px}
   .cg-hang__keys{grid-template-columns:repeat(7,minmax(0,40px))}
@@ -206,6 +231,6 @@
   .cg-memo{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (prefers-reduced-motion:reduce){
-  .cg-overlay,.cg-modal,.cg-memo__back,.cg-memo__front{transition:none}
+  .cg-overlay,.cg-modal,.cg-memo__inner,.cg-memo__front{transition:none}
   .cg-shake,.cg-plan__hit.is-wrong{animation:none}
 }

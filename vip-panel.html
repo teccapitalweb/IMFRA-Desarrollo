@@ -6145,7 +6145,11 @@ const Sections = (function(){
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'No se pudieron acreditar los créditos');
       if (data.awarded) {
-        setTimeout(() => Toast.success(`+${data.credits} Créditos IMFRA`, 'Por ganar el mini juego de la clase'), 700);
+        // Cofre animado al centro; si el módulo no cargó, basta con un aviso.
+        setTimeout(() => {
+          if (window.IMFRACoinChest) window.IMFRACoinChest.show({ amount: data.credits, total: data.balance, title: '¡Reto superado!' });
+          else Toast.success(`+${data.credits} Créditos IMFRA`, 'Por ganar el mini juego de la clase');
+        }, 650);
         window.IMFRACredits?.hydrate?.(true);
       }
     } catch (error) {
@@ -6181,7 +6185,7 @@ const Sections = (function(){
     const siguienteNum=siguiente?(siguiente.numero||sesionIdx+2):null;
     const siguienteAbierta=siguiente?claseDesbloqueada(cursoId,sesionIdx+1,sesiones):false;
     const minutos=Math.max(25,Math.round(((Number(curso.horas)||sesiones.length)*60)/Math.max(1,sesiones.length)));
-    const juegoInfo=window.IMFRAClassGames?.describe(curso.titulo,sesionIdx)||{nombre:'Mini juego de la clase',instruccion:'Pon a prueba lo que aprendiste con un reto rápido.',icono:'🎯'};
+    const juegoInfo=window.IMFRAClassGames?.describe(curso.titulo,sesionIdx)||{nombre:'Mini juego de la clase',instruccion:'Pon a prueba lo que aprendiste con un reto rápido.',icono:'<svg class="ic"><use href="#i-trophy"/></svg>'};
     const juegoGanado=!!window.IMFRAClassGames?.hasWon(String(cursoId),num);
     const conCreditosJuego=!!window.UserState?.uid&&!!curso.bunnyCollectionId;
     const juegoNota=yaVista?'Ya completaste esta clase: puedes jugarlo otra vez para repasar.':`Al ganarlo, la clase queda marcada como vista, se desbloquea la siguiente${conCreditosJuego?` y ganas ${CREDITOS_JUEGO_CLASE} Créditos IMFRA`:''}.`;
@@ -12465,11 +12469,12 @@ body{letter-spacing:-.05px}
 .lesson-summary-card h2,.lesson-game-card h2{margin:0;font:750 23px/1.18 "Plus Jakarta Sans",sans-serif;letter-spacing:-.5px}.lesson-summary-card>p,.lesson-game-card__copy p{max-width:720px;margin:10px 0 0;color:var(--text-2);font-size:13px;line-height:1.65}
 .lesson-summary-card h3{margin:25px 0 12px;font-size:13px}.lesson-concepts{display:grid;gap:0;border-top:1px solid var(--border)}.lesson-concepts>div{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}.lesson-concepts time{color:var(--primary);font:700 10px/1.4 "JetBrains Mono",monospace}.lesson-concepts span{color:var(--text-2);font-size:12px;line-height:1.45}.lesson-summary-card footer{display:flex;align-items:center;gap:8px;margin-top:19px;color:var(--text-3);font-size:10px}.lesson-summary-card footer .ic{width:15px;height:15px;color:var(--success)}
 .lesson-game-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px 20px;align-items:center;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 9%,var(--surface)),var(--surface) 52%)}
-.lesson-game-card__art{width:64px;height:64px;display:grid;place-items:center;border-radius:18px;font-size:30px;background:color-mix(in srgb,var(--primary) 14%,var(--surface-2));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 25%,transparent)}
+.lesson-game-card__art{width:64px;height:64px;display:grid;place-items:center;border-radius:18px;font-size:30px;color:var(--primary);background:color-mix(in srgb,var(--primary) 14%,var(--surface-2));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 25%,transparent)}
+.lesson-game-card__art svg{width:32px;height:32px}.lesson-side-game__icon svg{width:28px;height:28px}
 .lesson-game-card__state{align-self:start;padding:6px 11px;border-radius:99px;border:1px solid var(--border-2);color:var(--text-3);font:700 10px/1 "JetBrains Mono",monospace;text-transform:uppercase;white-space:nowrap}
 .lesson-game-card__state.is-won{border-color:color-mix(in srgb,var(--success) 50%,transparent);background:color-mix(in srgb,var(--success) 12%,transparent);color:var(--success)}
 .lesson-game-card__start{grid-column:1/-1;min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:11px;background:var(--primary);color:#15100a;font:800 13px/1 Inter,sans-serif;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}.lesson-game-card__start:hover{transform:translateY(-1px);box-shadow:0 10px 22px var(--primary-glow)}.lesson-game-card__start .ic{width:16px;height:16px}
-.lesson-side-game{display:grid;justify-items:center;gap:8px;padding:18px 5px 6px;text-align:center}.lesson-side-game__icon{width:56px;height:56px;display:grid;place-items:center;border-radius:16px;font-size:26px;background:color-mix(in srgb,var(--primary) 13%,var(--surface-2))}.lesson-side-game h3{margin:5px 0 0;font-size:15px}.lesson-side-game p{margin:0;color:var(--text-3);font-size:11px;line-height:1.5}.lesson-side-game__state{margin:6px 0;padding:6px 12px;border-radius:99px;border:1px solid var(--border);color:var(--text-3);font:700 10px/1 "JetBrains Mono",monospace;text-transform:uppercase}.lesson-side-game__state.is-won{border-color:color-mix(in srgb,var(--success) 50%,transparent);color:var(--success)}.lesson-side-game>button{width:100%;min-height:42px;border:0;border-radius:10px;background:var(--primary);color:#15100a;font-weight:800;cursor:pointer}
+.lesson-side-game{display:grid;justify-items:center;gap:8px;padding:18px 5px 6px;text-align:center}.lesson-side-game__icon{width:56px;height:56px;display:grid;place-items:center;border-radius:16px;font-size:26px;color:var(--primary);background:color-mix(in srgb,var(--primary) 13%,var(--surface-2))}.lesson-side-game h3{margin:5px 0 0;font-size:15px}.lesson-side-game p{margin:0;color:var(--text-3);font-size:11px;line-height:1.5}.lesson-side-game__state{margin:6px 0;padding:6px 12px;border-radius:99px;border:1px solid var(--border);color:var(--text-3);font:700 10px/1 "JetBrains Mono",monospace;text-transform:uppercase}.lesson-side-game__state.is-won{border-color:color-mix(in srgb,var(--success) 50%,transparent);color:var(--success)}.lesson-side-game>button{width:100%;min-height:42px;border:0;border-radius:10px;background:var(--primary);color:#15100a;font-weight:800;cursor:pointer}
 
 
 

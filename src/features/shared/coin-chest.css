@@ -1,0 +1,61 @@
+/* Cofre de créditos · aviso central temporal */
+.cc-overlay{position:fixed;inset:0;z-index:2147483300;display:grid;place-items:center;padding:16px;background:radial-gradient(circle at 50% 45%,rgba(20,14,6,.38),rgba(10,8,4,.55));backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .3s ease;cursor:pointer;font-family:Inter,system-ui,sans-serif}
+.cc-overlay.is-open{opacity:1}
+.cc-overlay.is-closing{opacity:0;transition:opacity .38s ease}
+.cc-card{position:relative;width:min(340px,100%);display:grid;justify-items:center;gap:6px;padding:20px 24px 26px;border-radius:28px;text-align:center;color:#fbf4ec;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(245,157,26,.32),transparent 62%),linear-gradient(180deg,#22190e,#140f09);
+  border:1px solid rgba(255,196,77,.45);box-shadow:0 30px 90px rgba(0,0,0,.55),0 0 0 6px rgba(245,157,26,.08);
+  transform:scale(.6) translateY(30px);opacity:0}
+.cc-overlay.is-open .cc-card{animation:ccCardIn .55s cubic-bezier(.2,1.4,.4,1) forwards}
+.cc-overlay.is-closing .cc-card{animation:ccCardOut .38s ease forwards}
+@keyframes ccCardIn{to{transform:none;opacity:1}}
+@keyframes ccCardOut{from{transform:none;opacity:1}to{transform:scale(.85) translateY(-14px);opacity:0}}
+
+.cc-stage{position:relative;width:220px;height:200px;margin-bottom:2px}
+.cc-rays{position:absolute;left:50%;top:56%;width:300px;height:300px;margin:-150px 0 0 -150px;border-radius:50%;
+  background:repeating-conic-gradient(from 0deg,rgba(255,206,92,.26) 0 10deg,transparent 10deg 26deg);
+  -webkit-mask:radial-gradient(circle,#000 18%,transparent 66%);mask:radial-gradient(circle,#000 18%,transparent 66%);
+  opacity:0;animation:ccRays 6s linear infinite,ccFadeIn .5s ease .5s forwards}
+@keyframes ccRays{to{transform:rotate(360deg)}}
+@keyframes ccFadeIn{to{opacity:1}}
+
+.cc-chest{position:absolute;left:10px;bottom:0;width:200px;height:170px;overflow:visible;filter:drop-shadow(0 10px 18px rgba(0,0,0,.4))}
+.cc-overlay.is-open .cc-chest{animation:ccChestBounce .32s ease calc(.95s) 3,ccChestIn .45s cubic-bezier(.2,1.5,.4,1) .1s backwards}
+@keyframes ccChestIn{from{transform:translateY(24px) scale(.8);opacity:0}}
+@keyframes ccChestBounce{50%{transform:scale(1.04,.95) translateY(3px)}}
+.cc-lid{transform-box:fill-box;transform-origin:50% 100%}
+.cc-pile{opacity:0;transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(.4)}
+.cc-overlay.is-open .cc-pile{animation:ccPile .5s cubic-bezier(.3,1.5,.5,1) calc(.8s + 2 * .26s) forwards}
+@keyframes ccPile{to{opacity:1;transform:none}}
+.cc-overlay.is-open .cc-lid{animation:ccLidOpen .5s cubic-bezier(.3,1.6,.5,1) .45s forwards}
+@keyframes ccLidOpen{to{transform:translate(-4px,-30px) rotate(-12deg) scaleY(.62)}}
+
+.cc-coin{position:absolute;left:50%;top:-6px;width:34px;height:34px;margin-left:calc(-17px + var(--x));opacity:0;z-index:2}
+.cc-coin svg{width:100%;height:100%;filter:drop-shadow(0 3px 4px rgba(0,0,0,.35))}
+.cc-overlay.is-open .cc-coin{animation:ccCoinDrop .62s cubic-bezier(.45,0,.75,.4) calc(.7s + var(--i) * .26s) forwards}
+@keyframes ccCoinDrop{
+  0%{opacity:0;transform:translate(0,-40px) rotateY(0) scale(.8)}
+  15%{opacity:1}
+  70%{opacity:1;transform:translate(calc(var(--x) * -.6),104px) rotateY(540deg) scale(1)}
+  100%{opacity:0;transform:translate(calc(var(--x) * -.9),118px) rotateY(720deg) scale(.6)}
+}
+
+.cc-spark{position:absolute;left:50%;top:52%;width:8px;height:8px;margin:-4px;border-radius:50%;background:#ffe08a;box-shadow:0 0 10px #ffc83d;opacity:0}
+.cc-overlay.is-open .cc-spark{animation:ccSpark .8s ease-out calc(.8s + 4 * .26s) forwards}
+@keyframes ccSpark{0%{opacity:1;transform:rotate(var(--a)) translateX(0) scale(1)}100%{opacity:0;transform:rotate(var(--a)) translateX(92px) scale(.3)}}
+
+.cc-kicker{font:700 10.5px/1 "JetBrains Mono",monospace;letter-spacing:2px;text-transform:uppercase;color:#ff9d52}
+.cc-amount{font:800 38px/1.05 "Plus Jakarta Sans",Inter,sans-serif;letter-spacing:-1px;background:linear-gradient(135deg,#ffe9a8,#f5a524 60%,#ffcf7a);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.cc-amount b{font-weight:800}
+.cc-overlay.is-open .cc-amount{animation:ccPulse .45s ease calc(.7s + 4 * .26s)}
+@keyframes ccPulse{50%{transform:scale(1.12)}}
+.cc-total{font-size:13px;color:#cdc2b5}
+.cc-total b{color:#ffd27a;font-family:"JetBrains Mono",monospace}
+
+@media (prefers-reduced-motion:reduce){
+  .cc-overlay.is-open .cc-card{animation:none;transform:none;opacity:1}
+  .cc-rays,.cc-coin,.cc-spark{display:none}
+  .cc-overlay.is-open .cc-chest,.cc-overlay.is-open .cc-amount{animation:none}
+  .cc-overlay.is-open .cc-lid{animation:none;transform:translate(-4px,-30px) rotate(-12deg) scaleY(.62)}
+  .cc-pile{opacity:1;transform:none}
+}
