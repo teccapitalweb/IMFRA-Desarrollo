@@ -70,3 +70,13 @@
 .hero-cta small{display:block;margin-top:4px;font-size:12.5px;font-weight:600;opacity:.78}
 .hero-cta svg{width:26px;height:26px;flex:none}
 @media (max-width:920px){.hero-cta{width:100%}}
+
+/* Tableta vertical: aprovechar el ancho (beneficios en 2 columnas, pasos en fila) */
+@media (min-width:600px) and (max-width:920px){
+  .auth-hero{padding:36px 40px 40px !important}
+  .hero-main,.hero-showcase,.hero-start{max-width:none}
+  .hero-features{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .hero-steps{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .hero-cta{width:min(100%,520px)}
+  .auth-hero__title{font-size:34px !important}
+}
