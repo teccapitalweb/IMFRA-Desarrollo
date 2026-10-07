@@ -3317,6 +3317,21 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
   animation:spin .8s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
+/* Curso gratis elegido por la cuenta */
+.free-course-banner{display:flex;align-items:center;gap:14px;margin:0 0 18px;padding:16px 18px;border-radius:16px;border:1px solid color-mix(in srgb,var(--success) 40%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--success) 12%,var(--surface)),var(--surface))}
+.free-course-banner__icon{width:42px;height:42px;flex-shrink:0;border-radius:12px;display:grid;place-items:center;background:var(--success);color:#0d0d0d}
+.free-course-banner strong{display:block;font:800 16px/1.25 'Plus Jakarta Sans','Inter',sans-serif}
+.free-course-banner p{margin:3px 0 0;color:var(--text-2);font-size:13px;line-height:1.5}
+.curso-card--choose-free{outline:2px solid color-mix(in srgb,var(--success) 55%,transparent);outline-offset:-2px}
+.curso-card--choose-free:hover{transform:translateY(-2px)}
+.free-course-confirm{display:grid;gap:10px}
+.free-course-confirm__cover{aspect-ratio:16/8;border-radius:12px;background:var(--surface-2) center/cover no-repeat}
+.free-course-confirm h3{margin:4px 0 0;font:800 18px/1.3 'Plus Jakarta Sans','Inter',sans-serif}
+.free-course-confirm p{margin:0;color:var(--text-2);font-size:13.5px;line-height:1.55}
+.free-course-confirm strong{color:var(--text)}
+.free-course-confirm__warn{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--text)!important;font-weight:600}
+.free-course-confirm__warn .ic{flex-shrink:0;color:var(--primary);margin-top:1px}
+@media(max-width:560px){.free-course-banner{align-items:flex-start;padding:14px}}
 </style>
 <link rel="stylesheet" href="./src/styles/tokens.css">
 </head>
@@ -3525,6 +3540,9 @@ if (window.__isDemoMode) {
         window.memberData = null;
       }
     }
+
+    // Curso gratis elegido (o pendiente de elegir) · no bloquea el arranque del panel.
+    try { window.__cargarCursoGratis && window.__cargarCursoGratis(); } catch(e) {}
 
     // ─── Nombre canónico · UNA sola fuente para dashboard, splash y certificados ───
     // Prioridad: nombre guardado en Firestore (registro) → displayName Auth → local → correo
@@ -4595,6 +4613,8 @@ const Sections = (function(){
 
   // Array global de cursos cargados desde Firestore
   let cursos = [];
+  // Curso gratis elegido por la cuenta (ver cargarCursoGratisEstado).
+  const cursoGratisEstado = { cargado: false, error: false, elegido: null, elegible: false };
   let _cursosLoaded = false;
   let _cursosLoading = false;
 
@@ -4696,7 +4716,13 @@ const Sections = (function(){
 
   function asignarDiasDesbloqueoCursos(lista){
     let turno = 0;
-    (Array.isArray(lista) ? lista : []).forEach(curso => {
+    // El curso gratis elegido abre primero también al activar la membresía;
+    // el resto conserva el orden del catálogo (mismo criterio que el servidor).
+    const ordenados = (Array.isArray(lista) ? lista : []).slice();
+    const elegido = cursoGratisEstado.elegido;
+    const indiceElegido = elegido ? ordenados.findIndex(curso => curso?.bunnyCollectionId === elegido) : -1;
+    if (indiceElegido > 0) ordenados.unshift(ordenados.splice(indiceElegido, 1)[0]);
+    ordenados.forEach(curso => {
       if (curso?.marcarProximamente === true) {
         curso._unlockDay = Number.POSITIVE_INFINITY;
         return;
@@ -4793,15 +4819,140 @@ const Sections = (function(){
     return p[cursoId];
   };
 
-  function primerCursoGratisId() {
-    const primero = cursos.find(c =>
+  // ─── Curso gratis elegido por cada cuenta ───
+  // Una cuenta sin membresía elige UN curso para su prueba gratuita; el
+  // servidor guarda la elección una sola vez y autoriza solo esos videos.
+  // Sin sesión (modo demo) o si el servidor no responde, se conserva la
+  // muestra del primer curso publicado.
+
+  function cursoPuedeSerGratis(c) {
+    return !!c &&
       c.activo !== false &&
       c.publicado !== false &&
       c.marcarProximamente !== true &&
       Array.isArray(c.sesiones) &&
-      c.sesiones.some(s => s?.videoId)
-    );
+      c.sesiones.some(s => s?.videoId);
+  }
+
+  function primerCursoPublicadoId() {
+    const primero = cursos.find(cursoPuedeSerGratis);
     return primero ? String(primero.id) : '';
+  }
+
+  function cursoElegidoComoGratis() {
+    const clave = cursoGratisEstado.elegido;
+    return clave ? (cursos.find(c => c.bunnyCollectionId === clave && cursoPuedeSerGratis(c)) || null) : null;
+  }
+
+  function primerCursoGratisId() {
+    const elegido = cursoElegidoComoGratis();
+    if (elegido) return String(elegido.id);
+    if (!window.UserState?.uid || cursoGratisEstado.error) return primerCursoPublicadoId();
+    return '';
+  }
+
+  // true mientras una cuenta sin membresía todavía no elige su curso gratis.
+  function cursoGratisPendiente() {
+    return !!window.UserState?.uid &&
+      window.UserState?.modo !== 'vip' &&
+      !esAdminReal() &&
+      cursoGratisEstado.cargado &&
+      cursoGratisEstado.elegible &&
+      !cursoGratisEstado.elegido;
+  }
+
+  // Mientras no sabemos qué curso eligió una cuenta sin membresía, evitamos
+  // mostrarle un aviso de pago falso al abrir un curso o una clase.
+  function esperandoCursoGratis() {
+    return !!window.UserState?.uid && window.UserState?.modo !== 'vip' && !esAdminReal() && !cursoGratisEstado.cargado;
+  }
+  const HTML_ESPERA_CURSO_GRATIS = '<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Preparando tu acceso…</strong></div>';
+
+  function refrescarVistaCursos() {
+    const hash = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+    if (hash === 'cursos' && document.getElementById('cur-list')) { renderCursosList(); return; }
+    if (/^curso\/[^/]+(\/clase\/\d+)?$/.test(hash)) navigateToSection(hash, { reemplazar: true });
+  }
+
+  async function cargarCursoGratisEstado() {
+    const user = window.__currentUser;
+    if (!user || esAdminReal()) {
+      cursoGratisEstado.cargado = true;
+      return cursoGratisEstado;
+    }
+    try {
+      const token = await user.getIdToken();
+      const response = await fetch(`${window.WEBHOOK_URL}/api/bunny/free-course`, {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'No pudimos leer tu curso gratis');
+      cursoGratisEstado.elegido = data.elegido || null;
+      cursoGratisEstado.elegible = data.elegible === true;
+      cursoGratisEstado.error = false;
+    } catch (error) {
+      console.warn('[curso gratis]', error.message);
+      cursoGratisEstado.error = true;
+    }
+    cursoGratisEstado.cargado = true;
+    asignarDiasDesbloqueoCursos(cursos);
+    refrescarVistaCursos();
+    const bannerText = document.getElementById('fomo-banner-text');
+    if (bannerText && window.UserState?.modo === 'sin-membresia') bannerText.innerHTML = textoOfertaGratis();
+    return cursoGratisEstado;
+  }
+  window.__cargarCursoGratis = cargarCursoGratisEstado;
+
+  function confirmarCursoGratis(curso) {
+    if (!curso || !cursoGratisPendiente()) return;
+    const gratis = cantidadClasesGratis(curso.sesiones?.length || 0);
+    const footer = document.createElement('div');
+    footer.innerHTML = `<button type="button" class="btn btn--ghost" data-free-no>No, ver otros cursos</button><button type="button" class="btn btn--accent" data-free-yes>Sí, es mi curso gratis</button>`;
+    const modal = Modal.open({
+      id: 'curso-gratis-confirmar',
+      title: '¿Seguro que deseas este curso?',
+      subtitle: 'Tu curso gratis',
+      icon: 'i-play',
+      size: 'sm',
+      body: `<div class="free-course-confirm">
+        <div class="free-course-confirm__cover" style="background-image:url('${String(curso.portada || PORTADA_DEFAULT).replace(/'/g, '%27')}')"></div>
+        <h3>${escapeHtml(curso.titulo)}</h3>
+        <p>Será tu curso gratis: podrás ver sus primeras <strong>${gratis} clase${gratis !== 1 ? 's' : ''}</strong>, una tras otra, y su primer material.</p>
+        <p class="free-course-confirm__warn"><svg class="ic"><use href="#i-shield-check"/></svg>Solo puedes elegir uno y después no se puede cambiar.</p>
+      </div>`,
+      footer
+    });
+    footer.querySelector('[data-free-no]').addEventListener('click', () => modal.close());
+    footer.querySelector('[data-free-yes]').addEventListener('click', async event => {
+      const boton = event.currentTarget;
+      boton.disabled = true;
+      boton.textContent = 'Guardando…';
+      try {
+        const token = await window.__currentUser.getIdToken();
+        const response = await fetch(`${window.WEBHOOK_URL}/api/bunny/free-course`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ collectionId: curso.bunnyCollectionId })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok && !data.elegido) throw new Error(data.error || 'No se pudo guardar tu elección');
+        cursoGratisEstado.elegido = data.elegido || curso.bunnyCollectionId;
+        cursoGratisEstado.elegible = false;
+        asignarDiasDesbloqueoCursos(cursos);
+        modal.close();
+        const bannerText = document.getElementById('fomo-banner-text');
+        if (bannerText) bannerText.innerHTML = textoOfertaGratis();
+        const elegido = cursoElegidoComoGratis();
+        Toast.success('¡Listo! Ya tienes tu curso gratis', elegido ? elegido.titulo : curso.titulo);
+        window.IMFRACelebrate?.('normal');
+        navigateToSection('curso/' + encodeURIComponent(String(elegido ? elegido.id : curso.id)));
+      } catch (error) {
+        Toast.error('No se pudo guardar', error.message || 'Intenta de nuevo');
+        boton.disabled = false;
+        boton.textContent = 'Sí, es mi curso gratis';
+      }
+    });
   }
 
   // Tope de clases gratis del primer curso, para dar una muestra real sin
@@ -4816,6 +4967,9 @@ const Sections = (function(){
   }
 
   function textoOfertaGratis() {
+    if (cursoGratisPendiente()) {
+      return `<strong>Elige tu curso gratis.</strong> Ve a Mis cursos y escoge el que más te interese para ver sus primeras clases sin costo.`;
+    }
     const primero = cursos.find(c => String(c.id) === primerCursoGratisId());
     const gratis = cantidadClasesGratis(primero?.sesiones?.length || 0);
     const clases = gratis > 0
@@ -4851,8 +5005,15 @@ const Sections = (function(){
   // curso; cada siguiente abre al marcar como vista la anterior.
   function motivoBloqueoClase(cursoId, indexClase, sesiones) {
     if (esAdminReal()) return null;
-    if (esClaseGratisGlobal(cursoId, indexClase, sesiones)) return null;
-    if (window.UserState?.modo !== 'vip') return { tipo: 'membresia' };
+    if (window.UserState?.modo !== 'vip') {
+      if (!esClaseGratisGlobal(cursoId, indexClase, sesiones)) return { tipo: 'membresia' };
+      // Las clases gratis también se abren en orden: cada una al terminar la anterior.
+      if (indexClase === 0) return null;
+      const listaGratis = Array.isArray(sesiones) ? sesiones : [];
+      const prevGratis = listaGratis[indexClase - 1];
+      const numPrevGratis = (prevGratis && prevGratis.numero) || indexClase;
+      return getProgresoCurso(cursoId).clasesVistas.includes(numPrevGratis) ? null : { tipo: 'secuencia', numPrev: numPrevGratis };
+    }
     const curso = cursos.find(c => String(c.id) === String(cursoId));
     const indexCurso = cursos.findIndex(c => String(c.id) === String(cursoId));
     if (!curso || !cursoDesbloqueado(indexCurso, curso)) {
@@ -5178,6 +5339,10 @@ const Sections = (function(){
       Toast.info('Primero termina la clase anterior', `Marca como vista la clase ${motivoClase.numPrev} para abrir esta.`);
       return;
     }
+    if (motivoClase && cursoGratisPendiente() && cursoPuedeSerGratis(curso)) {
+      confirmarCursoGratis(curso);
+      return;
+    }
     if (motivoClase) {
       const totalMateriales = Array.isArray(curso.materiales) ? curso.materiales.length : 0;
       const diasFaltan = diasParaDesbloquearClase(cursoId, sesionIdx, curso.sesiones);
@@ -5492,6 +5657,7 @@ const Sections = (function(){
           : (Array.isArray(data.sesiones) ? data.sesiones : []);
         return {
           id: d?.id || `bunny-${bunny?.collectionId || i + 1}`,
+          bunnyCollectionId: bunny?.collectionId || data.bunnyCollectionId || '',
           titulo,
           descripcion,
           desc: descripcion,
@@ -5528,6 +5694,7 @@ const Sections = (function(){
         const sesiones = sesionesConBunny(bunny.titulo, [], bunny.collectionId);
         return {
           id: `bunny-${bunny.collectionId || i + 1}`,
+          bunnyCollectionId: bunny.collectionId || '',
           titulo: bunny.titulo || 'Sin título',
           descripcion: bunny.descripcion || '',
           desc: bunny.descripcion || '',
@@ -5811,21 +5978,29 @@ const Sections = (function(){
       list.innerHTML=`<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Sin resultados</h3><p>Cambia el filtro o búsqueda para ver más cursos.</p></div>`;
       return;
     }
-    list.innerHTML=`<div class="cursos-grid">${items.map((c, idx)=>{
+    const eligiendoGratis = cursoGratisPendiente();
+    const gratisMax = Math.max(0, ...cursos.filter(cursoPuedeSerGratis).map(c => cantidadClasesGratis(c.sesiones.length)));
+    const bannerGratis = eligiendoGratis ? `<section class="free-course-banner">
+        <span class="free-course-banner__icon"><svg class="ic"><use href="#i-play"/></svg></span>
+        <div><strong>Elige tu curso gratis</strong><p>Toca el curso que más te interese: verás gratis sus primeras ${gratisMax || 4} clases. Solo puedes elegir uno.</p></div>
+      </section>` : '';
+    list.innerHTML=`${bannerGratis}<div class="cursos-grid">${items.map((c, idx)=>{
       const cursoIdx = cursos.findIndex(x => x.id === c.id);
       const desbloqueado = cursoDesbloqueado(cursoIdx, c);
+      const elegibleGratis = eligiendoGratis && cursoPuedeSerGratis(c);
       const diasFalta = diasParaDesbloquear(cursoIdx, c);
       const portada = c.portada || PORTADA_DEFAULT;
       const etiquetaBloqueo = window.UserState?.modo === 'vip' && Number.isFinite(diasFalta)
         ? `Se desbloquea en ${diasFalta} día${diasFalta!==1?'s':''}`
         : 'Solo miembros';
       return `
-      <article class="curso-card ${!desbloqueado?'curso-card--locked':''}" data-cid="${c.id}" ${!desbloqueado?'data-locked="true"':''} tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#F59D1A'};">
+      <article class="curso-card ${!desbloqueado&&!elegibleGratis?'curso-card--locked':''} ${elegibleGratis?'curso-card--choose-free':''}" data-cid="${c.id}" ${!desbloqueado&&!elegibleGratis?'data-locked="true"':''} tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#F59D1A'};">
         <div class="curso-card__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)),url('${portada}');background-size:cover;background-position:center;">
           <svg class="ic" style="opacity:.85;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"><use href="#${ICON_AREA[c.area]||'i-book'}"/></svg>
           ${c.disponibleSiempre && desbloqueado && toolEsVIP() ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0D0D0D;">DISPONIBLE</span>' : ''}
           ${!toolEsVIP() && String(c.id) === primerCursoGratisId() && c.sesiones?.length ? `<span class="curso-card__cover-badge curso-card__cover-badge--free" style="background:var(--success);left:12px;right:auto;">${cantidadClasesGratis(c.sesiones.length)} CLASE${cantidadClasesGratis(c.sesiones.length)!==1?'S':''} GRATIS</span>` : ''}
-          ${!desbloqueado ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.9);color:var(--primary);border:1px solid var(--primary);">ACCESO VIP · ${etiquetaBloqueo}</span>` : ''}
+          ${elegibleGratis ? `<span class="curso-card__cover-badge curso-card__cover-badge--free" style="background:var(--success);left:12px;right:auto;">ELÍGELO GRATIS · ${cantidadClasesGratis(c.sesiones.length)} CLASES</span>` : ''}
+          ${!desbloqueado && !elegibleGratis ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.9);color:var(--primary);border:1px solid var(--primary);">ACCESO VIP · ${etiquetaBloqueo}</span>` : ''}
         </div>
         <div class="curso-card__body">
           <div class="curso-card__tags">
@@ -5841,7 +6016,7 @@ const Sections = (function(){
             ${_materialesDelCurso(c.id).length ? `<span><svg class="ic"><use href="#i-news"/></svg>${_materialesDelCurso(c.id).length} material${_materialesDelCurso(c.id).length!==1?'es':''}</span>` : ''}
           </div>
         </div>
-        ${!desbloqueado ? `<div class="lock-overlay" aria-hidden="true">
+        ${!desbloqueado && !elegibleGratis ? `<div class="lock-overlay" aria-hidden="true">
           <div class="lock-overlay__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
           <div class="lock-overlay__txt">${etiquetaBloqueo}</div>
         </div>` : ''}
@@ -5910,46 +6085,12 @@ const Sections = (function(){
       { tiempo:'06:20', texto:`Criterios técnicos y documentación de ${area.toLowerCase()}` },
       { tiempo:'10:40', texto:'Verificación, evidencia y errores frecuentes en obra' }
     ];
-    const preguntas = [
-      {
-        texto:`¿Cuál es la práctica más adecuada al aplicar “${titulo}” en una obra?`,
-        opciones:[
-          'Definir el criterio, registrar la evidencia y verificar el resultado',
-          'Resolverlo únicamente de manera verbal con la cuadrilla',
-          'Esperar al cierre de la obra para documentarlo'
-        ],
-        correcta:0,
-        explicacion:'La trazabilidad exige un criterio definido, evidencia verificable y una revisión del resultado; así la decisión puede auditarse y corregirse a tiempo.'
-      },
-      {
-        texto:'¿Qué evidencia ofrece mayor trazabilidad para el control de obra?',
-        opciones:[
-          'Un comentario informal sin fecha ni responsable',
-          'Un registro fechado, con responsable, ubicación y soporte técnico',
-          'Una fotografía aislada sin referencia al concepto ejecutado'
-        ],
-        correcta:1,
-        explicacion:'Un registro completo vincula la actividad con fecha, responsable, ubicación y soporte; una evidencia aislada no permite comprobar el proceso.'
-      }
-    ];
-    return { titulo, resumen, conceptos, preguntas };
+    return { titulo, resumen, conceptos };
   }
 
   function claveNotasClase(cursoId, numeroClase){
     const cuenta = window.UserState?.uid || window.UserState?.email || 'guest';
     return `imfra:v2:lesson-notes:${cuenta}:${cursoId}:${numeroClase}`;
-  }
-
-  function claveQuizClase(cursoId, numeroClase){
-    const cuenta = window.UserState?.uid || window.UserState?.email || 'guest';
-    return `imfra:v2:lesson-quiz:${cuenta}:${cursoId}:${numeroClase}`;
-  }
-
-  function estadoQuizClase(cursoId, numeroClase){
-    try {
-      const estado = JSON.parse(localStorage.getItem(claveQuizClase(cursoId, numeroClase)) || '{}');
-      return { mejor:Math.max(0,Number(estado.mejor)||0), intentos:Math.max(0,Number(estado.intentos)||0) };
-    } catch(e){ return { mejor:0, intentos:0 }; }
   }
 
   async function montarVideoClase(curso, sesion, sesionIdx, container){
@@ -5988,56 +6129,6 @@ const Sections = (function(){
     }
   }
 
-  function iniciarQuizClase(curso, sesion, sesionIdx, container){
-    const numeroClase = sesion.numero || sesionIdx + 1;
-    const contenido = contenidoClaseEditorial(curso,sesion,sesionIdx);
-    const host = container.querySelector('[data-lesson-challenge]');
-    if (!host) return;
-    let indice=0;
-    let aciertos=0;
-
-    const terminar=()=>{
-      const porcentaje=Math.round((aciertos/contenido.preguntas.length)*100);
-      const previo=estadoQuizClase(curso.id,numeroClase);
-      const estado={mejor:Math.max(previo.mejor,porcentaje),intentos:previo.intentos+1};
-      try{localStorage.setItem(claveQuizClase(curso.id,numeroClase),JSON.stringify(estado));}catch(e){}
-      host.innerHTML=`<div class="lesson-quiz-result ${porcentaje>=70?'is-pass':'is-retry'}">
-        <span class="lesson-quiz-result__score">${porcentaje}%</span>
-        <div><small>${porcentaje>=70?'Reto aprobado':'Sigue reforzando'}</small><h3>${porcentaje>=70?'Buen criterio técnico':'Repasa la explicación e inténtalo otra vez'}</h3><p>${aciertos} de ${contenido.preguntas.length} respuestas correctas · mejor resultado ${estado.mejor}%</p></div>
-        <button type="button" class="lesson-quiz-result__retry">${porcentaje>=70?'Repetir reto':'Intentar de nuevo'}</button>
-      </div>`;
-      host.querySelector('.lesson-quiz-result__retry')?.addEventListener('click',()=>iniciarQuizClase(curso,sesion,sesionIdx,container));
-      container.querySelectorAll('[data-lesson-quiz-summary]').forEach(sidebarQuiz=>{sidebarQuiz.innerHTML=`<strong>${estado.mejor}%</strong><span>Mejor resultado · ${estado.intentos} intento${estado.intentos!==1?'s':''}</span>`;});
-    };
-
-    const mostrarPregunta=()=>{
-      const pregunta=contenido.preguntas[indice];
-      host.innerHTML=`<div class="lesson-quiz-live">
-        <div class="lesson-quiz-live__head"><span>Pregunta ${indice+1} de ${contenido.preguntas.length}</span><b>${Math.round(indice/contenido.preguntas.length*100)}%</b></div>
-        <div class="lesson-quiz-live__bar"><i style="width:${indice/contenido.preguntas.length*100}%"></i></div>
-        <h3>${escapeHtml(pregunta.texto)}</h3>
-        <div class="lesson-quiz-options">${pregunta.opciones.map((opcion,i)=>`<button type="button" data-answer="${i}"><span>${String.fromCharCode(65+i)}</span>${escapeHtml(opcion)}</button>`).join('')}</div>
-        <div class="lesson-quiz-feedback" hidden></div>
-      </div>`;
-      host.querySelectorAll('[data-answer]').forEach(boton=>boton.addEventListener('click',()=>{
-        const elegida=Number(boton.dataset.answer);
-        const correcta=elegida===pregunta.correcta;
-        if(correcta) aciertos+=1;
-        host.querySelectorAll('[data-answer]').forEach((item,i)=>{
-          item.disabled=true;
-          if(i===pregunta.correcta)item.classList.add('is-correct');
-          else if(i===elegida)item.classList.add('is-wrong');
-        });
-        const feedback=host.querySelector('.lesson-quiz-feedback');
-        feedback.hidden=false;
-        feedback.innerHTML=`<div><strong>${correcta?'Correcto':'Revisa este criterio'}</strong><p>${escapeHtml(pregunta.explicacion)}</p></div><button type="button">${indice===contenido.preguntas.length-1?'Ver resultado':'Siguiente pregunta'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>`;
-        feedback.querySelector('button')?.addEventListener('click',()=>{indice+=1;if(indice>=contenido.preguntas.length)terminar();else mostrarPregunta();});
-      }));
-    };
-    mostrarPregunta();
-    host.scrollIntoView({behavior:'smooth',block:'center'});
-  }
-
   function renderClaseDetalle(cursoId, numeroClase, container){
     const curso=cursos.find(x=>String(x.id)===String(cursoId));
     if(!curso){
@@ -6049,6 +6140,7 @@ const Sections = (function(){
     const sesionIdx=sesiones.findIndex((s,i)=>(s.numero||i+1)===Number(numeroClase));
     const sesion=sesiones[sesionIdx];
     if(!sesion){navigateToSection('curso/'+encodeURIComponent(String(cursoId)));return;}
+    if(esperandoCursoGratis()){container.innerHTML=HTML_ESPERA_CURSO_GRATIS;return;}
     const motivo=motivoBloqueoClase(cursoId,sesionIdx,sesiones);
     if(motivo){
       if(motivo.tipo==='secuencia')Toast.info('Primero termina la clase anterior',`Marca como vista la clase ${motivo.numPrev} para abrir esta.`);
@@ -6065,7 +6157,9 @@ const Sections = (function(){
     const siguienteNum=siguiente?(siguiente.numero||sesionIdx+2):null;
     const siguienteAbierta=siguiente?claseDesbloqueada(cursoId,sesionIdx+1,sesiones):false;
     const minutos=Math.max(25,Math.round(((Number(curso.horas)||sesiones.length)*60)/Math.max(1,sesiones.length)));
-    const quizState=estadoQuizClase(cursoId,num);
+    const juegoInfo=window.IMFRAClassGames?.describe(curso.titulo,sesionIdx)||{nombre:'Mini juego de la clase',instruccion:'Pon a prueba lo que aprendiste con un reto rápido.',icono:'🎯'};
+    const juegoGanado=!!window.IMFRAClassGames?.hasWon(String(cursoId),num);
+    const juegoNota=yaVista?'Ya completaste esta clase: puedes jugarlo otra vez para repasar.':'Al ganarlo, la clase queda marcada como vista y se desbloquea la siguiente.';
     let notas='';try{notas=localStorage.getItem(claveNotasClase(cursoId,num))||'';}catch(e){}
 
     const temarioHtml=sesiones.map((item,i)=>{
@@ -6077,10 +6171,10 @@ const Sections = (function(){
       </button>`;
     }).join('');
     const panelEstudioHtml=(variante='')=>`<aside class="lesson-side ${variante}">
-      <div class="lesson-side__tabs" role="tablist"><button class="is-active" type="button" data-lesson-tab="temario">Temario</button><button type="button" data-lesson-tab="notas">Notas</button><button type="button" data-lesson-tab="quiz">Quiz</button></div>
+      <div class="lesson-side__tabs" role="tablist"><button class="is-active" type="button" data-lesson-tab="temario">Temario</button><button type="button" data-lesson-tab="notas">Notas</button><button type="button" data-lesson-tab="juego">Juego</button></div>
       <div class="lesson-side__panel is-active" data-lesson-panel="temario"><div class="lesson-outline">${temarioHtml}</div></div>
       <div class="lesson-side__panel" data-lesson-panel="notas"><label class="lesson-notes"><span>Tus notas de la clase</span><textarea data-lesson-notes placeholder="Escribe ideas, criterios o pendientes para tu obra…">${escapeHtml(notas)}</textarea><small data-notes-state>Se guardan automáticamente en este dispositivo.</small></label></div>
-      <div class="lesson-side__panel" data-lesson-panel="quiz"><div class="lesson-side-quiz"><span class="lesson-side-quiz__icon"><svg class="ic"><use href="#i-trophy"/></svg></span><h3>Reto de la clase</h3><p>Dos preguntas con explicación técnica inmediata.</p><div data-lesson-quiz-summary><strong>${quizState.intentos?quizState.mejor+'%':'—'}</strong><span>${quizState.intentos?`Mejor resultado · ${quizState.intentos} intento${quizState.intentos!==1?'s':''}`:'Aún no lo has intentado'}</span></div><button type="button" data-lesson-quiz-side>Comenzar reto</button></div></div>
+      <div class="lesson-side__panel" data-lesson-panel="juego"><div class="lesson-side-game"><span class="lesson-side-game__icon" aria-hidden="true">${juegoInfo.icono}</span><h3>${escapeHtml(juegoInfo.nombre)}</h3><p>${escapeHtml(juegoInfo.instruccion)}</p><div class="lesson-side-game__state ${juegoGanado?'is-won':''}">${juegoGanado?'✓ Ganado':(yaVista?'Clase completada':'Pendiente')}</div><button type="button" data-lesson-game-start>${yaVista?'Jugar de nuevo':'Jugar y completar'}</button></div></div>
     </aside>`;
 
     container.innerHTML=`<div class="fade-up lesson-page">
@@ -6104,11 +6198,11 @@ const Sections = (function(){
             <footer><svg class="ic"><use href="#i-shield-check"/></svg>Material revisado por el equipo técnico de IMFRA</footer>
           </section>
 
-          <section class="lesson-challenge-card" data-lesson-challenge>
-            <div class="lesson-challenge-card__intro"><span class="lesson-section-kicker">Reto de la clase</span><h2>Pon a prueba lo que aprendiste</h2><p>Responde con calma. Después de cada pregunta recibirás una explicación para reforzar el criterio técnico.</p></div>
-            <div class="lesson-challenge-card__stats"><div><strong>2</strong><span>preguntas</span></div><div><strong>2 min</strong><span>aproximadamente</span></div><div><strong>70%</strong><span>para aprobar</span></div></div>
-            <div class="lesson-challenge-card__best"><span>Tu mejor resultado</span><strong>${quizState.intentos?`${quizState.mejor}% · ${quizState.intentos} intento${quizState.intentos!==1?'s':''}`:'Sin intentos todavía'}</strong></div>
-            <button type="button" class="lesson-challenge-card__start" data-lesson-quiz-start>Comenzar reto<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          <section class="lesson-game-card" data-lesson-game>
+            <span class="lesson-game-card__art" aria-hidden="true">${juegoInfo.icono}</span>
+            <div class="lesson-game-card__copy"><span class="lesson-section-kicker">Mini juego de la clase</span><h2>${escapeHtml(juegoInfo.nombre)}</h2><p>${escapeHtml(juegoInfo.instruccion)} ${juegoNota}</p></div>
+            <span class="lesson-game-card__state ${juegoGanado?'is-won':''}">${juegoGanado?'✓ Ganado':(yaVista?'Completada':'Pendiente')}</span>
+            <button type="button" class="lesson-game-card__start" data-lesson-game-start>${yaVista?'Jugar de nuevo':'Jugar y completar la clase'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </section>
         </main>
 
@@ -6124,16 +6218,31 @@ const Sections = (function(){
     container.querySelectorAll('[data-lesson-open]').forEach(item=>item.addEventListener('click',()=>window.abrirClaseIMFRA(cursoId,Number(item.dataset.lessonOpen))));
     let notaTimer=0;
     container.querySelectorAll('[data-lesson-notes]').forEach(nota=>nota.addEventListener('input',()=>{container.querySelectorAll('[data-notes-state]').forEach(estado=>estado.textContent='Guardando…');clearTimeout(notaTimer);notaTimer=setTimeout(()=>{try{localStorage.setItem(claveNotasClase(cursoId,num),nota.value);}catch(e){}container.querySelectorAll('[data-lesson-notes]').forEach(copia=>{if(copia!==nota)copia.value=nota.value;});container.querySelectorAll('[data-notes-state]').forEach(estado=>estado.textContent='Guardado en este dispositivo.');},350);}));
-    const comenzarQuiz=()=>iniciarQuizClase(curso,sesion,sesionIdx,container);
-    container.querySelector('[data-lesson-quiz-start]')?.addEventListener('click',comenzarQuiz);
-    container.querySelectorAll('[data-lesson-quiz-side]').forEach(boton=>boton.addEventListener('click',comenzarQuiz));
     const irSiguiente=()=>{if(siguiente)navigateToSection(`curso/${encodeURIComponent(String(cursoId))}/clase/${siguienteNum}`);else navigateToSection('curso/'+encodeURIComponent(String(cursoId)));};
-    container.querySelector('[data-lesson-next]')?.addEventListener('click',irSiguiente);
-    container.querySelector('[data-lesson-complete]')?.addEventListener('click',()=>{
-      if(yaVista){irSiguiente();return;}
+    const completarClase=()=>{
       window.marcarClaseVista(cursoId,num);
       Toast.success('Clase marcada como vista',siguiente?`Clase ${siguienteNum} desbloqueada`:'Curso completado');
       setTimeout(irSiguiente,450);
+    };
+    // Cada clase se completa ganando su mini juego. Ya vista, el juego queda como práctica.
+    let jugando=false;
+    const jugarClase=async()=>{
+      if(jugando)return;
+      const juegos=window.IMFRAClassGames;
+      if(!juegos){if(!yaVista)completarClase();return;}
+      jugando=true;
+      try{
+        const ganado=await juegos.play({cursoId:String(cursoId),cursoTitulo:curso.titulo,claseIndex:sesionIdx,claseNumero:num,claseTitulo:contenido.titulo,portada:curso.portada||PORTADA_DEFAULT,practica:yaVista});
+        if(!ganado||!container.isConnected)return;
+        if(!yaVista){completarClase();return;}
+        container.querySelectorAll('.lesson-game-card__state,.lesson-side-game__state').forEach(el=>{el.classList.add('is-won');el.textContent='✓ Ganado';});
+      }finally{jugando=false;}
+    };
+    container.querySelectorAll('[data-lesson-game-start]').forEach(boton=>boton.addEventListener('click',jugarClase));
+    container.querySelector('[data-lesson-next]')?.addEventListener('click',irSiguiente);
+    container.querySelector('[data-lesson-complete]')?.addEventListener('click',()=>{
+      if(yaVista){irSiguiente();return;}
+      jugarClase();
     });
     void montarVideoClase(curso,sesion,sesionIdx,container);
   }
@@ -6149,9 +6258,17 @@ const Sections = (function(){
       }
       return;
     }
+    if (container && esperandoCursoGratis()) { container.innerHTML = HTML_ESPERA_CURSO_GRATIS; return; }
     const cursoIdx = cursos.findIndex(x => String(x.id) === String(id));
     const desbloqueado = cursoDesbloqueado(cursoIdx, c);
     const diasFalta = diasParaDesbloquear(cursoIdx, c);
+
+    if (!desbloqueado && cursoGratisPendiente() && cursoPuedeSerGratis(c)) {
+      // Aún no elige su curso gratis: le ofrecemos este y lo regresamos al catálogo.
+      if (container) setTimeout(() => navigateToSection('cursos', { reemplazar: true }), 0);
+      confirmarCursoGratis(c);
+      return;
+    }
 
     if (!desbloqueado && window.UserState?.modo !== 'vip') {
       window.__showPaywallModal?.({
@@ -6188,7 +6305,8 @@ const Sections = (function(){
       const estadoClase = vista ? 'Clase completada' : abierta ? (gratis ? 'Acceso gratuito' : 'Disponible ahora') : 'Próxima clase';
       const detalle = vista ? 'Completada · vuelve a verla cuando quieras'
         : abierta ? (gratis ? 'Clase gratuita · lista para comenzar' : 'Disponible ahora')
-        : motivo?.tipo === 'secuencia' ? `Completa primero la clase ${motivo.numPrev}` : 'Contenido bloqueado';
+        : motivo?.tipo === 'secuencia' ? `Completa primero la clase ${motivo.numPrev}`
+        : motivo?.tipo === 'membresia' ? 'Activa tu membresía para ver esta clase' : 'Contenido bloqueado';
       return `<button type="button" class="course-lesson ${vista?'is-complete':''} ${!abierta?'is-locked':''}" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
         <span class="course-lesson__cover" style="background-image:linear-gradient(135deg,rgba(10,10,9,.16),rgba(10,10,9,.68)),url('${portadaClase}');background-position:center ${enfoqueClase}%">
           <b>${String(numSes).padStart(2,'0')}</b><span><svg class="ic"><use href="#${vista?'i-check':abierta?'i-play':'i-shield-check'}"/></svg></span>
@@ -12318,22 +12436,27 @@ body{letter-spacing:-.05px}
 .lesson-next:disabled{cursor:not-allowed;opacity:.58}.lesson-next.is-ready:hover{border-color:var(--border-strong);background:var(--surface-2)}
 .lesson-next__thumb{width:118px;height:70px;flex:0 0 118px;border-radius:9px;background-size:cover;background-position:center}.lesson-next>span:nth-child(2){display:grid;gap:4px;min-width:0;flex:1}.lesson-next small{color:var(--primary);font:700 8px/1 "JetBrains Mono",monospace;letter-spacing:1.2px;text-transform:uppercase}.lesson-next strong{font-size:13px}.lesson-next em{color:var(--text-3);font-size:10px;font-style:normal}.lesson-next>.ic{width:18px;height:18px;color:var(--text-3)}
 .lesson-section-kicker{display:block;margin-bottom:8px;color:var(--primary);font:700 9px/1 "JetBrains Mono",monospace;letter-spacing:1.5px;text-transform:uppercase}
-.lesson-summary-card,.lesson-challenge-card{padding:26px;border:1px solid var(--border);border-radius:17px;background:var(--surface)}
-.lesson-summary-card h2,.lesson-challenge-card h2{margin:0;font:750 23px/1.18 "Plus Jakarta Sans",sans-serif;letter-spacing:-.5px}.lesson-summary-card>p,.lesson-challenge-card__intro p{max-width:720px;margin:10px 0 0;color:var(--text-2);font-size:13px;line-height:1.65}
+.lesson-summary-card,.lesson-game-card{padding:26px;border:1px solid var(--border);border-radius:17px;background:var(--surface)}
+.lesson-summary-card h2,.lesson-game-card h2{margin:0;font:750 23px/1.18 "Plus Jakarta Sans",sans-serif;letter-spacing:-.5px}.lesson-summary-card>p,.lesson-game-card__copy p{max-width:720px;margin:10px 0 0;color:var(--text-2);font-size:13px;line-height:1.65}
 .lesson-summary-card h3{margin:25px 0 12px;font-size:13px}.lesson-concepts{display:grid;gap:0;border-top:1px solid var(--border)}.lesson-concepts>div{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:13px 0;border-bottom:1px solid var(--border)}.lesson-concepts time{color:var(--primary);font:700 10px/1.4 "JetBrains Mono",monospace}.lesson-concepts span{color:var(--text-2);font-size:12px;line-height:1.45}.lesson-summary-card footer{display:flex;align-items:center;gap:8px;margin-top:19px;color:var(--text-3);font-size:10px}.lesson-summary-card footer .ic{width:15px;height:15px;color:var(--success)}
-.lesson-challenge-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:22px 26px;align-items:center;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 8%,var(--surface)),var(--surface) 46%)}
-.lesson-challenge-card__intro{grid-column:1/-1}.lesson-challenge-card__stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden}.lesson-challenge-card__stats>div{display:grid;gap:5px;padding:14px 16px;border-right:1px solid var(--border)}.lesson-challenge-card__stats>div:last-child{border-right:0}.lesson-challenge-card__stats strong{font-size:18px}.lesson-challenge-card__stats span{color:var(--text-3);font-size:9px}
-.lesson-challenge-card__best{display:grid;gap:5px;align-content:center;min-width:170px}.lesson-challenge-card__best span{color:var(--text-3);font-size:10px}.lesson-challenge-card__best strong{font-size:12px}
-.lesson-challenge-card__start{grid-column:1/-1;min-height:46px;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:10px;background:var(--primary);color:#15100a;font:800 12px/1 Inter,sans-serif;cursor:pointer}.lesson-challenge-card__start .ic{width:16px;height:16px}
+.lesson-game-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:18px 20px;align-items:center;background:linear-gradient(145deg,color-mix(in srgb,var(--primary) 9%,var(--surface)),var(--surface) 52%)}
+.lesson-game-card__art{width:64px;height:64px;display:grid;place-items:center;border-radius:18px;font-size:30px;background:color-mix(in srgb,var(--primary) 14%,var(--surface-2));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 25%,transparent)}
+.lesson-game-card__state{align-self:start;padding:6px 11px;border-radius:99px;border:1px solid var(--border-2);color:var(--text-3);font:700 10px/1 "JetBrains Mono",monospace;text-transform:uppercase;white-space:nowrap}
+.lesson-game-card__state.is-won{border-color:color-mix(in srgb,var(--success) 50%,transparent);background:color-mix(in srgb,var(--success) 12%,transparent);color:var(--success)}
+.lesson-game-card__start{grid-column:1/-1;min-height:48px;display:flex;align-items:center;justify-content:center;gap:9px;border:0;border-radius:11px;background:var(--primary);color:#15100a;font:800 13px/1 Inter,sans-serif;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease}.lesson-game-card__start:hover{transform:translateY(-1px);box-shadow:0 10px 22px var(--primary-glow)}.lesson-game-card__start .ic{width:16px;height:16px}
+.lesson-side-game{display:grid;justify-items:center;gap:8px;padding:18px 5px 6px;text-align:center}.lesson-side-game__icon{width:56px;height:56px;display:grid;place-items:center;border-radius:16px;font-size:26px;background:color-mix(in srgb,var(--primary) 13%,var(--surface-2))}.lesson-side-game h3{margin:5px 0 0;font-size:15px}.lesson-side-game p{margin:0;color:var(--text-3);font-size:11px;line-height:1.5}.lesson-side-game__state{margin:6px 0;padding:6px 12px;border-radius:99px;border:1px solid var(--border);color:var(--text-3);font:700 10px/1 "JetBrains Mono",monospace;text-transform:uppercase}.lesson-side-game__state.is-won{border-color:color-mix(in srgb,var(--success) 50%,transparent);color:var(--success)}.lesson-side-game>button{width:100%;min-height:42px;border:0;border-radius:10px;background:var(--primary);color:#15100a;font-weight:800;cursor:pointer}
+
+
+
 .lesson-side{position:sticky;top:0;overflow:hidden;border:1px solid var(--border);border-radius:17px;background:var(--surface);box-shadow:0 15px 36px rgba(0,0,0,.08)}
 .lesson-side--mobile{display:none}
 .lesson-side__tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:12px;padding:4px;border-radius:11px;background:var(--surface-2)}.lesson-side__tabs button{min-height:38px;border:0;border-radius:8px;background:transparent;color:var(--text-3);font:700 11px/1 Inter,sans-serif;cursor:pointer}.lesson-side__tabs button.is-active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.07)}
 .lesson-side__panel{display:none;padding:0 16px 18px}.lesson-side__panel.is-active{display:block}.lesson-outline{display:grid}.lesson-outline__item{width:100%;min-height:45px;display:grid;grid-template-columns:24px minmax(0,1fr) 15px;align-items:center;gap:7px;padding:9px 3px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--text-2);text-align:left;cursor:pointer}.lesson-outline__item:last-child{border-bottom:0}.lesson-outline__item>span{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;color:var(--text-3);font:700 9px/1 "JetBrains Mono",monospace}.lesson-outline__item strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}.lesson-outline__item>.ic{width:12px;height:12px;color:var(--text-3)}.lesson-outline__item.is-current{color:var(--text)}.lesson-outline__item.is-current>span{border:1px solid var(--primary);color:var(--primary)}.lesson-outline__item.is-complete>span{background:var(--success);color:#fff}.lesson-outline__item:disabled{cursor:not-allowed;opacity:.46}
 .lesson-notes{display:grid;gap:9px}.lesson-notes>span{font-weight:750;font-size:12px}.lesson-notes textarea{width:100%;min-height:280px;resize:vertical;padding:13px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font:500 12px/1.65 Inter,sans-serif;outline:0}.lesson-notes textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px var(--primary-glow)}.lesson-notes small{color:var(--text-3);font-size:9px}
-.lesson-side-quiz{display:grid;justify-items:center;gap:8px;padding:18px 5px 6px;text-align:center}.lesson-side-quiz__icon{width:52px;height:52px;display:grid;place-items:center;border-radius:15px;background:color-mix(in srgb,var(--primary) 13%,var(--surface-2));color:var(--primary)}.lesson-side-quiz__icon .ic{width:23px;height:23px}.lesson-side-quiz h3{margin:5px 0 0;font-size:15px}.lesson-side-quiz p{margin:0;color:var(--text-3);font-size:10px;line-height:1.5}.lesson-side-quiz>div{display:grid;gap:3px;width:100%;margin:8px 0;padding:13px;border:1px solid var(--border);border-radius:10px}.lesson-side-quiz>div strong{font-size:20px}.lesson-side-quiz>div span{color:var(--text-3);font-size:9px}.lesson-side-quiz>button{width:100%;min-height:40px;border:1px solid var(--border-2);border-radius:9px;background:var(--text);color:var(--surface);font-weight:750;cursor:pointer}
-.lesson-quiz-live{grid-column:1/-1;display:grid;gap:16px}.lesson-quiz-live__head{display:flex;justify-content:space-between;color:var(--text-3);font:700 9px/1 "JetBrains Mono",monospace;text-transform:uppercase}.lesson-quiz-live__bar{height:4px;overflow:hidden;border-radius:99px;background:var(--surface-3)}.lesson-quiz-live__bar i{display:block;height:100%;border-radius:inherit;background:var(--primary)}.lesson-quiz-live h3{margin:5px 0 0;font-size:18px;line-height:1.4}.lesson-quiz-options{display:grid;gap:8px}.lesson-quiz-options button{min-height:48px;display:flex;align-items:center;gap:11px;padding:9px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--text);text-align:left;font:600 11px/1.45 Inter,sans-serif;cursor:pointer}.lesson-quiz-options button>span{width:28px;height:28px;display:grid;place-items:center;flex:0 0 28px;border-radius:7px;background:var(--surface-2);font:700 10px/1 "JetBrains Mono",monospace}.lesson-quiz-options button:hover:not(:disabled){border-color:var(--border-strong);background:var(--surface-2)}.lesson-quiz-options button.is-correct{border-color:color-mix(in srgb,var(--success) 60%,var(--border));background:color-mix(in srgb,var(--success) 8%,var(--surface))}.lesson-quiz-options button.is-wrong{border-color:color-mix(in srgb,var(--danger) 55%,var(--border));background:color-mix(in srgb,var(--danger) 7%,var(--surface))}
-.lesson-quiz-feedback{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px;border-radius:11px;background:var(--surface-2)}.lesson-quiz-feedback strong{font-size:12px}.lesson-quiz-feedback p{margin:5px 0 0;color:var(--text-2);font-size:11px;line-height:1.55}.lesson-quiz-feedback button{min-height:38px;display:flex;align-items:center;gap:7px;flex:0 0 auto;padding:0 12px;border:0;border-radius:8px;background:var(--text);color:var(--surface);font-weight:750;cursor:pointer}.lesson-quiz-feedback .ic{width:14px;height:14px}
-.lesson-quiz-result{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:18px;padding:12px}.lesson-quiz-result__score{width:82px;height:82px;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,var(--primary) 12%,var(--surface-2));color:var(--primary);font-size:22px;font-weight:800}.lesson-quiz-result small{color:var(--primary);font:700 9px/1 "JetBrains Mono",monospace;text-transform:uppercase}.lesson-quiz-result h3{margin:5px 0;font-size:17px}.lesson-quiz-result p{margin:0;color:var(--text-3);font-size:10px}.lesson-quiz-result__retry{min-height:40px;padding:0 14px;border:1px solid var(--border-2);border-radius:9px;background:var(--surface);color:var(--text);font-weight:750;cursor:pointer}
+
+
+
+
 
 /* Lector interno de libros · biblioteca → ficha → lectura */
 .book-reader-page{width:100%;max-width:1400px;margin:0 auto}
@@ -12356,7 +12479,7 @@ body{letter-spacing:-.05px}
 }
 @media (max-width:560px){
   .course-page{padding-top:0}.course-detail-back{margin-bottom:12px}.course-detail-hero{min-height:245px;padding:20px;border-radius:14px}.course-detail-hero h2{font-size:28px}.course-detail-hero__tags span{font-size:8px}.course-detail__description{margin:17px 2px 20px}.course-detail-layout{gap:22px}.course-detail-section__head h3{font-size:19px}.course-lessons{gap:9px}.course-lesson{min-height:90px;grid-template-columns:96px minmax(0,1fr) 34px;gap:10px;padding:7px 9px 7px 7px;border-radius:13px}.course-lesson__cover{width:96px;height:76px;border-radius:9px}.course-lesson__cover>b{top:7px;left:7px;min-width:26px;height:22px;padding:0 6px;font-size:8px}.course-lesson__cover>span{right:7px;bottom:7px;width:26px;height:26px}.course-lesson__copy{gap:4px}.course-lesson__copy em{font-size:7px;letter-spacing:.85px}.course-lesson__copy strong{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:12px;line-height:1.25}.course-lesson__copy small{font-size:8px;line-height:1.35}.course-lesson__action{width:32px;height:32px}.course-detail-progress{padding:18px}
-  .lesson-page{padding:0 0 24px}.lesson-layout,.lesson-main{gap:15px}.lesson-page>.course-detail-back{margin-bottom:11px}.lesson-player{border-radius:12px}.lesson-heading{display:grid;gap:15px}.lesson-heading h1{font-size:24px}.lesson-heading__progress{flex-wrap:wrap}.lesson-heading__progress i{max-width:calc(100% - 170px)}.lesson-complete{width:100%}.lesson-next{align-items:flex-start}.lesson-next__thumb{width:82px;height:66px;flex-basis:82px}.lesson-summary-card,.lesson-challenge-card{padding:19px 16px;border-radius:13px}.lesson-summary-card h2,.lesson-challenge-card h2{font-size:20px}.lesson-challenge-card{grid-template-columns:1fr}.lesson-challenge-card__stats{grid-column:1/-1}.lesson-challenge-card__stats>div{padding:12px 8px}.lesson-challenge-card__stats strong{font-size:15px}.lesson-challenge-card__best{min-width:0}.lesson-concepts>div{grid-template-columns:55px 1fr}.lesson-side{border-radius:13px}.lesson-quiz-feedback{align-items:stretch;flex-direction:column}.lesson-quiz-feedback button{justify-content:center}.lesson-quiz-result{grid-template-columns:1fr;justify-items:center;text-align:center}.lesson-quiz-result__retry{width:100%}
+  .lesson-page{padding:0 0 24px}.lesson-layout,.lesson-main{gap:15px}.lesson-page>.course-detail-back{margin-bottom:11px}.lesson-player{border-radius:12px}.lesson-heading{display:grid;gap:15px}.lesson-heading h1{font-size:24px}.lesson-heading__progress{flex-wrap:wrap}.lesson-heading__progress i{max-width:calc(100% - 170px)}.lesson-complete{width:100%}.lesson-next{align-items:flex-start}.lesson-next__thumb{width:82px;height:66px;flex-basis:82px}.lesson-summary-card,.lesson-game-card{padding:19px 16px;border-radius:13px;grid-template-columns:auto minmax(0,1fr)}.lesson-game-card__state{grid-column:1/-1;justify-self:start}.lesson-summary-card h2,.lesson-game-card h2{font-size:20px}.lesson-game-card{grid-template-columns:auto minmax(0,1fr)}.lesson-concepts>div{grid-template-columns:55px 1fr}.lesson-side{border-radius:13px}
   .book-reader{height:calc(100dvh - 94px);min-height:480px;border-radius:10px}.book-reader__header{min-height:62px;padding:7px 8px;gap:8px}.book-reader__mini-cover{display:none}.book-reader__identity small{display:none}.book-reader__identity strong{font-size:12px}.book-reader__back,.book-reader__control{width:36px;height:36px;min-height:36px;flex-basis:36px}.book-reader__footer{min-height:32px}
 }
 @media (max-width:380px){
@@ -12388,5 +12511,6 @@ body{letter-spacing:-.05px}
 <script type="module" src="./src/features/templates/templates.ts"></script>
 <script type="module" src="./src/features/budgets/budgets.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>
+<script type="module" src="./src/features/class-games/class-games.ts"></script>
 </body>
 </html>
