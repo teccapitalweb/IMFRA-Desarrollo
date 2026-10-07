@@ -65,7 +65,7 @@ function redemptionProfile(rewardId: string, type: string): RedemptionCelebratio
   if (redemptionCelebrations[rewardId]) return redemptionCelebrations[rewardId];
   const suffix = rewardId.match(/\d+$/)?.[0] || "";
   if (type === "material" || rewardId.startsWith("material-")) {
-    return { mark: suffix ? `M${suffix}` : "DOC", title: "Material desbloqueado", message: "El archivo ya está disponible en PDFs y material.", accent: "#0f9d78" };
+    return { mark: suffix ? `M${suffix}` : "DOC", title: "Material desbloqueado", message: "El archivo ya está disponible en Materiales y premios.", accent: "#0f9d78" };
   }
   if (type === "book" || rewardId.startsWith("book-")) {
     return { mark: "LIB", title: "Libro agregado", message: "La lectura ya está disponible en tu biblioteca IMFRA.", accent: "#6574c4" };

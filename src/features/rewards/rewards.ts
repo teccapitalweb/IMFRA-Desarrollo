@@ -24,7 +24,7 @@ interface RewardState {
 
 declare global {
   interface Window {
-    IMFRARewards: { mount(container: HTMLElement): void; mountQuiz(container: HTMLElement): Promise<void> };
+    IMFRARewards: { mount(container: HTMLElement): void; mountQuiz(container: HTMLElement): Promise<void>; mountPrizes(container: HTMLElement): void };
     UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
     __showPaywallModal?: (options?: { title?: string; sub?: string; cta?: string }) => void;
   }
@@ -160,7 +160,7 @@ function renderOptionVisual(kind: NonNullable<RewardQuestion["optionVisuals"]>[n
   return `<svg ${base}><path d="M78 8h24v33h24l31 48H23l31-48h24z" fill="#d9dce2" stroke="#596275" stroke-width="2"/><g stroke="#f59d1a" stroke-width="2"><path d="M38 78h104M48 64h84"/>${[52,77,102,127].map(x=>`<path d="M${x} 57v26"/>`).join("")}</g></svg>`;
 }
 
-function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
+function mount(container: HTMLElement, mode: "rewards" | "quiz" | "prizes" = "rewards") {
   let state = readState();
   let pendingRewardId: string | null = null;
   let redemptionError = "";
@@ -208,7 +208,52 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
             : "Beneficio por antigüedad";
     const pendingReward = rewardCatalog.find((reward) => reward.id === pendingRewardId);
 
-    container.innerHTML = `
+
+    // Premios incrustados (sección "Materiales y premios"): todo el catálogo canjeable
+    // con el mismo cuadro de confirmación y los mismos botones de canje.
+    const prizeButton = (reward: RewardItem) => {
+      const redeemed = redemptionFor(state, reward.id);
+      if (reward.unlockMode === "membership_anniversary") {
+        if (featuredAccess && !featuredPending && reward.accessUrl) return `<a class="btn btn--accent rw-redeem" href="${reward.accessUrl}" target="_blank" rel="noopener noreferrer">Entrar a IMDAC ↗</a>`;
+        if (featuredPending) return `<button type="button" class="btn btn--ghost rw-redeem" disabled>Activación en proceso</button>`;
+        if (featuredUsed) return `<button type="button" class="btn btn--ghost rw-redeem" disabled>Beneficio utilizado</button>`;
+        return featuredEligible
+          ? `<button type="button" class="btn btn--accent rw-redeem" data-redeem="${reward.id}">Activar mis 30 días</button>`
+          : `<button type="button" class="btn btn--ghost rw-redeem" disabled>Se activa al cumplir 1 año</button>`;
+      }
+      if (redeemed && reward.accessRoute) return `<button type="button" class="btn btn--accent rw-redeem" data-open-reward="${reward.accessRoute}">${escapeHtml(reward.openLabel || "Abrir beneficio")}</button>`;
+      if (redeemed) return `<button type="button" class="btn btn--ghost rw-redeem" disabled>${redeemed.status === "pending" ? "Solicitud en revisión" : "Beneficio canjeado"}</button>`;
+      if (state.points >= reward.points) return `<button type="button" class="btn btn--accent rw-redeem" data-redeem="${reward.id}">Canjear por ${reward.points.toLocaleString("es-MX")} créditos</button>`;
+      return `<button type="button" class="btn btn--ghost rw-redeem" disabled>Te faltan ${(reward.points - state.points).toLocaleString("es-MX")} créditos</button>`;
+    };
+    const prizesHtml = `<section class="rw-prizes fade-up">
+        <div class="rw-prizes__head">
+          <div><span class="rw-eyebrow">Premios IMFRA</span><h2>Canjea tus créditos por herramientas profesionales</h2><p>Además de los materiales, tus créditos desbloquean software y recursos premium. Gánalos en Retos y en cada clase.</p></div>
+          <div class="rw-prizes__balance"><span>Tu saldo</span><strong>${state.points.toLocaleString("es-MX")}</strong><small>créditos</small></div>
+        </div>
+        <div class="rw-prizes__grid">${[...rewardCatalog].sort((x, y) => (x.unlockMode === "membership_anniversary" ? 1 : 0) - (y.unlockMode === "membership_anniversary" ? 1 : 0) || x.points - y.points).map((reward) => `<article class="rw-reward" style="--reward-accent:${reward.accent}">
+            <img class="rw-reward__icon" src="${rewardIcon(reward)}" alt="" loading="lazy">
+            <span class="rw-reward__type">${reward.unlockMode === "membership_anniversary" ? "Beneficio por permanencia" : reward.category}</span>
+            <h3>${escapeHtml(reward.name)}</h3>
+            <p class="rw-reward__description">${escapeHtml(reward.description)}</p>
+            <div class="rw-reward__meta"><strong>${reward.unlockMode === "membership_anniversary" ? "0 créditos" : `${reward.points.toLocaleString("es-MX")} créditos`}</strong><span>${escapeHtml(reward.availability)}</span></div>
+            ${prizeButton(reward)}
+          </article>`).join("")}</div>
+      </section>`;
+    const dialogHtml = `      ${pendingReward ? `<div class="rw-dialog-backdrop" data-close-dialog>
+          <section class="rw-dialog" role="dialog" aria-modal="true" aria-labelledby="rw-dialog-title">
+            <button type="button" class="rw-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
+            <span class="rw-dialog__icon"><img src="${rewardIcon(pendingReward)}" alt="" loading="lazy"></span>
+            <span class="rw-eyebrow">Confirmar beneficio</span>
+            <h2 id="rw-dialog-title">${pendingReward.unlockMode === "membership_anniversary" ? "¿Deseas activar ahora tus 30 días de IMDAC?" : pendingReward.permanent ? `¿Deseas desbloquear ${escapeHtml(pendingReward.name)} por ${pendingReward.points.toLocaleString("es-MX")} créditos?` : escapeHtml(pendingReward.name)}</h2>
+            <p>${pendingReward.unlockMode === "membership_anniversary" ? "La vigencia comenzará al confirmar y terminará 30 días después. Este beneficio no descuenta Créditos IMFRA." : pendingReward.permanent ? "El acceso quedará asociado permanentemente a tu cuenta y no volverás a pagar al abrirlo." : `Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}`}</p>
+            ${pendingReward.unlockMode === "membership_anniversary" ? `<div class="rw-dialog__benefit"><span><svg class="ic"><use href="#i-gift"/></svg></span><div><small>Beneficio por permanencia</small><strong>30 días · 0 créditos</strong></div></div>` : `<div class="rw-dialog__balance"><span>Créditos disponibles <b>${state.points.toLocaleString("es-MX")}</b></span><span>Costo <b>−${pendingReward.points.toLocaleString("es-MX")}</b></span><span>Créditos restantes <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>`}
+            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "Esta activación de prueba es local y segura." : pendingReward.unlockMode === "membership_anniversary" ? "El servidor verificará tu antigüedad y registrará el beneficio una sola vez." : "El servidor realizará el cargo y el desbloqueo en una sola operación segura, sin duplicados."}</span></div>
+            ${redemptionError ? `<div class="rw-dialog__error" role="alert">${escapeHtml(redemptionError)}</div>` : ""}
+            <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">${pendingReward.unlockMode === "membership_anniversary" ? "Activar 30 días" : "Confirmar canje"}</button></div>
+          </section>
+        </div>` : ""}`;
+    container.innerHTML = mode === "prizes" ? prizesHtml + dialogHtml : `
       <div class="rw-page rw-page--${mode} fade-up">
         <section class="rw-hero">
           <div class="rw-hero__copy">
@@ -359,21 +404,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
           const reward = rewardCatalog.find((item) => item.id === entry.rewardId);
           return `<div class="rw-history__row"><span><svg class="ic"><use href="${entry.status === "pending" ? "#i-clock" : "#i-check-circle"}"/></svg><span><strong>${escapeHtml(reward?.name || entry.rewardId)}</strong><small>${formatDate(entry.createdAt)} · ${entry.status === "active" ? "Acceso activado" : "Solicitud en validación"}</small></span></span><b>${entry.status === "pending" || reward?.unlockMode === "membership_anniversary" ? "Sin descuento" : `−${entry.points.toLocaleString("es-MX")} créditos`}</b></div>`;
         }).join("")}</section>` : ""}
-      </div>
-
-      ${pendingReward ? `<div class="rw-dialog-backdrop" data-close-dialog>
-          <section class="rw-dialog" role="dialog" aria-modal="true" aria-labelledby="rw-dialog-title">
-            <button type="button" class="rw-dialog__close" data-close-dialog aria-label="Cerrar">×</button>
-            <span class="rw-dialog__icon"><img src="${rewardIcon(pendingReward)}" alt="" loading="lazy"></span>
-            <span class="rw-eyebrow">Confirmar beneficio</span>
-            <h2 id="rw-dialog-title">${pendingReward.unlockMode === "membership_anniversary" ? "¿Deseas activar ahora tus 30 días de IMDAC?" : pendingReward.permanent ? `¿Deseas desbloquear ${escapeHtml(pendingReward.name)} por ${pendingReward.points.toLocaleString("es-MX")} créditos?` : escapeHtml(pendingReward.name)}</h2>
-            <p>${pendingReward.unlockMode === "membership_anniversary" ? "La vigencia comenzará al confirmar y terminará 30 días después. Este beneficio no descuenta Créditos IMFRA." : pendingReward.permanent ? "El acceso quedará asociado permanentemente a tu cuenta y no volverás a pagar al abrirlo." : `Se descontarán <strong>${pendingReward.points.toLocaleString("es-MX")} créditos</strong> de tu saldo. ${pendingReward.durationDays ? `El acceso tendrá una vigencia de ${pendingReward.durationDays} días.` : "El beneficio quedará registrado en tu cuenta."}`}</p>
-            ${pendingReward.unlockMode === "membership_anniversary" ? `<div class="rw-dialog__benefit"><span><svg class="ic"><use href="#i-gift"/></svg></span><div><small>Beneficio por permanencia</small><strong>30 días · 0 créditos</strong></div></div>` : `<div class="rw-dialog__balance"><span>Créditos disponibles <b>${state.points.toLocaleString("es-MX")}</b></span><span>Costo <b>−${pendingReward.points.toLocaleString("es-MX")}</b></span><span>Créditos restantes <b>${(state.points - pendingReward.points).toLocaleString("es-MX")}</b></span></div>`}
-            <div class="rw-dialog__note"><svg class="ic"><use href="#i-shield-check"/></svg><span>${isRewardsDemo() ? "Esta activación de prueba es local y segura." : pendingReward.unlockMode === "membership_anniversary" ? "El servidor verificará tu antigüedad y registrará el beneficio una sola vez." : "El servidor realizará el cargo y el desbloqueo en una sola operación segura, sin duplicados."}</span></div>
-            ${redemptionError ? `<div class="rw-dialog__error" role="alert">${escapeHtml(redemptionError)}</div>` : ""}
-            <div class="rw-dialog__actions"><button type="button" class="btn btn--ghost" data-close-dialog>Cancelar</button><button type="button" class="btn btn--accent" data-confirm-redeem="${pendingReward.id}">${pendingReward.unlockMode === "membership_anniversary" ? "Activar 30 días" : "Confirmar canje"}</button></div>
-          </section>
-        </div>` : ""}`;
+      </div>` + dialogHtml;
 
     container.querySelector<HTMLButtonElement>("[data-hub-back]")?.addEventListener("click", () => {
       window.IMFRATraining?.mount(container);
@@ -498,6 +529,7 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" = "rewards") {
 }
 
 let quizStarting = false;
+const mountPrizes = (container: HTMLElement) => mount(container, "prizes");
 const mountQuiz = async (container: HTMLElement) => {
   if (quizStarting) return;
   quizStarting = true;
@@ -511,5 +543,5 @@ const mountQuiz = async (container: HTMLElement) => {
     quizStarting = false;
   }
 };
-window.IMFRARewards = { mount, mountQuiz };
+window.IMFRARewards = { mount, mountQuiz, mountPrizes };
 window.dispatchEvent(new CustomEvent("imfra:rewards-ready"));

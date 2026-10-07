@@ -3753,7 +3753,7 @@ window.__showWelcomeSplash = function(opts) {
   const beneficios = [
     { ic:'📚', t:'Cursos premium',   d:'Catálogo completo con clases reales que se desbloquean a tu ritmo.' },
     { ic:'🎥', t:'Clases en vivo',   d:'Webinars con expertos y acceso a las grabaciones cuando quieras.' },
-    { ic:'📂', t:'PDFs y material',  d:'Plantillas, formatos y recursos descargables listos para usar.' },
+    { ic:'📂', t:'Materiales y premios',  d:'Plantillas, formatos y recursos descargables listos para usar.' },
     { ic:'🛠️', t:'8 herramientas pro', d:'Concreto, acero, muros, retenciones, Curva S, checklist de supervisión, bitácora y números generadores. Con PDF foliado.' },
     { ic:'🎓', t:'Certificados',     d:'Con folio oficial IMFRA para respaldar lo que aprendes.' }
   ];
@@ -3994,7 +3994,7 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item is-active" data-section="inicio"><svg class="ic"><use href="#i-home"/></svg>Inicio</a>
       <a class="nav-item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos<span class="nav-item__badge">12</span></a>
       <a class="nav-item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo<span class="nav-item__dot"></span></a>
-      <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
+      <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>Materiales y premios</a>
       <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
       <a class="nav-item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
       <a class="nav-item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Retos<span class="nav-item__badge">NUEVO</span></a>
@@ -4228,7 +4228,7 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" data-section="inicio"><svg class="ic"><use href="#i-home"/></svg>Inicio</a>
         <a class="mobile-drawer__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos</a>
         <a class="mobile-drawer__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo</a>
-        <a class="mobile-drawer__item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
+        <a class="mobile-drawer__item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>Materiales y premios</a>
         <a class="mobile-drawer__item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
         <a class="mobile-drawer__item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
         <a class="mobile-drawer__item" data-section="entrenamiento"><svg class="ic"><use href="#i-bolt"/></svg>Retos</a>
@@ -4660,7 +4660,7 @@ function navigateToSection(section, opciones){
 }
 
 function sectionPlaceholder(section){
-  const names={pdfs:'PDFs y material',libros:'Libros','mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Foro VIP',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
+  const names={pdfs:'Materiales y premios',libros:'Libros','mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Foro VIP',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
   const name=names[section]||section;
   return `<div class="fade-up" style="padding:80px 20px;text-align:center;"><div style="width:80px;height:80px;margin:0 auto 18px;border-radius:20px;background:var(--surface);border:0.5px solid var(--border-2);display:flex;align-items:center;justify-content:center;color:var(--primary);"><svg class="ic ic--xl"><use href="#i-tools"/></svg></div><h2 style="font-size:22px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;">${name}</h2><p style="color:var(--text-2);max-width:380px;margin:0 auto;line-height:1.55;font-size:13.5px;">Sección en construcción. La entrego en el siguiente sprint.</p><button class="btn btn--ghost" style="margin-top:20px;" onclick="navigateToSection('inicio')">Volver al inicio</button></div>`;
 }
@@ -7636,7 +7636,7 @@ const Sections = (function(){
         <div class="fade-up">
           <div class="sec-hero" data-illus="pdfs">
             <span class="sec-hero__eyebrow">Descargables</span>
-            <h1 class="sec-hero__title">PDFs y material</h1>
+            <h1 class="sec-hero__title">Materiales y premios</h1>
             <p class="sec-hero__sub">Cargando materiales desde Firestore…</p>
           </div>
         </div>`;
@@ -7661,8 +7661,8 @@ const Sections = (function(){
       <div class="fade-up">
         <div class="sec-hero" data-illus="pdfs">
           <span class="sec-hero__eyebrow">Biblioteca de recompensas</span>
-          <h1 class="sec-hero__title">PDFs y material</h1>
-          <p class="sec-hero__sub">Canjea tus Créditos IMFRA por el archivo que elijas. <strong style="color:var(--primary);">Tus primeros créditos son de regalo</strong> y alcanzan para tu primer material.</p>
+          <h1 class="sec-hero__title">Materiales y premios</h1>
+          <p class="sec-hero__sub">Canjea tus Créditos IMFRA por el archivo que elijas y, más abajo, por software y recursos premium. <strong style="color:var(--primary);">Tus primeros créditos son de regalo</strong> y alcanzan para tu primer material.</p>
         </div>
         ${total === 0 ? `
           <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
@@ -7702,8 +7702,15 @@ const Sections = (function(){
             ${materialesTodos.map(m => _renderPdfCard(m)).join('')}
           </div>
         `}
+        <div id="pdf-premios"></div>
       </div>
     `;
+    // Premios canjeables (software, plantillas, IMDAC) debajo de los archivos.
+    const premiosHost = container.querySelector('#pdf-premios');
+    if (premiosHost) {
+      if (window.IMFRARewards?.mountPrizes) window.IMFRARewards.mountPrizes(premiosHost);
+      else window.addEventListener('imfra:rewards-ready', () => { if (premiosHost.isConnected) window.IMFRARewards?.mountPrizes(premiosHost); }, { once: true });
+    }
 
     // Bind búsqueda
     setTimeout(() => {
@@ -12868,7 +12875,7 @@ body{letter-spacing:-.05px}
 <link rel="stylesheet" href="./src/styles/v4-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <link id="imfra-templates-styles" rel="stylesheet" href="assets/imfra-plantillas/imfra-plantillas.css?v=1.2.1">
-<script src="onboarding-tour.js?v=3" defer></script>
+<script src="onboarding-tour.js?v=4" defer></script>
 <script src="assets/imfra-tools.js?v=20260928-1"></script>
 <script src="assets/imfra-plantillas/imfra-plantillas-logo.js?v=1.0.0"></script>
 <script src="assets/imfra-plantillas/imfra-plantillas.js?v=1.2.2"></script>

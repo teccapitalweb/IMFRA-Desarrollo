@@ -22,8 +22,8 @@
       selectors: ['.sidebar .nav-item[data-section="webinars"]', '.mobile-nav__item[data-section="webinars"]', '[data-section="webinars"]']
     },
     {
-      title: 'PDFs y material técnico',
-      copy: 'Aquí están tus plantillas, procedimientos, checklists y formatos descargables para aplicar lo aprendido directamente en obra.',
+      title: 'Materiales y premios',
+      copy: 'Canjea tus créditos por plantillas, checklists y formatos para obra. Más abajo encontrarás premios como el software de presupuestos y el pack de plantillas.',
       icon: 'library', color: '#2f865f',
       selectors: ['.sidebar .nav-item[data-section="pdfs"]', '.mobile-drawer__item[data-section="pdfs"]', '#mobile-nav-more', '.main']
     },

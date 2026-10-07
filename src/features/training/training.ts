@@ -259,13 +259,7 @@ function mount(container: HTMLElement) {
           </article>
         </div>
         ${renderLeague()}
-        <section class="tr-rewards">
-          <div class="tr-section-head"><div><span>Recompensas IMFRA</span><h2>Créditos y beneficios para seguir creciendo</h2></div><div class="tr-rewards__balance"><span>Créditos disponibles</span><strong>${rewards.points.toLocaleString("es-MX")}</strong></div></div>
-          <p class="tr-rewards__note">${icon("i-shield-check")}<span>${accessNote}</span></p>
-          <div class="tr-rewards__row">${rewardChips.map((reward) => `<button class="tr-chip" data-training-action="rewards" style="--mode:${reward.accent}"><img class="tr-chip__icon" src="${chipIcon(reward.id)}" alt="" loading="lazy"><div><strong>${esc(reward.name)}</strong><small>${reward.unlockMode === "membership_anniversary" ? "Se activa al cumplir 1 año" : `${reward.points.toLocaleString("es-MX")} créditos`}</small></div></button>`).join("")}
-            <button class="tr-chip tr-chip--more" data-training-action="rewards"><img class="tr-chip__icon" src="assets/icons/chip-catalogo.png" alt="" loading="lazy"><div><strong>Ver catálogo</strong><small>${rewardCatalog.length} beneficios</small></div></button>
-          </div>
-        </section>
+        <p class="tr-rewards__note tr-rewards__note--solo">${icon("i-shield-check")}<span>${accessNote} Canjea tus créditos en <button type="button" class="tr-link" data-go-premios>Materiales y premios</button>.</span></p>
         <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><img src="${item.icon}" alt="" loading="lazy"><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
       </main>
       <aside class="tr-side">
@@ -350,6 +344,7 @@ function mount(container: HTMLElement) {
   }
 
   function bind() {
+    container.querySelector<HTMLButtonElement>("[data-go-premios]")?.addEventListener("click", () => window.navigateToSection?.("pdfs"));
     container.querySelectorAll<HTMLElement>("[data-training-action]").forEach((element) => element.addEventListener("click", async () => {
       const action = element.dataset.trainingAction;
       if (action === "quiz") {

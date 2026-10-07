@@ -113,7 +113,7 @@ function showUnlock(item: MaterialRewardItem, unlockedCount: number, total: numb
       <span class="mr-unlock__eyebrow">${source} · recompensa ${unlockedCount} de ${total}</span>
       <h2 id="mr-unlock-title">¡Nuevo archivo desbloqueado!</h2>
       <div class="mr-unlock__file">${escapeHtml(item.titulo)}</div>
-      <p>Tu respuesta correcta abrió este recurso. Ya puedes verlo y descargarlo desde <strong>PDFs y material</strong>.</p>
+      <p>Tu respuesta correcta abrió este recurso. Ya puedes verlo y descargarlo desde <strong>Materiales y premios</strong>.</p>
       <div class="mr-unlock__progress"><div><i style="width:${Math.round(unlockedCount / total * 100)}%"></i></div><span>${unlockedCount} de ${total} herramientas desbloqueadas</span></div>
       <div class="mr-unlock__actions"><button class="btn btn--ghost" type="button" data-mr-close>Seguir practicando</button><button class="btn btn--accent" type="button" data-mr-open>Ver mi archivo <span aria-hidden="true">→</span></button></div>
     </div>
