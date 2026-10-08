@@ -42,7 +42,7 @@ export interface CreditSnapshot {
   challengeAccess: ChallengeAccess;
 }
 
-export type ChallengeMode = "quiz" | "inspector" | "flashcards";
+export type ChallengeMode = "quiz" | "inspector" | "flashcards" | "juegos";
 export interface ChallengeAccess {
   vip: boolean;
   status: "vip" | "available" | "active" | "used";
@@ -252,7 +252,7 @@ export class ChallengeAccessError extends Error {
   }
 }
 
-const CHALLENGE_MODE_LABELS: Record<ChallengeMode, string> = { quiz: "Quiz técnico", inspector: "Casos de obra", flashcards: "Tarjetas técnicas" };
+const CHALLENGE_MODE_LABELS: Record<ChallengeMode, string> = { quiz: "Quiz técnico", inspector: "Casos de obra", flashcards: "Tarjetas técnicas", juegos: "Juegos de obra" };
 
 function setChallengeAccess(access: ChallengeAccess) {
   current = { ...current, challengeAccess: access };
@@ -448,6 +448,33 @@ export async function awardCreditForCorrect(activityId: string, source: "quiz" |
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.error || "No pudimos acreditar este acierto.");
   return loadCredits(true);
+}
+
+/** Gana un juego de obra: el primero de cada juego en el día suma créditos. Devuelve los créditos sumados. */
+export async function awardGameCredit(game: string, board: number, amount: number): Promise<number> {
+  await loadCredits();
+  if (!canEarnChallengeCredits()) return 0;
+  const day = new Date().toISOString().slice(0, 10);
+  if (isDemo()) {
+    const saved = readDemoState();
+    const events = Array.isArray(saved.creditEvents) ? [...new Set(saved.creditEvents.map(String))] : [];
+    const id = `juego:${day}:${game}`;
+    if (events.includes(id)) return 0;
+    events.push(id);
+    const next = { ...current, balance: current.balance + amount, lifetimeEarned: current.lifetimeEarned + amount };
+    writeDemo(next, events);
+    publish(next);
+    return amount;
+  }
+  const response = await fetch(apiUrl("/credits/game"), {
+    method: "POST",
+    headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ game, board })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "No pudimos acreditar este juego.");
+  await loadCredits(true);
+  return Number(data.credits) || 0;
 }
 
 window.IMFRACredits = {

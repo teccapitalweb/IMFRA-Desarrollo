@@ -20,6 +20,11 @@ export interface PlayOptions {
   practica?: boolean;
   /** Créditos IMFRA que se ganan al completarlo por primera vez (0 = no se menciona). */
   creditos?: number;
+  /** Juego fuera de una clase (Retos): tablero, encabezado y aviso propios. */
+  config?: GameConfig;
+  kicker?: string;
+  nota?: string;
+  onWin?: () => void;
 }
 
 interface GameContext {
@@ -666,14 +671,14 @@ let activeOverlay: HTMLElement | null = null;
 
 function play(options: PlayOptions): Promise<boolean> {
   activeOverlay?.remove();
-  const cfg = juegoDeClase(options.cursoTitulo, options.claseIndex);
+  const cfg = options.config || juegoDeClase(options.cursoTitulo, options.claseIndex);
   const info = GAME_INFO[cfg.tipo];
   const overlay = document.createElement("div");
   overlay.className = "cg-overlay";
   overlay.innerHTML = `<section class="cg-modal" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <header class="cg-head">
       <span class="cg-head__icon" aria-hidden="true">${info.icono}</span>
-      <div><span class="cg-kicker">Mini juego · Clase ${options.claseNumero}</span><h2 id="cg-title">${info.nombre}</h2><p>${esc(options.claseTitulo)}</p></div>
+      <div><span class="cg-kicker">${esc(options.kicker || `Mini juego · Clase ${options.claseNumero}`)}</span><h2 id="cg-title">${info.nombre}</h2><p>${esc(options.claseTitulo)}</p></div>
       <button type="button" class="cg-close" aria-label="Cerrar">×</button>
     </header>
     <div class="cg-body">
@@ -682,7 +687,7 @@ function play(options: PlayOptions): Promise<boolean> {
       <p class="cg-feedback" data-feedback role="status" hidden></p>
     </div>
     <footer class="cg-foot">
-      <span class="cg-foot__note">${options.practica ? "Modo práctica: esta clase ya está marcada como vista." : `Gánalo para marcar la clase como vista y desbloquear la siguiente${options.creditos ? ` · <b>+${options.creditos} créditos</b>` : ""}.`}</span>
+      <span class="cg-foot__note">${options.nota !== undefined ? options.nota : options.practica ? "Modo práctica: esta clase ya está marcada como vista." : `Gánalo para marcar la clase como vista y desbloquear la siguiente${options.creditos ? ` · <b>+${options.creditos} créditos</b>` : ""}.`}</span>
       <button type="button" class="cg-continue" data-continue disabled>${options.practica ? "Terminar" : "Continuar"} <span aria-hidden="true">→</span></button>
     </footer>
   </section>`;
@@ -739,6 +744,7 @@ function play(options: PlayOptions): Promise<boolean> {
         continueBtn.disabled = false;
         continueBtn.focus({ preventScroll: true });
         celebrate("big");
+        options.onWin?.();
       }
     };
     const stage = overlay.querySelector<HTMLElement>("[data-stage]")!;

@@ -85,3 +85,19 @@
 /* Aviso de Retos tras mover las recompensas a "Materiales y premios" */
 .tr-rewards__note--solo{margin:4px 0 0}
 .tr-link{padding:0;border:0;background:none;color:var(--primary);font:inherit;font-weight:700;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+
+/* Juegos de obra */
+.tr-games{margin-top:26px}
+.tr-games__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tr-game{display:flex;align-items:center;gap:13px;min-width:0;padding:16px;border:1px solid var(--border);border-radius:18px;background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer;box-shadow:0 6px 22px rgba(22,24,29,.05);transition:transform .18s var(--ease-standard),border-color .18s,box-shadow .18s}
+.tr-game:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--g) 45%,var(--border));box-shadow:0 12px 28px rgba(22,24,29,.09)}
+.tr-game:focus-visible{outline:2px solid var(--g);outline-offset:2px}
+.tr-game__icon{display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:13px;background:color-mix(in srgb,var(--g) 13%,transparent);color:var(--g)}
+.tr-game__icon svg{width:22px;height:22px}
+.tr-game__text{display:grid;gap:3px;min-width:0;flex:1}
+.tr-game__text strong{font:720 14px/1.25 'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}
+.tr-game__text small{color:var(--text-3);font-size:11.5px;line-height:1.35}
+.tr-game__badge{flex:none;padding:5px 9px;border-radius:99px;background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--text);font:800 11px 'JetBrains Mono',monospace;white-space:nowrap}
+.tr-game.is-done .tr-game__badge{background:color-mix(in srgb,#13906f 15%,transparent);color:#13906f}
+@media(max-width:1050px){.tr-games__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.tr-games__grid{grid-template-columns:1fr;gap:9px}.tr-game{padding:13px 14px}.tr-games .tr-section-head{flex-direction:column;align-items:flex-start;gap:6px}}

@@ -4,7 +4,11 @@ import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
 import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
 import { celebrate } from "../shared/celebration";
-import { awardCreditForCorrect, completeChallengeAttempt, getChallengeAccess, showChallengeBlocked, startChallengeAttempt, type ChallengeMode } from "../credits/credits";
+import { GAME_INFO } from "../class-games/content";
+import "../class-games/class-games";
+import "../shared/coin-chest";
+import { GAME_CREDITS, boardOfTheDay, retoGames, type RetoGame } from "./games-catalog";
+import { awardCreditForCorrect, awardGameCredit, completeChallengeAttempt, getChallengeAccess, showChallengeBlocked, startChallengeAttempt, type ChallengeMode } from "../credits/credits";
 
 interface CaseResult { score: number; completedAt: string }
 interface CardResult { confidence: number; lastReviewed: string; rewardDate?: string }
@@ -62,6 +66,19 @@ function demoLeague(): LeagueSnapshot {
     { uid: "demo-preview", name: "Tu perfil", photoURL: "", courses: 0, classes: 4, xp: 140, rank: 4 }
   ];
   return { entries, current: entries[3], participants: entries.length };
+}
+
+function gamesKey() { return `imfra:v2:retos-juegos:${accountId()}`; }
+function gamesWonToday(): Record<string, number[]> {
+  try {
+    const saved = JSON.parse(localStorage.getItem(gamesKey()) || "null") as { day?: string; won?: Record<string, number[]> } | null;
+    return saved?.day === today() ? saved.won || {} : {};
+  } catch { return {}; }
+}
+function markGameWon(tipo: string, board: number) {
+  const won = gamesWonToday();
+  won[tipo] = [...new Set([...(won[tipo] || []), board])];
+  try { localStorage.setItem(gamesKey(), JSON.stringify({ day: today(), won })); } catch { /* sin almacenamiento */ }
 }
 
 function registerDay(state: TrainingState) {
@@ -192,7 +209,7 @@ function mount(container: HTMLElement) {
     const streakDays = streak(state.days);
     container.innerHTML = `<div class="tr-page fade-up">
       <header class="tr-hero">
-        <div><span class="tr-kicker">Retos IMFRA</span><h1>Practica para <em>la obra real.</em></h1><p>Quiz, casos, tarjetas y recompensas.</p></div>
+        <div><span class="tr-kicker">Retos IMFRA</span><h1>Practica para <em>la obra real.</em></h1><p>Quiz, casos, tarjetas y juegos de obra.</p></div>
         <div class="tr-hero__stats"><div><span>Racha</span><strong>${streakDays} día${streakDays === 1 ? "" : "s"}</strong></div><div><span>XP formativo</span><strong>${state.xp}</strong></div></div>
       </header>
       <section class="tr-level"><div><span>Nivel profesional</span><strong>${current.name}</strong></div><div class="tr-level__bar"><span style="width:${pct}%"></span></div><b>${pct}%</b></section>
@@ -216,7 +233,7 @@ function mount(container: HTMLElement) {
         ? "Tu partida gratuita está activa. Los aciertos de esta partida sí suman Créditos IMFRA."
         : access.status === "used"
           ? "Ya utilizaste tu partida gratuita. Hazte VIP para seguir jugando y ganando créditos."
-          : "Cada respuesta correcta validada suma 25 Créditos IMFRA.";
+          : `Cada respuesta correcta suma 25 Créditos IMFRA y cada juego ganado, ${GAME_CREDITS} al día.`;
     const achievements = [
       { label: "Primera inspección", detail: "Completa un caso", done: completedCases >= 1, icon: "assets/icons/badge-inspeccion.png" },
       { label: "Memoria activa", detail: "Repasa 8 tarjetas", done: reviewedCards >= 8, icon: "assets/icons/badge-memoria.png" },
@@ -258,6 +275,7 @@ function mount(container: HTMLElement) {
             <div class="tr-tile__art">${tileArt.flash}</div>
           </article>
         </div>
+        ${renderGames()}
         ${renderLeague()}
         <p class="tr-rewards__note tr-rewards__note--solo">${icon("i-shield-check")}<span>${accessNote} Canjea tus créditos en <button type="button" class="tr-link" data-go-premios>Materiales y premios</button>.</span></p>
         <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><img src="${item.icon}" alt="" loading="lazy"><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
@@ -267,6 +285,63 @@ function mount(container: HTMLElement) {
         <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>${accessNote}</p></section>
       </aside>
     </div>`);
+  }
+
+  function renderGames() {
+    const won = gamesWonToday();
+    const done = retoGames.filter((game) => won[game.tipo]?.length).length;
+    return `<section class="tr-games">
+      <div class="tr-section-head"><div><span>Juegos de obra</span><h2>Juega y gana créditos</h2></div><small>${done ? `${done}/${retoGames.length} hoy` : `+${GAME_CREDITS} créditos por juego, cada día`}</small></div>
+      <div class="tr-games__grid">${retoGames.map((game) => {
+        const isDone = Boolean(won[game.tipo]?.length);
+        return `<button type="button" class="tr-game ${isDone ? "is-done" : ""}" style="--g:${game.color}" data-game="${game.tipo}">
+          <span class="tr-game__icon">${GAME_INFO[game.tipo].icono}</span>
+          <span class="tr-game__text"><strong>${esc(game.titulo)}</strong><small>${esc(game.descripcion)}</small></span>
+          <span class="tr-game__badge">${isDone ? "✓ Hoy" : `+${GAME_CREDITS}`}</span>
+        </button>`;
+      }).join("")}</div>
+    </section>`;
+  }
+
+  async function playGame(game: RetoGame) {
+    if (!(await ensureChallenge("juegos"))) return;
+    const wonBoards = gamesWonToday()[game.tipo] || [];
+    const earning = wonBoards.length === 0;
+    // Primero el tablero del día; ya ganado, se practica con el siguiente.
+    const start = boardOfTheDay(game);
+    let board = start;
+    if (!earning) board = (start + wonBoards.length) % game.tableros.length;
+    const tablero = game.tableros[board];
+    let credited: Promise<void> | null = null;
+    await window.IMFRAClassGames.play({
+      cursoId: `retos-${game.tipo}`,
+      cursoTitulo: "Retos IMFRA",
+      claseIndex: board,
+      claseNumero: board + 1,
+      claseTitulo: `Tablero: ${tablero.titulo}`,
+      config: tablero.config,
+      kicker: earning ? "Retos IMFRA · Tablero del día" : "Retos IMFRA · Práctica",
+      nota: earning
+        ? `Gánalo y suma <b>+${GAME_CREDITS} créditos</b> hoy.`
+        : "Ya ganaste los créditos de hoy en este juego. Mañana hay un tablero nuevo.",
+      onWin: () => {
+        markGameWon(game.tipo, board);
+        if (!earning) return;
+        state.xp += 20;
+        registerDay(state); persistState();
+        credited = awardGameCredit(game.tipo, board, GAME_CREDITS)
+          .then((credits) => {
+            if (credits > 0) window.IMFRACoinChest?.show({ amount: credits, total: window.IMFRACredits?.getBalance(), title: "¡Juego ganado!" });
+          })
+          .catch((error) => {
+            console.warn("[training] Créditos del juego pendientes", error);
+            window.Toast?.error?.("Retos IMFRA", error instanceof Error ? error.message : "No pudimos sumar los créditos de este juego.");
+          })
+          .finally(() => completeChallengeAttempt("juegos").catch((error) => console.warn("[training] No se pudo cerrar la partida gratuita", error)).then(() => undefined));
+      }
+    });
+    if (credited) await credited;
+    if (container.isConnected && view === "hub") { renderHub(); container.querySelector(".tr-games")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
   }
 
   function renderLeague() {
@@ -345,6 +420,10 @@ function mount(container: HTMLElement) {
 
   function bind() {
     container.querySelector<HTMLButtonElement>("[data-go-premios]")?.addEventListener("click", () => window.navigateToSection?.("pdfs"));
+    container.querySelectorAll<HTMLButtonElement>("[data-game]").forEach((button) => button.addEventListener("click", () => {
+      const game = retoGames.find((item) => item.tipo === button.dataset.game);
+      if (game) void playGame(game);
+    }));
     container.querySelectorAll<HTMLElement>("[data-training-action]").forEach((element) => element.addEventListener("click", async () => {
       const action = element.dataset.trainingAction;
       if (action === "quiz") {
