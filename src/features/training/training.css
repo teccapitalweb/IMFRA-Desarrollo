@@ -136,3 +136,11 @@
 @media(max-width:1050px){.tr-gcards{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.tr-modes{grid-template-columns:1fr}}
 @media(max-width:560px){.tr-gcards{grid-template-columns:1fr;gap:12px}.tr-gcard{flex-direction:row}.tr-gcard__art{width:118px;height:auto;flex:none}.tr-gcard__art{overflow:hidden}.tr-gcard__art>*{transform:scale(.6);flex:none}.tr-gcard__body{padding:14px}.tr-gcard h3{font-size:15.5px}}
+/* Clasificación · pestañas de periodo */
+.tr-league-tabs{display:inline-flex;flex:none;padding:3px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2)}
+.tr-league-tabs button{padding:7px 13px;border:0;border-radius:9px;background:none;color:var(--text-3);font:700 12px Inter,sans-serif;cursor:pointer;transition:background .15s,color .15s}
+.tr-league-tabs button.is-active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.tr-league__intro b{color:var(--primary);font-weight:800}
+.tr-league__empty{margin:6px 0 0;padding:26px 18px;border:1px dashed var(--border-2);border-radius:16px;color:var(--text-2);font-size:13.5px;text-align:center}
+.tr-league-you p{margin:6px 0 0;color:var(--text-2);font-size:13px}
+@media(max-width:760px){.tr-league .tr-section-head{gap:12px}.tr-league-tabs{align-self:stretch}.tr-league-tabs button{flex:1}}

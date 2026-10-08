@@ -5,8 +5,10 @@ export interface LeagueEntry {
   courses: number;
   classes: number;
   xp: number;
-  rank: number;
+  rank: number | null;
 }
+
+export type LeaguePeriod = "semana" | "mes" | "total";
 
 export interface LeagueSnapshot {
   entries: LeagueEntry[];
@@ -38,9 +40,9 @@ export async function syncLeagueProfile() {
   await request("/league/sync", { method: "POST", body: JSON.stringify(activity) });
 }
 
-export async function loadLeague(): Promise<LeagueSnapshot | null> {
+export async function loadLeague(period: LeaguePeriod = "mes"): Promise<LeagueSnapshot | null> {
   try {
-    const response = await request("/league");
+    const response = await request(`/league?periodo=${period}`);
     return await response.json() as LeagueSnapshot;
   } catch (error) {
     console.warn("[training] No se pudo cargar la clasificación", error);

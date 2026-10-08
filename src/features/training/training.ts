@@ -2,7 +2,7 @@ import "./training.css";
 import { flashcards, trainingCases, type TrainingCase } from "./catalog";
 import { rewardQuestions, rewardCatalog } from "../rewards/catalog";
 import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } from "./cloud";
-import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
+import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeaguePeriod, type LeagueSnapshot } from "./league";
 import { celebrate } from "../shared/celebration";
 import { GAME_INFO } from "../class-games/content";
 import "../shared/coin-chest";
@@ -176,8 +176,40 @@ function level(xp: number) {
 function mount(container: HTMLElement) {
   let state = readState();
   const demoMode = isDemoTraining();
+  let leaguePeriod: LeaguePeriod = "mes";
+  const leagueCache = new Map<LeaguePeriod, LeagueSnapshot | null>();
   let league: LeagueSnapshot | null = demoMode ? demoLeague() : null;
   let leagueLoaded = demoMode;
+  const refreshLeague = (period: LeaguePeriod = leaguePeriod) => {
+    if (demoMode) return;
+    leaguePeriod = period;
+    const cached = leagueCache.get(period);
+    if (cached !== undefined) { league = cached; leagueLoaded = true; }
+    else leagueLoaded = false;
+    if (view === "hub") paintLeague();
+    void loadLeague(period).then((snapshot) => {
+      leagueCache.set(period, snapshot);
+      if (leaguePeriod !== period) return;
+      league = snapshot;
+      leagueLoaded = true;
+      if (view === "hub") paintLeague();
+    });
+  };
+  // Repinta solo la clasificación, sin mover el resto de la página.
+  const paintLeague = () => {
+    const section = container.querySelector(".tr-league");
+    if (!section) return;
+    section.outerHTML = renderLeague();
+    bindLeague();
+  };
+  const bindLeague = () => {
+    container.querySelectorAll<HTMLButtonElement>("[data-league-period]").forEach((button) => button.addEventListener("click", () => {
+      const period = button.dataset.leaguePeriod as LeaguePeriod;
+      if (period === leaguePeriod) return;
+      if (demoMode) { leaguePeriod = period; paintLeague(); return; }
+      refreshLeague(period);
+    }));
+  };
   let view: View = "hub";
   let selectedCase: TrainingCase | null = null;
   let caseStep = 0;
@@ -365,6 +397,7 @@ function mount(container: HTMLElement) {
         registerDay(state); persistState();
         try {
           const credits = await awardGameCredit(game.tipo, board, GAME_CREDITS);
+          if (credits > 0) leagueCache.clear();
           if (credits > 0) window.IMFRACoinChest?.show({ amount: credits, total: window.IMFRACredits?.getBalance(), title: "¡Juego ganado!" });
           return credits;
         } finally {
@@ -376,23 +409,38 @@ function mount(container: HTMLElement) {
         if (!container.isConnected) return;
         if (view === "games") renderGamesPage();
         else if (view === "hub") renderHub();
+        if (!leagueCache.has(leaguePeriod)) refreshLeague();
       }
     });
   }
 
   function renderLeague() {
-    if (!leagueLoaded) return `<section class="tr-league tr-league--loading"><div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div><span class="tr-league__verified">${icon("i-shield-check")} Datos de cursos</span></div><p>Estamos reuniendo el avance de la comunidad…</p><div class="tr-league__skeleton"></div></section>`;
-    if (!league?.entries?.length) return `<section class="tr-league"><div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div><span class="tr-league__verified">${icon("i-shield-check")} Datos de cursos</span></div><p class="tr-league__intro">La clasificación aparecerá cuando los miembros sincronicen su primer avance.</p></section>`;
+    const periods: [LeaguePeriod, string][] = [["semana", "Semana"], ["mes", "Mes"], ["total", "Histórico"]];
+    const notes: Record<LeaguePeriod, string> = {
+      semana: "Se reinicia cada lunes: todos empiezan desde cero.",
+      mes: "Se reinicia el día 1 de cada mes.",
+      total: "Todo tu avance desde que llegaste a IMFRA."
+    };
+    const empty: Record<LeaguePeriod, string> = { semana: "esta semana", mes: "este mes", total: "todavía" };
+    const tabs = `<div class="tr-league-tabs" role="tablist" aria-label="Periodo">${periods.map(([id, label]) => `<button type="button" role="tab" aria-selected="${id === leaguePeriod}" class="${id === leaguePeriod ? "is-active" : ""}" data-league-period="${id}">${label}</button>`).join("")}</div>`;
+    const head = `<div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div>${tabs}</div>
+      <p class="tr-league__intro">${notes[leaguePeriod]} Clase completada <b>+10</b> · curso terminado <b>+300</b> · acierto en retos <b>+10</b> · juego ganado <b>+30</b>.</p>`;
+    if (!leagueLoaded) return `<section class="tr-league tr-league--loading">${head}<div class="tr-league__skeleton"></div></section>`;
+    if (!league?.entries?.length) return `<section class="tr-league">${head}<p class="tr-league__empty">Aún nadie suma puntos ${empty[leaguePeriod]}. Completa una clase o gana un juego de obra y aparece aquí primero.</p></section>`;
+    const me = window.UserState?.uid;
     const podium = league.entries.slice(0, 3);
     const rows = league.entries.slice(3, 10);
-    const row = (entry: LeagueEntry) => `<article class="tr-league-row ${entry.uid === window.UserState?.uid ? "is-you" : ""}"><b>${entry.rank}</b><div class="tr-league-avatar">${avatar(entry)}</div><div class="tr-league-person"><strong>${esc(entry.name)}${entry.uid === window.UserState?.uid ? " <em>Tú</em>" : ""}</strong><span>${entry.courses ? `${entry.courses} curso${entry.courses === 1 ? "" : "s"} completado${entry.courses === 1 ? "" : "s"}` : "Profesional en formación"}</span></div><span>${entry.classes}<small>clases</small></span><strong>${entry.xp}<small>XP</small></strong></article>`;
+    const row = (entry: LeagueEntry) => `<article class="tr-league-row ${entry.uid === me ? "is-you" : ""}"><b>${entry.rank ?? "–"}</b><div class="tr-league-avatar">${avatar(entry)}</div><div class="tr-league-person"><strong>${esc(entry.name)}${entry.uid === me ? " <em>Tú</em>" : ""}</strong><span>${entry.courses ? `${entry.courses} curso${entry.courses === 1 ? "" : "s"} completado${entry.courses === 1 ? "" : "s"}` : "Profesional en formación"}</span></div><span>${entry.classes}<small>clases</small></span><strong>${entry.xp}<small>XP</small></strong></article>`;
+    const current = league.current;
+    const you = !current || league.entries.some((entry) => entry.uid === current.uid) ? ""
+      : current.rank ? `<div class="tr-league-you"><span>Tu posición · de ${league.participants}</span>${row(current)}</div>`
+        : `<div class="tr-league-you"><span>Tu posición</span><p>Aún no sumas puntos ${empty[leaguePeriod]}. Completa una clase o gana un juego para entrar.</p></div>`;
     return `<section class="tr-league">
-      <div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div><span class="tr-league__verified">${icon("i-shield-check")} Datos de cursos</span></div>
-      <p class="tr-league__intro">Aquí se reconoce a quienes convierten la constancia en resultados. Las clases y cursos terminados valen más que una visita.</p>
-      <div class="tr-podium">${podium.map((entry) => `<article class="tr-podium-card tr-podium-card--${entry.rank} ${entry.uid === window.UserState?.uid ? "is-you" : ""}"><span class="tr-podium-rank">#${entry.rank}</span><div class="tr-podium-avatar">${avatar(entry)}</div><strong>${esc(entry.name)}</strong><small>${entry.courses} curso${entry.courses === 1 ? "" : "s"} · ${entry.classes} clase${entry.classes === 1 ? "" : "s"}</small><b>${entry.xp} XP</b></article>`).join("")}</div>
+      ${head}
+      <div class="tr-podium">${podium.map((entry) => `<article class="tr-podium-card tr-podium-card--${entry.rank} ${entry.uid === me ? "is-you" : ""}"><span class="tr-podium-rank">#${entry.rank}</span><div class="tr-podium-avatar">${avatar(entry)}</div><strong>${esc(entry.name)}</strong><small>${entry.courses} curso${entry.courses === 1 ? "" : "s"} · ${entry.classes} clase${entry.classes === 1 ? "" : "s"}</small><b>${entry.xp} XP</b></article>`).join("")}</div>
       <div class="tr-league-table">${rows.map(row).join("")}</div>
-      ${league.current && league.current.rank > 10 ? `<div class="tr-league-you"><span>Tu posición actual</span>${row(league.current)}</div>` : ""}
-      <p class="tr-league__privacy">${icon("i-shield-check")} Solo mostramos nombre, foto y avance de aprendizaje. Nunca datos de contacto.</p>
+      ${you}
+      <p class="tr-league__privacy">${icon("i-shield-check")} Puntos validados por el servidor. Solo mostramos nombre, foto y avance; nunca datos de contacto.</p>
     </section>`;
   }
 
@@ -455,6 +503,7 @@ function mount(container: HTMLElement) {
   }
 
   function bind() {
+    bindLeague();
     container.querySelector<HTMLButtonElement>("[data-go-premios]")?.addEventListener("click", () => window.navigateToSection?.("pdfs"));
     container.querySelectorAll<HTMLElement>("[data-game]").forEach((card) => {
       const open = () => { const game = retoGames.find((item) => item.tipo === card.dataset.game); if (game) void playGame(game); };
@@ -591,11 +640,12 @@ function mount(container: HTMLElement) {
   if (!demoMode) {
     void syncLeagueProfile()
       .catch((error) => console.warn("[training] No se pudo sincronizar el perfil de aprendizaje", error))
-      .then(() => loadLeague())
+      .then(() => loadLeague(leaguePeriod))
       .then((snapshot) => {
+        leagueCache.set(leaguePeriod, snapshot);
         league = snapshot;
         leagueLoaded = true;
-        if (view === "hub") renderHub();
+        if (view === "hub") paintLeague();
       });
   }
 }
