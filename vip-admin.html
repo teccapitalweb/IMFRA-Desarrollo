@@ -1169,6 +1169,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Resumen</div>
       <a class="nav-item is-active" data-section="dashboard"><svg class="ic"><use href="#i-home"/></svg>Dashboard</a>
+      <a class="nav-item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas<span class="nav-item__badge">NUEVO</span></a>
     </div>
 
     <div class="nav-section">
@@ -1355,6 +1356,14 @@ const SEED={
    PAGES
    ========================================================= */
 const Pages={
+  metricas(p){
+    const montar=()=>window.IMFRAMetricsAdmin.mount(p,{getToken:()=>Pages._getAuthToken(),api:Pages._webhookUrl});
+    if(window.IMFRAMetricsAdmin){ montar(); return; }
+    p.innerHTML='<div style="padding:72px 20px;text-align:center;color:var(--text-3)">Cargando métricas…</div>';
+    window.addEventListener('imfra:metrics-admin-ready',()=>{
+      if(location.hash==='#metricas' && p.isConnected) montar();
+    },{once:true});
+  },
   retos(p){
     if(window.IMFRATrainingAdmin){ window.IMFRATrainingAdmin.mount(p); return; }
     p.innerHTML='<div style="padding:72px 20px;text-align:center;color:var(--text-3)">Cargando administración de retos…</div>';
@@ -5925,6 +5934,7 @@ if (window.__currentAdmin) {
 <link rel="stylesheet" href="./src/styles/v4-admin-editorial.css">
 <link rel="stylesheet" href="./src/styles/section-illustrations.css">
 <script type="module" src="./src/features/training/admin.ts"></script>
+<script type="module" src="./src/features/analytics/admin-metrics.ts"></script>
 
 </body>
 </html>
