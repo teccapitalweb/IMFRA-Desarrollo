@@ -346,6 +346,11 @@ function mount(container: HTMLElement) {
         <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><img src="${item.icon}" alt="" loading="lazy"><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
       </main>
       <aside class="tr-side">
+        <section class="tr-credit-vault" aria-label="Mis Créditos IMFRA">
+          <div class="tr-credit-vault__art" aria-hidden="true"><span class="tr-credit-vault__glow"></span><span class="tr-credit-vault__gem">◆</span><i></i><i></i><i></i></div>
+          <div class="tr-credit-vault__copy"><span>Mi cartera IMFRA</span><strong>${rewards.points.toLocaleString("es-MX")} <small>créditos</small></strong><p>Tu saldo para desbloquear materiales, libros y herramientas.</p></div>
+          <button type="button" data-go-premios>Ver premios ${icon("i-arrow-right")}</button>
+        </section>
         <section class="tr-mission"><div class="tr-mission__head"><div>${icon("i-trophy")}</div><span><small>Misión semanal</small><strong>${missionDone} de ${missions.length} completadas</strong></span></div><div class="tr-mission__progress"><span style="width:${Math.round(missionDone / missions.length * 100)}%"></span></div><ul>${missions.map((item) => `<li class="${item.value >= item.goal ? "is-done" : ""}" data-training-action="${item.action}"><b>${item.value >= item.goal ? "✓" : `${item.value}/${item.goal}`}</b><span><strong>${item.label}</strong></span><button aria-label="Abrir ${item.label}">${icon("i-arrow-right")}</button></li>`).join("")}</ul></section>
         <section class="tr-standard"><span>Metodología</span><h3>Decidir, explicar, aplicar</h3><ol><li><b>01</b>Observa datos y restricciones.</li><li><b>02</b>Elige una actuación profesional.</li><li><b>03</b>Comprende la razón técnica.</li></ol><p>${accessNote}</p></section>
       </aside>
@@ -504,7 +509,7 @@ function mount(container: HTMLElement) {
 
   function bind() {
     bindLeague();
-    container.querySelector<HTMLButtonElement>("[data-go-premios]")?.addEventListener("click", () => window.navigateToSection?.("pdfs"));
+    container.querySelectorAll<HTMLButtonElement>("[data-go-premios]").forEach((button) => button.addEventListener("click", () => window.navigateToSection?.("pdfs")));
     container.querySelectorAll<HTMLElement>("[data-game]").forEach((card) => {
       const open = () => { const game = retoGames.find((item) => item.tipo === card.dataset.game); if (game) void playGame(game); };
       card.addEventListener("click", open);

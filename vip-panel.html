@@ -6495,8 +6495,10 @@ const Sections = (function(){
     const irSiguiente=()=>{if(siguiente)navigateToSection(`curso/${encodeURIComponent(String(cursoId))}/clase/${siguienteNum}`);else navigateToSection('curso/'+encodeURIComponent(String(cursoId)));};
     const completarClase=()=>{
       window.marcarClaseVista(cursoId,num);
-      Toast.success('Clase marcada como vista',siguiente?`Clase ${siguienteNum} desbloqueada`:'Curso completado');
-      setTimeout(irSiguiente,450);
+      // El mini juego es la transición entre clases: avanzamos de forma directa,
+      // sin volver al catálogo ni abrir Retos. El cofre se muestra encima de la
+      // nueva clase cuando el servidor confirma los créditos.
+      irSiguiente();
     };
     // Cada clase se completa ganando su mini juego. Ya vista, el juego queda como práctica.
     let jugando=false;
@@ -6508,7 +6510,7 @@ const Sections = (function(){
       try{
         const ganado=await juegos.play({cursoId:String(cursoId),cursoTitulo:curso.titulo,claseIndex:sesionIdx,claseNumero:num,claseTitulo:contenido.titulo,portada:curso.portada||PORTADA_DEFAULT,practica:yaVista,creditos:!yaVista&&conCreditosJuego?CREDITOS_JUEGO_CLASE:0});
         if(!ganado||!container.isConnected)return;
-        if(!yaVista){completarClase();void acreditarJuegoClase(curso,num);return;}
+        if(!yaVista){void acreditarJuegoClase(curso,num);completarClase();return;}
         container.querySelectorAll('.lesson-game-card__state,.lesson-side-game__state').forEach(el=>{el.classList.add('is-won');el.textContent='✓ Ganado';});
       }finally{jugando=false;}
     };

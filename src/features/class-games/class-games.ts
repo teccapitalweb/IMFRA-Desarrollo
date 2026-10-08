@@ -678,7 +678,8 @@ function play(options: PlayOptions): Promise<boolean> {
   overlay.innerHTML = `<section class="cg-modal" role="dialog" aria-modal="true" aria-labelledby="cg-title">
     <header class="cg-head">
       <span class="cg-head__icon" aria-hidden="true">${info.icono}</span>
-      <div><span class="cg-kicker">${esc(options.kicker || `Mini juego · Clase ${options.claseNumero}`)}</span><h2 id="cg-title">${info.nombre}</h2><p>${esc(options.claseTitulo)}</p></div>
+      <div class="cg-head__copy"><span class="cg-kicker">${esc(options.kicker || `Mini juego · Clase ${options.claseNumero}`)}</span><h2 id="cg-title">${info.nombre}</h2><p>${esc(options.claseTitulo)}</p></div>
+      <span class="cg-head__status">${options.practica ? "Modo práctica" : "Reto de avance"}</span>
       <button type="button" class="cg-close" aria-label="Cerrar">×</button>
     </header>
     <div class="cg-body">
@@ -687,8 +688,8 @@ function play(options: PlayOptions): Promise<boolean> {
       <p class="cg-feedback" data-feedback role="status" hidden></p>
     </div>
     <footer class="cg-foot">
-      <span class="cg-foot__note">${options.nota !== undefined ? options.nota : options.practica ? "Modo práctica: esta clase ya está marcada como vista." : `Gánalo para marcar la clase como vista y desbloquear la siguiente${options.creditos ? ` · <b>+${options.creditos} créditos</b>` : ""}.`}</span>
-      <button type="button" class="cg-continue" data-continue disabled>${options.practica ? "Terminar" : "Continuar"} <span aria-hidden="true">→</span></button>
+      <span class="cg-foot__note"><i aria-hidden="true">✓</i><span>${options.nota !== undefined ? options.nota : options.practica ? "Modo práctica: esta clase ya está marcada como vista." : `Supera el reto para abrir la siguiente clase${options.creditos ? ` y recibir <b>+${options.creditos} créditos</b>` : ""}.`}</span></span>
+      <button type="button" class="cg-continue" data-continue disabled>${options.practica ? "Terminar" : "Abrir siguiente clase"} <span aria-hidden="true">→</span></button>
     </footer>
   </section>`;
   document.body.appendChild(overlay);
