@@ -2262,7 +2262,7 @@ body::after{
 .dir-form__plan b{color:var(--text)}
 .dir-form__vip{display:inline-flex;align-items:center;gap:4px;margin-left:6px;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,#e0a83a 16%,transparent);color:#b07a12;font:700 9.5px/1.4 'JetBrains Mono',monospace;letter-spacing:.6px;text-transform:uppercase;vertical-align:middle}
 .dir-form__vip .ic{width:11px;height:11px}
-@media(max-width:560px){.dir-upsell{flex-wrap:wrap}.dir-upsell .btn{width:100%;margin-left:0}.dir-det__lock{flex-wrap:wrap}.dir-det__lock .btn{width:100%}}
+@media(max-width:560px){.dir-upsell{flex-wrap:wrap;gap:12px 14px;padding:16px}.dir-upsell__ic{width:38px;height:38px;border-radius:11px}.dir-upsell__ic .ic{width:19px;height:19px}.dir-upsell__txt{flex:1;min-width:0}.dir-upsell .btn{width:100%;margin-left:0}.dir-det__lock{flex-wrap:wrap}.dir-det__lock .btn{width:100%}}
 @media(prefers-reduced-motion:reduce){.dir-card--vip::after{display:none}.dir-vip__estado i{animation:none}}
 /* Form de tarjeta */
 .dir-form{display:flex;flex-direction:column;gap:0}
@@ -3197,8 +3197,11 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .fomo-banner__cta:hover{transform:translateY(-1px);box-shadow:0 6px 14px rgba(0,0,0,.25)}
 .fomo-banner__cta svg{width:12px;height:12px}
 @media (max-width:768px){
-  .fomo-banner{padding:7px 12px;font-size:11.5px;gap:8px;line-height:1.3}
-  .fomo-banner__cta{padding:5px 10px;font-size:11px}
+  .fomo-banner{flex-wrap:nowrap;justify-content:space-between;padding:8px 12px 8px 16px;font-size:12px;gap:12px;line-height:1.3;text-align:left}
+  .fomo-banner__text{flex:1;min-width:0}
+  .fomo-banner__more{display:none}
+  .fomo-banner__timer{flex:none}
+  .fomo-banner__cta{flex:none;padding:7px 12px;font-size:11.5px;border-radius:999px}
   .fomo-banner__icon{display:none}
 }
 
@@ -3497,7 +3500,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
 <div class="fomo-banner" id="fomo-banner" style="display:none">
   <span class="fomo-banner__icon" aria-hidden="true">⭐</span>
-  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Tus primeras clases y el primer material son gratis.</strong> Activa tu suscripción para continuar.</span>
+  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Tus primeras clases y el primer material son gratis.</strong> <span class="fomo-banner__more">Activa tu suscripción para continuar.</span></span>
   <span class="fomo-banner__timer" id="fomo-banner-timer" style="display:none">5:00</span>
   <button class="fomo-banner__cta" id="fomo-banner-cta" type="button">
     Suscribirme
@@ -5209,14 +5212,14 @@ const Sections = (function(){
 
   function textoOfertaGratis() {
     if (cursoGratisPendiente()) {
-      return `<strong>Elige tu curso gratis.</strong> Ve a Mis cursos y escoge el que más te interese para ver sus primeras clases sin costo.`;
+      return `<strong>Elige tu curso gratis.</strong> <span class="fomo-banner__more">Ve a Mis cursos y escoge el que más te interese para ver sus primeras clases sin costo.</span>`;
     }
     const primero = cursos.find(c => String(c.id) === primerCursoGratisId());
     const gratis = cantidadClasesGratis(primero?.sesiones?.length || 0);
     const clases = gratis > 0
       ? (gratis === 1 ? 'Tu primera clase' : `Tus primeras ${gratis} clases`)
       : 'Tus primeras clases';
-    return `<strong>${clases} y el primer material son gratis.</strong> Activa tu suscripción para continuar.`;
+    return `<strong>${clases} y el primer material son gratis.</strong> <span class="fomo-banner__more">Activa tu suscripción para continuar.</span>`;
   }
 
   function esClaseGratisGlobal(cursoId, indexClase, sesiones) {
@@ -8502,7 +8505,7 @@ const Sections = (function(){
         <div class="sec-hero" data-illus="directorio">
           <span class="sec-hero__eyebrow">Networking profesional</span>
           <h1 class="sec-hero__title">Directorio VIP</h1>
-          <p class="sec-hero__sub">Conecta con la comunidad IMFRA. Descubre a ingenieros y especialistas del sector; los miembros VIP tienen tarjeta profesional verificada y pueden contactar a cualquiera.</p>
+          <p class="sec-hero__sub">Conecta con ingenieros y especialistas de la comunidad IMFRA.</p>
         </div>
 
         <div id="dir-aviso"></div>
@@ -8556,7 +8559,7 @@ const Sections = (function(){
     if (!window.UserState?.uid || dirViewerEsVip()) { host.innerHTML = ''; return; }
     host.innerHTML = `<section class="dir-upsell">
       <span class="dir-upsell__ic"><svg class="ic"><use href="#i-crown"/></svg></span>
-      <div><strong>Destaca con tu tarjeta profesional VIP</strong><p>Insignia verificada, tus certificados IMFRA, estado "disponible para proyectos", primeros lugares y acceso al contacto de todos los miembros.</p></div>
+      <div class="dir-upsell__txt"><strong>Destaca con tu tarjeta VIP</strong><p>Perfil verificado y contacto directo con todos los miembros.</p></div>
       <button type="button" class="btn btn--accent" data-section="suscripcion">Hazte VIP</button>
     </section>`;
   }
@@ -11582,7 +11585,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         banner.style.display = '';
         if (bannerText) bannerText.innerHTML = typeof textoOfertaGratis === 'function'
           ? textoOfertaGratis()
-          : '<strong>Tus primeras clases y el primer material son gratis.</strong> Activa tu suscripción para continuar.';
+          : '<strong>Tus primeras clases y el primer material son gratis.</strong> <span class="fomo-banner__more">Activa tu suscripción para continuar.</span>';
         if (bannerTimer) bannerTimer.style.display = 'none';
       }
     }
