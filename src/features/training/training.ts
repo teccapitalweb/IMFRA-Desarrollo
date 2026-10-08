@@ -425,23 +425,23 @@ function mount(container: HTMLElement) {
     const tabs = `<div class="tr-league-tabs" role="tablist" aria-label="Periodo">${periods.map(([id, label]) => `<button type="button" role="tab" aria-selected="${id === leaguePeriod}" class="${id === leaguePeriod ? "is-active" : ""}" data-league-period="${id}">${label}</button>`).join("")}</div>`;
     const head = `<div class="tr-section-head"><div><span>Avance verificado</span><h2>Clasificación del club</h2></div>${tabs}</div>
       <p class="tr-league__intro">${notes[leaguePeriod]} Clase completada <b>+10</b> · curso terminado <b>+300</b> · acierto en retos <b>+10</b> · juego ganado <b>+30</b>.</p>`;
-    if (!leagueLoaded) return `<section class="tr-league tr-league--loading">${head}<div class="tr-league__skeleton"></div></section>`;
-    if (!league?.entries?.length) return `<section class="tr-league">${head}<p class="tr-league__empty">Aún nadie suma puntos ${empty[leaguePeriod]}. Completa una clase o gana un juego de obra y aparece aquí primero.</p></section>`;
+    const frame = (content: string, modifier = "") => `<section class="tr-league ${modifier}"><div class="tr-league__surface">${content}</div></section>`;
+    if (!leagueLoaded) return frame(`${head}<div class="tr-league__skeleton"></div>`, "tr-league--loading");
+    if (!league?.entries?.length) return frame(`${head}<p class="tr-league__empty">Aún nadie suma puntos ${empty[leaguePeriod]}. Completa una clase o gana un juego de obra y aparece aquí primero.</p>`);
     const me = window.UserState?.uid;
     const podium = league.entries.slice(0, 3);
     const rows = league.entries.slice(3, 10);
-    const row = (entry: LeagueEntry) => `<article class="tr-league-row ${entry.uid === me ? "is-you" : ""}"><b>${entry.rank ?? "–"}</b><div class="tr-league-avatar">${avatar(entry)}</div><div class="tr-league-person"><strong>${esc(entry.name)}${entry.uid === me ? " <em>Tú</em>" : ""}</strong><span>${entry.courses ? `${entry.courses} curso${entry.courses === 1 ? "" : "s"} completado${entry.courses === 1 ? "" : "s"}` : "Profesional en formación"}</span></div><span>${entry.classes}<small>clases</small></span><strong>${entry.xp}<small>XP</small></strong></article>`;
+    const row = (entry: LeagueEntry) => `<article class="tr-league-row ${entry.uid === me ? "is-you" : ""}"><b>${entry.rank ? `#${entry.rank}` : "–"}</b><div class="tr-league-avatar">${avatar(entry)}</div><div class="tr-league-person"><strong>${esc(entry.name)}${entry.uid === me ? " <em>Tú</em>" : ""}</strong><span>${entry.courses ? `${entry.courses} curso${entry.courses === 1 ? "" : "s"} completado${entry.courses === 1 ? "" : "s"}` : "Profesional en formación"}</span></div><span>${entry.classes}<small>clases</small></span><strong>${entry.xp}<small>XP</small></strong></article>`;
     const current = league.current;
     const you = !current || league.entries.some((entry) => entry.uid === current.uid) ? ""
       : current.rank ? `<div class="tr-league-you"><span>Tu posición · de ${league.participants}</span>${row(current)}</div>`
         : `<div class="tr-league-you"><span>Tu posición</span><p>Aún no sumas puntos ${empty[leaguePeriod]}. Completa una clase o gana un juego para entrar.</p></div>`;
-    return `<section class="tr-league">
-      ${head}
+    return frame(`${head}
       <div class="tr-podium">${podium.map((entry) => `<article class="tr-podium-card tr-podium-card--${entry.rank} ${entry.uid === me ? "is-you" : ""}"><span class="tr-podium-rank">#${entry.rank}</span><div class="tr-podium-avatar">${avatar(entry)}</div><strong>${esc(entry.name)}</strong><small>${entry.courses} curso${entry.courses === 1 ? "" : "s"} · ${entry.classes} clase${entry.classes === 1 ? "" : "s"}</small><b>${entry.xp} XP</b></article>`).join("")}</div>
       <div class="tr-league-table">${rows.map(row).join("")}</div>
       ${you}
       <p class="tr-league__privacy">${icon("i-shield-check")} Puntos validados por el servidor. Solo mostramos nombre, foto y avance; nunca datos de contacto.</p>
-    </section>`;
+    `);
   }
 
   function renderCases() {
