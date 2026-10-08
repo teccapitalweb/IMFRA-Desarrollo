@@ -47,7 +47,7 @@ declare global {
 
 const esc = (value: unknown) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 
-function shuffle<T>(items: T[]): T[] {
+export function shuffle<T>(items: T[]): T[] {
   const list = items.slice();
   for (let i = list.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -64,7 +64,7 @@ function shuffleUnsolved<T>(items: T[]): T[] {
   return list;
 }
 
-const normalizeWord = (word: string) => word.toUpperCase()
+export const normalizeWord = (word: string) => word.toUpperCase()
   .replace(/Ñ/g, "\u0000").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\u0000/g, "Ñ")
   .replace(/[^A-ZÑ]/g, "");
 
@@ -185,10 +185,10 @@ function gameSopa(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "sopa" }>
 }
 
 // ─────────────────────────── Crucigrama ───────────────────────────
-interface CrossWord { word: string; clue: string; r: number; c: number; dir: "h" | "v"; num: number }
+export interface CrossWord { word: string; clue: string; r: number; c: number; dir: "h" | "v"; num: number }
 
 // Prueba varias combinaciones y conserva la más compacta y mejor conectada.
-function layoutCrossword(entries: { palabra: string; pista: string }[]): CrossWord[] {
+export function layoutCrossword(entries: { palabra: string; pista: string }[]): CrossWord[] {
   const items = entries.map((e) => ({ word: normalizeWord(e.palabra), clue: e.pista })).filter((e) => e.word.length >= 2)
     .sort((a, b) => b.word.length - a.word.length);
   let best: { placed: CrossWord[]; score: number } | null = null;

@@ -5,8 +5,8 @@ import { loadTrainingProgress, mergeTrainingProgress, syncTrainingProgress } fro
 import { loadLeague, syncLeagueProfile, type LeagueEntry, type LeagueSnapshot } from "./league";
 import { celebrate } from "../shared/celebration";
 import { GAME_INFO } from "../class-games/content";
-import "../class-games/class-games";
 import "../shared/coin-chest";
+import { openArcade, type ArcadeResult } from "./arcade";
 import { GAME_CREDITS, boardOfTheDay, retoGames, type RetoGame } from "./games-catalog";
 import { awardCreditForCorrect, awardGameCredit, completeChallengeAttempt, getChallengeAccess, showChallengeBlocked, startChallengeAttempt, type ChallengeMode } from "../credits/credits";
 
@@ -27,7 +27,7 @@ declare global {
   }
 }
 
-type View = "hub" | "cases" | "case" | "flashcards";
+type View = "hub" | "cases" | "case" | "flashcards" | "games";
 const today = () => new Date().toISOString().slice(0, 10);
 const emptyState = (): TrainingState => ({ xp: 0, cases: {}, cards: {}, days: [] });
 
@@ -80,6 +80,27 @@ function markGameWon(tipo: string, board: number) {
   won[tipo] = [...new Set([...(won[tipo] || []), board])];
   try { localStorage.setItem(gamesKey(), JSON.stringify({ day: today(), won })); } catch { /* sin almacenamiento */ }
 }
+
+function bestKey() { return `imfra:v2:retos-juegos-best:${accountId()}`; }
+function readBest(): Record<string, number> {
+  try { return JSON.parse(localStorage.getItem(bestKey()) || "{}") || {}; } catch { return {}; }
+}
+function saveBest(id: string, stars: number) {
+  const best = readBest();
+  if ((best[id] || 0) >= stars) return;
+  best[id] = stars;
+  try { localStorage.setItem(bestKey(), JSON.stringify(best)); } catch { /* sin almacenamiento */ }
+}
+
+// Mini ilustraciones de cada juego (HTML y CSS, sin imágenes).
+const GAME_ART: Record<string, string> = {
+  crucigrama: `<div class="ga-cw">${"L|OBRA|S|A".split("|").map((row) => row.padEnd(4, "·").split("").map((ch) => ch === "·" ? "<i></i>" : `<b>${ch}</b>`).join("")).join("")}</div>`,
+  memorama: `<div class="ga-mm"><i></i><b>Losa</b><i></i></div>`,
+  sopa: `<div class="ga-ws">${"KTRAZ|CBMOP|GRAVA|LUNEX|NIVEL".split("|").join("").split("").map((ch) => `<b>${ch}</b>`).join("")}<span class="ga-ws__mark"></span></div>`,
+  ordenar: `<div class="ga-ord"><span><b>1</b><i></i></span><span><b>2</b><i></i></span><span class="is-lift"><b>3</b><i></i></span></div>`,
+  ahorcado: `<div class="ga-hm"><span>L</span><span></span><span>S</span><span>A</span></div>`,
+  clasificar: `<div class="ga-cl"><em>Casco</em><span></span><span></span></div>`
+};
 
 function registerDay(state: TrainingState) {
   if (!state.days.includes(today())) state.days.push(today());
@@ -137,7 +158,8 @@ function flashcardImage(cardId: string) {
 const tileArt = {
   quiz: `<img src="assets/retos/quiz-tecnico.png" alt="" loading="lazy">`,
   case: `<img src="assets/retos/casos-obra.png" alt="" loading="lazy">`,
-  flash: `<img src="assets/retos/tarjetas.png" alt="" loading="lazy">`
+  flash: `<img src="assets/retos/tarjetas.png" alt="" loading="lazy">`,
+  games: `<img src="assets/retos/juegos.svg" alt="" loading="lazy">`
 };
 
 function level(xp: number) {
@@ -224,6 +246,8 @@ function mount(container: HTMLElement) {
     const missionDone = missions.filter((item) => item.value >= item.goal).length;
     const completedCases = Object.keys(state.cases).length;
     const reviewedCards = Object.keys(state.cards).length;
+    const gamesWon = gamesWonToday();
+    const gamesDone = retoGames.filter((game) => gamesWon[game.tipo]?.length).length;
     const rewards = rewardsSnapshot();
     const rewardChips = [...rewardCatalog].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)).slice(0, 3);
     const access = getChallengeAccess();
@@ -274,8 +298,17 @@ function mount(container: HTMLElement) {
             </div>
             <div class="tr-tile__art">${tileArt.flash}</div>
           </article>
+          <article class="tr-tile tr-tile--games" data-training-action="games">
+            <div class="tr-tile__body">
+              <span class="tr-tile__icon">${icon("i-trophy")}</span>
+              <h3>Juegos de Obra</h3>
+              <p>Juega y gana créditos</p>
+              <span class="tr-tile__stat">${gamesDone}/${retoGames.length} ganados hoy · +${GAME_CREDITS} c/u</span>
+              <button class="btn tr-tile__cta">Jugar ${icon("i-arrow-right")}</button>
+            </div>
+            <div class="tr-tile__art">${tileArt.games}</div>
+          </article>
         </div>
-        ${renderGames()}
         ${renderLeague()}
         <p class="tr-rewards__note tr-rewards__note--solo">${icon("i-shield-check")}<span>${accessNote} Canjea tus créditos en <button type="button" class="tr-link" data-go-premios>Materiales y premios</button>.</span></p>
         <section class="tr-achievements"><div class="tr-section-head"><div><span>Progreso verificable</span><h2>Insignias técnicas</h2></div></div><div class="tr-achievement-grid">${achievements.map((item) => `<article class="tr-achievement ${item.done ? "is-earned" : ""}"><img src="${item.icon}" alt="" loading="lazy"><span>${item.done ? "Obtenida" : "Por desbloquear"}</span><strong>${item.label}</strong></article>`).join("")}</div></section>
@@ -287,61 +320,64 @@ function mount(container: HTMLElement) {
     </div>`);
   }
 
-  function renderGames() {
+  function renderGamesPage() {
+    view = "games";
     const won = gamesWonToday();
+    const best = readBest();
     const done = retoGames.filter((game) => won[game.tipo]?.length).length;
-    return `<section class="tr-games">
-      <div class="tr-section-head"><div><span>Juegos de obra</span><h2>Juega y gana créditos</h2></div><small>${done ? `${done}/${retoGames.length} hoy` : `+${GAME_CREDITS} créditos por juego, cada día`}</small></div>
-      <div class="tr-games__grid">${retoGames.map((game) => {
+    const stars = (n: number) => `<span class="tr-gcard__stars" aria-label="${n} de 3 estrellas">${[1, 2, 3].map((i) => `<i class="${i <= n ? "is-on" : ""}">★</i>`).join("")}</span>`;
+    shell(`<button class="tr-back" data-training-action="hub"><span style="display:inline-flex;transform:rotate(180deg)">${icon("i-arrow-right")}</span> Centro de entrenamiento</button>
+      <div class="tr-section-head tr-section-head--page"><div><span>Juegos de obra</span><h2>Juega y gana créditos</h2><p>Un tablero nuevo cada día en cada juego. Gánalo y suma +${GAME_CREDITS} créditos.</p></div><small>${done}/${retoGames.length} ganados hoy</small></div>
+      <div class="tr-gcards">${retoGames.map((game) => {
         const isDone = Boolean(won[game.tipo]?.length);
-        return `<button type="button" class="tr-game ${isDone ? "is-done" : ""}" style="--g:${game.color}" data-game="${game.tipo}">
-          <span class="tr-game__icon">${GAME_INFO[game.tipo].icono}</span>
-          <span class="tr-game__text"><strong>${esc(game.titulo)}</strong><small>${esc(game.descripcion)}</small></span>
-          <span class="tr-game__badge">${isDone ? "✓ Hoy" : `+${GAME_CREDITS}`}</span>
-        </button>`;
-      }).join("")}</div>
-    </section>`;
+        const board = boardOfTheDay(game);
+        const top = Math.max(0, ...game.tableros.map((_, i) => best[`${game.tipo}:${i}`] || 0));
+        return `<article class="tr-gcard ${isDone ? "is-done" : ""}" style="--g:${game.color}" data-game="${game.tipo}" tabindex="0" role="button" aria-label="Jugar ${esc(game.titulo)}">
+          <div class="tr-gcard__art">${GAME_ART[game.tipo]}</div>
+          <div class="tr-gcard__body">
+            <div class="tr-gcard__top"><span class="tr-gcard__icon">${GAME_INFO[game.tipo].icono}</span>${top ? stars(top) : ""}</div>
+            <h3>${esc(game.titulo)}</h3>
+            <p>${esc(game.descripcion)}</p>
+            <span class="tr-gcard__board">Hoy: ${esc(game.tableros[board].titulo)}</span>
+            <div class="tr-gcard__foot"><span class="tr-gcard__reward">${isDone ? "✓ Ganado hoy" : `+${GAME_CREDITS} créditos`}</span><span class="tr-gcard__play">${isDone ? "Practicar" : "Jugar"} ${icon("i-arrow-right")}</span></div>
+          </div>
+        </article>`;
+      }).join("")}</div>`);
   }
 
-  async function playGame(game: RetoGame) {
+  async function playGame(game: RetoGame, forcedBoard?: number) {
     if (!(await ensureChallenge("juegos"))) return;
     const wonBoards = gamesWonToday()[game.tipo] || [];
     const earning = wonBoards.length === 0;
-    // Primero el tablero del día; ya ganado, se practica con el siguiente.
+    // Primero el tablero del día; ya ganado, se practica con los demás.
     const start = boardOfTheDay(game);
-    let board = start;
-    if (!earning) board = (start + wonBoards.length) % game.tableros.length;
-    const tablero = game.tableros[board];
-    let credited: Promise<void> | null = null;
-    await window.IMFRAClassGames.play({
-      cursoId: `retos-${game.tipo}`,
-      cursoTitulo: "Retos IMFRA",
-      claseIndex: board,
-      claseNumero: board + 1,
-      claseTitulo: `Tablero: ${tablero.titulo}`,
-      config: tablero.config,
-      kicker: earning ? "Retos IMFRA · Tablero del día" : "Retos IMFRA · Práctica",
-      nota: earning
-        ? `Gánalo y suma <b>+${GAME_CREDITS} créditos</b> hoy.`
-        : "Ya ganaste los créditos de hoy en este juego. Mañana hay un tablero nuevo.",
-      onWin: () => {
+    const board = forcedBoard ?? (earning ? start : (start + wonBoards.length) % game.tableros.length);
+    openArcade({
+      game,
+      board,
+      earning,
+      credits: GAME_CREDITS,
+      onWin: async (result: ArcadeResult) => {
         markGameWon(game.tipo, board);
-        if (!earning) return;
+        saveBest(`${game.tipo}:${board}`, result.stars);
+        if (!earning) return 0;
         state.xp += 20;
         registerDay(state); persistState();
-        credited = awardGameCredit(game.tipo, board, GAME_CREDITS)
-          .then((credits) => {
-            if (credits > 0) window.IMFRACoinChest?.show({ amount: credits, total: window.IMFRACredits?.getBalance(), title: "¡Juego ganado!" });
-          })
-          .catch((error) => {
-            console.warn("[training] Créditos del juego pendientes", error);
-            window.Toast?.error?.("Retos IMFRA", error instanceof Error ? error.message : "No pudimos sumar los créditos de este juego.");
-          })
-          .finally(() => completeChallengeAttempt("juegos").catch((error) => console.warn("[training] No se pudo cerrar la partida gratuita", error)).then(() => undefined));
+        try {
+          const credits = await awardGameCredit(game.tipo, board, GAME_CREDITS);
+          if (credits > 0) window.IMFRACoinChest?.show({ amount: credits, total: window.IMFRACredits?.getBalance(), title: "¡Juego ganado!" });
+          return credits;
+        } finally {
+          await completeChallengeAttempt("juegos").catch((error) => console.warn("[training] No se pudo cerrar la partida gratuita", error));
+        }
+      },
+      onAnother: () => { void playGame(game, (board + 1) % game.tableros.length); },
+      onClose: () => {
+        if (!container.isConnected) return;
+        if (view === "games") renderGamesPage();
+        else if (view === "hub") renderHub();
       }
     });
-    if (credited) await credited;
-    if (container.isConnected && view === "hub") { renderHub(); container.querySelector(".tr-games")?.scrollIntoView({ behavior: "smooth", block: "start" }); }
   }
 
   function renderLeague() {
@@ -420,10 +456,11 @@ function mount(container: HTMLElement) {
 
   function bind() {
     container.querySelector<HTMLButtonElement>("[data-go-premios]")?.addEventListener("click", () => window.navigateToSection?.("pdfs"));
-    container.querySelectorAll<HTMLButtonElement>("[data-game]").forEach((button) => button.addEventListener("click", () => {
-      const game = retoGames.find((item) => item.tipo === button.dataset.game);
-      if (game) void playGame(game);
-    }));
+    container.querySelectorAll<HTMLElement>("[data-game]").forEach((card) => {
+      const open = () => { const game = retoGames.find((item) => item.tipo === card.dataset.game); if (game) void playGame(game); };
+      card.addEventListener("click", open);
+      card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); open(); } });
+    });
     container.querySelectorAll<HTMLElement>("[data-training-action]").forEach((element) => element.addEventListener("click", async () => {
       const action = element.dataset.trainingAction;
       if (action === "quiz") {
@@ -438,6 +475,7 @@ function mount(container: HTMLElement) {
       }
       if (action === "hub") { renderHub(); goTo(); }
       if (action === "cases") { renderCases(); goTo(".tr-back"); }
+      if (action === "games") { renderGamesPage(); goTo(".tr-back"); }
       if (action === "flashcards") {
         if (!(await ensureChallenge("flashcards"))) return;
         rebuildDeck(); renderFlashcards(); goTo(".tr-back");
@@ -519,6 +557,7 @@ function mount(container: HTMLElement) {
     });
   }
   else if (initialView === "cases") renderCases();
+  else if (initialView === "games") renderGamesPage();
   else if (initialView === "flashcards") {
     renderHub();
     void ensureChallenge("flashcards").then((allowed) => {
@@ -533,6 +572,7 @@ function mount(container: HTMLElement) {
       return;
     }
     if (view === "hub") renderHub();
+    else if (view === "games") renderGamesPage();
   };
   window.addEventListener("imfra:credits-changed", onCreditsChanged);
   void window.IMFRACredits?.hydrate().then(() => { if (view === "hub") renderHub(); })
@@ -545,6 +585,7 @@ function mount(container: HTMLElement) {
     if (view === "cases") renderCases();
     else if (view === "case") renderCase();
     else if (view === "flashcards") renderFlashcards();
+    else if (view === "games") renderGamesPage();
     else renderHub();
   });
   if (!demoMode) {

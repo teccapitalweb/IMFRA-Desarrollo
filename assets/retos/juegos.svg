@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-8 0 208 200">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf6ec"/><stop offset="1" stop-color="#efe4d0"/></linearGradient>
+    <linearGradient id="tileHot" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb84a"/><stop offset="1" stop-color="#f08a0c"/></linearGradient>
+    <radialGradient id="coin" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#fff2b8"/><stop offset=".45" stop-color="#ffc83d"/><stop offset="1" stop-color="#f09a12"/></radialGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#5a3206" flood-opacity=".22"/></filter>
+  </defs>
+  <!-- destellos -->
+  <g stroke="#f59d1a" stroke-width="5" stroke-linecap="round">
+    <path d="M168 26l8-10M178 44l13-3M160 14l1-11"/>
+  </g>
+  <g filter="url(#sh)" font-family="Arial Black, Arial, Helvetica, sans-serif" font-weight="900" font-size="24" text-anchor="middle">
+    <!-- vertical G R U A -->
+    <g>
+      <rect x="80" y="14" width="38" height="38" rx="8" fill="#e07f08"/><rect x="80" y="11" width="38" height="38" rx="8" fill="url(#tile)" stroke="#f59d1a" stroke-width="3.5"/><text x="99" y="39" fill="#2a2016">G</text>
+      <rect x="80" y="98" width="38" height="38" rx="8" fill="#e07f08"/><rect x="80" y="95" width="38" height="38" rx="8" fill="url(#tile)" stroke="#f59d1a" stroke-width="3.5"/><text x="99" y="123" fill="#2a2016">U</text>
+      <rect x="80" y="140" width="38" height="38" rx="8" fill="#e07f08"/><rect x="80" y="137" width="38" height="38" rx="8" fill="url(#tile)" stroke="#f59d1a" stroke-width="3.5"/><text x="99" y="165" fill="#2a2016">A</text>
+    </g>
+    <!-- horizontal O B R A -->
+    <g>
+      <rect x="-4" y="56" width="38" height="38" rx="8" fill="#e07f08"/><rect x="-4" y="53" width="38" height="38" rx="8" fill="url(#tile)" stroke="#f59d1a" stroke-width="3.5"/><text x="15" y="81" fill="#2a2016">O</text>
+      <rect x="38" y="56" width="38" height="38" rx="8" fill="#e07f08"/><rect x="38" y="53" width="38" height="38" rx="8" fill="url(#tile)" stroke="#f59d1a" stroke-width="3.5"/><text x="57" y="81" fill="#2a2016">B</text>
+      <rect x="80" y="56" width="38" height="38" rx="8" fill="#b85f00"/><rect x="80" y="53" width="38" height="38" rx="8" fill="url(#tileHot)" stroke="#d97706" stroke-width="3.5"/><text x="99" y="81" fill="#ffffff">R</text>
+      <rect x="122" y="56" width="38" height="38" rx="8" fill="#e07f08"/><rect x="122" y="53" width="38" height="38" rx="8" fill="url(#tile)" stroke="#f59d1a" stroke-width="3.5"/><text x="141" y="81" fill="#2a2016">A</text>
+    </g>
+  </g>
+  <!-- moneda -->
+  <g filter="url(#sh)">
+    <circle cx="153" cy="147" r="30" fill="#e8930c"/>
+    <circle cx="153" cy="145" r="30" fill="#f2a516"/>
+    <circle cx="153" cy="145" r="24.5" fill="url(#coin)"/>
+    <circle cx="153" cy="145" r="19" fill="none" stroke="#c9780a" stroke-width="2" stroke-dasharray="3 3"/>
+    <path d="M153 133v24M141 145h24" stroke="#8a4f05" stroke-width="6" stroke-linecap="round"/>
+    <ellipse cx="143" cy="131" rx="7" ry="3.2" fill="#fff" opacity=".6" transform="rotate(-30 143 131)"/>
+  </g>
+  <!-- estrella -->
+  <path d="M36 128l6 12 13 2-9.5 9 2.3 13L36 158l-11.8 6.2 2.3-13-9.5-9 13-2z" fill="#ffc83d" stroke="#e8930c" stroke-width="3" stroke-linejoin="round" filter="url(#sh)"/>
+</svg>
