@@ -3713,6 +3713,11 @@ if (window.__isDemoMode) {
       window.UserState.iniciales = calcIniciales(nombre);
     })();
 
+    // Recupera primero el avance asociado a la cuenta para que la primera
+    // pantalla ya sea correcta también en un teléfono o tableta nuevos.
+    try { if (window.__prepareLearningProgress) await window.__prepareLearningProgress(); }
+    catch(e) { console.warn('[avance inicial]', e.message); }
+
     document.body.style.visibility = 'visible';
 
     // Cargar noticias reales del home (Firestore noticias_auto)
@@ -4917,8 +4922,8 @@ const Sections = (function(){
   }
 
   // ═══════════════════════════════════════════════════════════════
-  // 📊 PROGRESO POR USUARIO · localStorage (Sprint 7)
-  // En Fase 4 migramos a Firestore para sincronizar entre dispositivos
+  // 📊 PROGRESO POR USUARIO · cuenta + respaldo local
+  // La copia local permite seguir usando el panel si la conexión se interrumpe.
   // ═══════════════════════════════════════════════════════════════
   function getProgresoKey() {
     const uid = window.UserState?.uid || 'demo';
@@ -4932,6 +4937,7 @@ const Sections = (function(){
 
   function setProgreso(p) {
     try { localStorage.setItem(getProgresoKey(), JSON.stringify(p)); } catch {}
+    window.IMFRALearningSync?.schedule?.();
   }
 
   // Resumen mínimo que el backend usa para la clasificación del club.
@@ -4948,6 +4954,176 @@ const Sections = (function(){
     const p = getProgreso();
     return p[cursoId] || { clasesVistas: [], completado: false, fechaCompletado: null };
   }
+
+  // ─── Sincronización multidispositivo ───
+  // Todo se fusiona de forma acumulativa. Un dispositivo nuevo o vacío nunca
+  // puede borrar las clases, juegos o respuestas guardadas por otro dispositivo.
+  let _progresoRemotoListo = false;
+  let _progresoSyncTimer = 0;
+  let _progresoSyncPromise = null;
+
+  function cuentasProgresoActual(){
+    const raw = String(window.UserState?.uid || window.UserState?.email || 'guest');
+    return { raw, classGames: raw.toLowerCase() };
+  }
+
+  function construirAvanceParaNube(){
+    const local = getProgreso();
+    const cuentas = cuentasProgresoActual();
+    const courses = {};
+    const classGames = {};
+
+    cursos.forEach(curso => {
+      const collectionId = String(curso?.bunnyCollectionId || '');
+      if (!collectionId) return;
+      const total = Array.isArray(curso.sesiones) ? curso.sesiones.length : 0;
+      const prog = local[curso.id] || {};
+      const classes = [...new Set((Array.isArray(prog.clasesVistas) ? prog.clasesVistas : [])
+        .map(Number)
+        .filter(numero => Number.isInteger(numero) && numero >= 1 && (!total || numero <= total)))]
+        .sort((a, b) => a - b);
+      if (classes.length) courses[collectionId] = { classes, completedAt: prog.fechaCompletado || null };
+
+      const ganadas = [];
+      for (let index = 0; index < total; index++) {
+        const numero = Number(curso.sesiones[index]?.numero || index + 1);
+        try {
+          if (localStorage.getItem(`imfra:v2:class-game:${cuentas.classGames}:${curso.id}:${numero}`)) ganadas.push(numero);
+        } catch(e) {}
+      }
+      if (ganadas.length) classGames[collectionId] = ganadas;
+    });
+
+    let challengeGames = { day:'', won:{}, best:{} };
+    let quizAnswers = {};
+    try {
+      const diario = JSON.parse(localStorage.getItem(`imfra:v2:retos-juegos:${cuentas.raw}`) || 'null') || {};
+      const best = JSON.parse(localStorage.getItem(`imfra:v2:retos-juegos-best:${cuentas.raw}`) || '{}') || {};
+      challengeGames = { day:String(diario.day || ''), won:diario.won || {}, best };
+    } catch(e) {}
+    try {
+      const rewards = JSON.parse(localStorage.getItem(`imfra:v2:rewards:${cuentas.raw}`) || 'null') || {};
+      quizAnswers = rewards.answered || {};
+    } catch(e) {}
+
+    return { version:1, courses, classGames, challengeGames, quizAnswers };
+  }
+
+  function aplicarAvanceDeNube(remote){
+    if (!remote || typeof remote !== 'object') return false;
+    const antes = JSON.stringify(getProgreso());
+    const local = getProgreso();
+    const cuentas = cuentasProgresoActual();
+
+    try {
+      cursos.forEach(curso => {
+        const collectionId = String(curso?.bunnyCollectionId || '');
+        const total = Array.isArray(curso.sesiones) ? curso.sesiones.length : 0;
+        const nube = remote.courses?.[collectionId];
+        if (nube) {
+          const actual = local[curso.id] || { clasesVistas:[], completado:false, fechaCompletado:null };
+          const clases = [...new Set([...(actual.clasesVistas || []), ...(nube.classes || [])]
+            .map(Number)
+            .filter(numero => Number.isInteger(numero) && numero >= 1 && (!total || numero <= total)))]
+            .sort((a, b) => a - b);
+          local[curso.id] = {
+            clasesVistas: clases,
+            completado: actual.completado === true || (total > 0 && clases.length >= total),
+            fechaCompletado: actual.fechaCompletado || nube.completedAt || null
+          };
+        }
+        (remote.classGames?.[collectionId] || []).forEach(numero => {
+          try {
+            localStorage.setItem(`imfra:v2:class-game:${cuentas.classGames}:${curso.id}:${Number(numero)}`, new Date().toISOString());
+          } catch(e) {}
+        });
+      });
+      localStorage.setItem(getProgresoKey(), JSON.stringify(local));
+
+      const juegos = remote.challengeGames || {};
+      if (juegos.day) {
+        localStorage.setItem(`imfra:v2:retos-juegos:${cuentas.raw}`, JSON.stringify({ day:juegos.day, won:juegos.won || {} }));
+      }
+      localStorage.setItem(`imfra:v2:retos-juegos-best:${cuentas.raw}`, JSON.stringify(juegos.best || {}));
+
+      const rewardsKey = `imfra:v2:rewards:${cuentas.raw}`;
+      const rewards = JSON.parse(localStorage.getItem(rewardsKey) || 'null') || {};
+      rewards.answered = Object.assign({}, rewards.answered || {}, remote.quizAnswers || {});
+      localStorage.setItem(rewardsKey, JSON.stringify(rewards));
+    } catch(error) {
+      console.warn('[avance] No se pudo aplicar la copia sincronizada:', error.message);
+    }
+
+    const cambio = antes !== JSON.stringify(getProgreso());
+    window.dispatchEvent(new CustomEvent('imfra:learning-progress-synced', { detail:{ changed:cambio } }));
+    if (cambio) refrescarVistaCursos();
+    return cambio;
+  }
+
+  async function sincronizarProgresoAhora(){
+    const user = window.__currentUser;
+    if (!user || window.__isDemoMode) return null;
+    if (_progresoSyncPromise) return _progresoSyncPromise;
+
+    _progresoSyncPromise = (async() => {
+      if (!_cursosLoaded) await cargarCursosFirestore();
+      if (!_cursosLoaded && _cursosLoading) {
+        await new Promise(resolve => {
+          let intentos = 0;
+          const espera = setInterval(() => {
+            intentos += 1;
+            if (_cursosLoaded || !_cursosLoading || intentos >= 160) {
+              clearInterval(espera);
+              resolve();
+            }
+          }, 50);
+        });
+      }
+      if (!cursos.length) throw new Error('El catálogo aún no está disponible');
+      const token = await user.getIdToken();
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 12000);
+      let response;
+      try {
+        response = await fetch(`${window.WEBHOOK_URL}/api/bunny/learning-progress`, {
+          method:'POST',
+          cache:'no-store',
+          signal:controller.signal,
+          headers:{ Authorization:`Bearer ${token}`, 'Content-Type':'application/json' },
+          body:JSON.stringify(construirAvanceParaNube())
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'No pudimos sincronizar el avance');
+      aplicarAvanceDeNube(data);
+      _progresoRemotoListo = true;
+      return data;
+    })().catch(error => {
+      console.warn('[avance] Se conserva la copia local para reintentar:', error.message);
+      return null;
+    }).finally(() => {
+      // Aun si esta petición quedó sin conexión, habilitamos los reintentos:
+      // el servidor siempre fusiona y nunca sustituye avance con una copia vacía.
+      _progresoRemotoListo = true;
+      _progresoSyncPromise = null;
+    });
+
+    return _progresoSyncPromise;
+  }
+
+  function programarSincronizacionProgreso(){
+    if (!_progresoRemotoListo || !window.__currentUser || window.__isDemoMode) return;
+    clearTimeout(_progresoSyncTimer);
+    _progresoSyncTimer = setTimeout(() => { void sincronizarProgresoAhora(); }, 650);
+  }
+
+  window.__prepareLearningProgress = sincronizarProgresoAhora;
+  window.IMFRALearningSync = { syncNow:sincronizarProgresoAhora, schedule:programarSincronizacionProgreso };
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && _progresoRemotoListo) void sincronizarProgresoAhora();
+  });
 
   window.marcarClaseVista = function(cursoId, numeroClase) {
     const p = getProgreso();

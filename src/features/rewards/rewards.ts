@@ -26,6 +26,7 @@ declare global {
   interface Window {
     IMFRARewards: { mount(container: HTMLElement): void; mountQuiz(container: HTMLElement): Promise<void>; mountPrizes(container: HTMLElement): void };
     UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
+    IMFRALearningSync?: { syncNow(): Promise<unknown>; schedule(): void };
     __showPaywallModal?: (options?: { title?: string; sub?: string; cta?: string }) => void;
   }
 }
@@ -56,6 +57,7 @@ function readState(): RewardState {
 
 function saveState(state: RewardState) {
   localStorage.setItem(accountKey(), JSON.stringify(state));
+  window.IMFRALearningSync?.schedule();
 }
 
 const QUIZ_ROUNDS = [
@@ -527,6 +529,15 @@ function mount(container: HTMLElement, mode: "rewards" | "quiz" | "prizes" = "re
     render();
   };
   window.addEventListener("imfra:credits-changed", onCreditsChanged);
+  const onLearningProgress = () => {
+    if (!container.isConnected) {
+      window.removeEventListener("imfra:learning-progress-synced", onLearningProgress);
+      return;
+    }
+    state.answered = readState().answered;
+    render();
+  };
+  window.addEventListener("imfra:learning-progress-synced", onLearningProgress);
   void loadCredits().then((snapshot) => {
     mergeCreditSnapshot(state, snapshot);
     saveState(state);

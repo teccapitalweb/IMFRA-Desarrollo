@@ -42,6 +42,7 @@ declare global {
       hasWon(cursoId: string, claseNumero: number): boolean;
     };
     UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
+    IMFRALearningSync?: { syncNow(): Promise<unknown>; schedule(): void };
   }
 }
 
@@ -736,6 +737,7 @@ function play(options: PlayOptions): Promise<boolean> {
         if (won) return;
         won = true;
         try { localStorage.setItem(winKey(options.cursoId, options.claseNumero), new Date().toISOString()); } catch { /* sin almacenamiento */ }
+        window.IMFRALearningSync?.schedule();
         overlay.querySelector(".cg-modal")!.classList.add("is-won");
         clearTimeout(feedbackTimer);
         const extra = feedbackEl.hidden || !feedbackEl.classList.contains("cg-feedback--ok") ? "" : ` ${feedbackEl.textContent}`;

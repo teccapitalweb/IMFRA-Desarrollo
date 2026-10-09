@@ -23,6 +23,7 @@ declare global {
   interface Window {
     IMFRATraining: { mount(container: HTMLElement): void };
     UserState?: { uid?: string; email?: string; modo?: string; photoURL?: string; displayName?: string };
+    IMFRALearningSync?: { syncNow(): Promise<unknown>; schedule(): void };
     __showPaywallModal?: (options?: { title?: string; sub?: string; cta?: string }) => void;
   }
 }
@@ -44,7 +45,10 @@ function readState(): TrainingState {
   } catch {}
   return emptyState();
 }
-function saveState(state: TrainingState) { localStorage.setItem(stateKey(), JSON.stringify(state)); }
+function saveState(state: TrainingState) {
+  localStorage.setItem(stateKey(), JSON.stringify(state));
+  window.IMFRALearningSync?.schedule();
+}
 function esc(value: string) { return value.replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char] || char); }
 function icon(name: string) { return `<svg class="ic"><use href="#${name}"/></svg>`; }
 function safePhoto(value?: string) { return /^https:\/\//i.test(value || "") ? value || "" : ""; }
@@ -79,6 +83,7 @@ function markGameWon(tipo: string, board: number) {
   const won = gamesWonToday();
   won[tipo] = [...new Set([...(won[tipo] || []), board])];
   try { localStorage.setItem(gamesKey(), JSON.stringify({ day: today(), won })); } catch { /* sin almacenamiento */ }
+  window.IMFRALearningSync?.schedule();
 }
 
 function bestKey() { return `imfra:v2:retos-juegos-best:${accountId()}`; }
@@ -90,6 +95,7 @@ function saveBest(id: string, stars: number) {
   if ((best[id] || 0) >= stars) return;
   best[id] = stars;
   try { localStorage.setItem(bestKey(), JSON.stringify(best)); } catch { /* sin almacenamiento */ }
+  window.IMFRALearningSync?.schedule();
 }
 
 // Mini ilustraciones de cada juego (HTML y CSS, sin imágenes).
@@ -629,6 +635,15 @@ function mount(container: HTMLElement) {
     else if (view === "games") renderGamesPage();
   };
   window.addEventListener("imfra:credits-changed", onCreditsChanged);
+  const onLearningProgress = () => {
+    if (!container.isConnected) {
+      window.removeEventListener("imfra:learning-progress-synced", onLearningProgress);
+      return;
+    }
+    if (view === "hub") renderHub();
+    else if (view === "games") renderGamesPage();
+  };
+  window.addEventListener("imfra:learning-progress-synced", onLearningProgress);
   void window.IMFRACredits?.hydrate().then(() => { if (view === "hub") renderHub(); })
     .catch((error) => console.warn("[training] No se pudo cargar el saldo", error));
   if (initialView === "cases") requestAnimationFrame(() => container.querySelector(".tr-back")?.scrollIntoView({ behavior: "auto", block: "start" }));
