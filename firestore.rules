@@ -51,7 +51,8 @@ service cloud.firestore {
           'fechaRegistro','createdAt','lastUpdatedAt','origen'
         ]) &&
         request.resource.data.uid == docId &&
-        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.email is string &&
+        request.resource.data.email.size() <= 254 &&
         request.resource.data.activa == false &&
         request.resource.data.plan == null);
 
