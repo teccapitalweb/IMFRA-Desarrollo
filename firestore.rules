@@ -41,23 +41,29 @@ service cloud.firestore {
     }
     // ───────── MIEMBROS ─────────
     match /miembros/{docId} {
-      allow read: if request.auth != null &&
-        (request.auth.uid == docId ||
-         request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']);
-      allow create: if (request.auth != null && request.auth.uid == docId &&
-                        request.resource.data.activa == false &&
-                        request.resource.data.plan == null)
-                    || (request.auth != null &&
-                        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com']);
-      allow update: if (request.auth != null &&
-                        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'])
-                    || (request.auth != null && request.auth.uid == docId &&
-                        request.resource.data.activa == resource.data.activa &&
-                        request.resource.data.plan == resource.data.plan &&
-                        (!('expiraEn' in request.resource.data) ||
-                         request.resource.data.expiraEn == resource.data.expiraEn));
-      allow delete: if request.auth != null &&
-        request.auth.token.email in ['teccapitalweb@gmail.com','imfradesarrollo@gmail.com'];
+      allow read: if isOwner(docId) || isAdmin();
+
+      // Un registro nuevo solo contiene identidad y perfil. Los campos que
+      // conceden acceso se crean/modifican exclusivamente con Admin SDK.
+      allow create: if isAdmin() || (isOwner(docId) &&
+        request.resource.data.keys().hasOnly([
+          'uid','email','nombre','displayName','foto','photoURL','activa','plan',
+          'fechaRegistro','createdAt','lastUpdatedAt','origen'
+        ]) &&
+        request.resource.data.uid == docId &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.activa == false &&
+        request.resource.data.plan == null);
+
+      // El usuario puede mantener su ficha y progreso visual, nunca alterar
+      // membresía, fechas de acceso, Stripe, regalos ni roles administrativos.
+      allow update: if isAdmin() || (isOwner(docId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'nombre','displayName','foto','photoURL','lastUpdatedAt',
+          'profileIntakeSeen','profileIntakeSeenAt','whatsapp','especialidad',
+          'empresa','perfilCompletadoAt','materialRewards','notificacionPendiente'
+        ]));
+      allow delete: if isAdmin();
     }
     // ───────── NOTIFICACIONES ─────────
     match /notificaciones/{notifId} {

@@ -530,7 +530,7 @@ body{display:block}
   <div class="card">
     <p class="auth-free">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-      <span><strong>Regístrate gratis</strong><small>Recibe <b>200 créditos de regalo</b> y 4 clases del curso que elijas.</small></span>
+      <span><strong>Regístrate gratis</strong><small>Activa <b>3 días completos de IMFRA VIP</b>, sin tarjeta ni cobro automático.</small></span>
     </p>
     <div class="referral-invite" id="referral-invite" role="status">
       <span class="referral-invite__coin">C</span>
@@ -583,7 +583,7 @@ body{display:block}
     <div class="pane is-active" id="pane-register">
       <div class="pane-head">
         <h2>Crea tu cuenta</h2>
-        <p>Únete gratis a IMFRA en menos de un minuto.</p>
+        <p>Únete en menos de un minuto y prueba todo IMFRA VIP durante 3 días.</p>
       </div>
       <button type="button" class="btn-google" data-google="1">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -617,13 +617,13 @@ body{display:block}
       </div>
       <label class="checkbox-row">
         <input type="checkbox" id="re-terms">
-        <span>Acepto los <a href="#" target="_blank">Términos y condiciones</a> y la <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a> de IMFRA.</span>
+        <span>Acepto los <a href="#" target="_blank">Términos y condiciones</a> y la <a href="privacidad.html" target="_blank" rel="noopener">Política de privacidad</a> de IMFRA, incluido el correo único de activación de la prueba.</span>
       </label>
       <button class="btn" id="btn-register">
         <span class="btn-label">Crear cuenta</span>
         <svg class="btn-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
-      <div class="helper-text auth-after">Entrarás directo a tu panel para elegir tu curso gratis.</div>
+      <div class="helper-text auth-after">Entrarás directo a tu panel. La prueba es opcional, dura 72 horas y no genera cargos.</div>
 
     </div>
   </div>
@@ -783,6 +783,23 @@ const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence);
 
 const WEBHOOK_URL = 'https://imfra-backend-production.up.railway.app';
+function destinoInternoSeguro(){
+  const raw = String(new URLSearchParams(location.search).get('next') || '').trim();
+  if (!raw) return 'vip-panel.html';
+  try {
+    const base = new URL(location.href);
+    const target = new URL(raw, base);
+    const panelPath = new URL('vip-panel.html', base).pathname;
+    if (target.origin !== base.origin || target.pathname !== panelPath) return 'vip-panel.html';
+    return `vip-panel.html${target.search || ''}${target.hash || ''}`;
+  } catch(e) {
+    return 'vip-panel.html';
+  }
+}
+const MEMBER_DESTINATION = destinoInternoSeguro();
+function destinoDespuesDeAuth(email){
+  return ADMINS.includes(String(email || '').toLowerCase()) ? 'vip-admin.html' : MEMBER_DESTINATION;
+}
 const referralFromUrl = String(new URLSearchParams(location.search).get('ref') || '').trim().toUpperCase();
 if (/^IMFRA-[A-Z0-9]{8,14}$/.test(referralFromUrl)) {
   localStorage.setItem('imfra_pending_referral', referralFromUrl);
@@ -882,8 +899,7 @@ onAuthStateChanged(auth, async (user) => {
     await claimPendingReferral(user);
     // Recordar quién entró (para el "Hola de nuevo" si cierra sesión)
     try { localStorage.setItem('imfra_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}
-    const isAdmin = ADMINS.includes((user.email || "").toLowerCase());
-    window.location.href = isAdmin ? "vip-admin.html" : "vip-panel.html";
+    window.location.href = destinoDespuesDeAuth(user.email);
   }
 });
 
@@ -919,9 +935,8 @@ document.getElementById('btn-login').addEventListener('click', async () => {
   setLoading(btn, true);
   try {
     await signInWithEmailAndPassword(auth, email, pass);
-    const isAdmin = ADMINS.includes(email);
     showAlert('success', '¡Bienvenido!', 'Redirigiendo…');
-    setTimeout(() => { window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html'; }, 600);
+    setTimeout(() => { window.location.href = destinoDespuesDeAuth(email); }, 600);
   } catch (e) {
     setLoading(btn, false, 'Iniciar sesión');
     showAlert('error', 'No pudimos iniciar sesión', translateError(e.code));
@@ -964,7 +979,7 @@ document.getElementById('btn-register').addEventListener('click', async () => {
           '⚠️ Cuenta creada pero falta actualizar reglas Firestore',
           'Tu cuenta SÍ se creó en Auth, pero no se pudo guardar en Firestore (permission-denied). El admin debe actualizar las reglas. Continúa a tu panel para activar tu VIP.');
         setTimeout(() => {
-          window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html';
+          window.location.href = destinoDespuesDeAuth(email);
         }, 4500);
         return;
       } else {
@@ -972,7 +987,7 @@ document.getElementById('btn-register').addEventListener('click', async () => {
           '⚠️ Cuenta creada · advertencia',
           `Tu cuenta se creó pero hubo un problema al guardar tu perfil (${motivo}). Continúa a tu panel.`);
         setTimeout(() => {
-          window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html';
+          window.location.href = destinoDespuesDeAuth(email);
         }, 4500);
         return;
       }
@@ -987,7 +1002,7 @@ document.getElementById('btn-register').addEventListener('click', async () => {
             ? 'Perfil guardado · entrando a tu panel…'
             : 'Entrando a tu panel…'));
     setTimeout(() => {
-      window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html';
+      window.location.href = destinoDespuesDeAuth(email);
     }, 900);
   } catch (e) {
     registrandoConCorreo = false;
@@ -1003,6 +1018,14 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 document.querySelectorAll('[data-google]').forEach(btn => {
   btn.addEventListener('click', async () => {
     clearAlert();
+    // En la pestaña de registro, Google debe respetar la misma aceptación
+    // del aviso que el alta con correo. El botón de la pestaña de acceso
+    // permanece directo para no bloquear a miembros que ya tienen cuenta.
+    if (btn.closest('#pane-register') && !document.getElementById('re-terms')?.checked) {
+      showAlert('error', 'Acepta los términos', 'Necesitamos tu aceptación para crear la cuenta y enviarte el aviso único de la prueba.');
+      document.getElementById('re-terms')?.focus();
+      return;
+    }
     btn.disabled = true;
     try {
       // El popup hace login/registro · onAuthStateChanged se encarga de

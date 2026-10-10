@@ -48,6 +48,17 @@ const section = () => (area === "panel" ? (location.hash || "#inicio").slice(1) 
 let visibleSince = document.visibilityState === "visible" ? performance.now() : 0;
 let pending = 0;
 let currentSection = section();
+let cachedAuthToken = "";
+
+function warmAuthToken(attempts = 24) {
+  if (area !== "panel" || cachedAuthToken) return;
+  const user = window.__currentUser;
+  if (user?.getIdToken) {
+    void user.getIdToken().then((token) => { if (token) cachedAuthToken = token; }).catch(() => {});
+    return;
+  }
+  if (attempts > 0) setTimeout(() => warmAuthToken(attempts - 1), 250);
+}
 
 function collect() {
   if (visibleSince) {
@@ -65,7 +76,16 @@ async function send(final = false) {
   const url = `${window.WEBHOOK_URL || API}/analytics/beat`;
   try {
     let token = "";
-    if (area === "panel" && !final) token = (await window.__currentUser?.getIdToken()) || "";
+    if (area === "panel") {
+      if (!final) {
+        token = (await window.__currentUser?.getIdToken()) || "";
+        if (token) cachedAuthToken = token;
+      } else {
+        // pagehide no deja tiempo fiable para renovar el token. Reutilizamos el
+        // último token obtenido por un beat normal y enviamos con keepalive.
+        token = cachedAuthToken;
+      }
+    }
     if (final && !token && navigator.sendBeacon) {
       navigator.sendBeacon(url, new Blob([body], { type: "text/plain" }));
       return;
@@ -80,6 +100,10 @@ async function send(final = false) {
 }
 
 if (!LOCAL) {
+  // La autenticación del panel se resuelve de forma asíncrona. Conservamos el
+  // token tan pronto esté listo para que incluso una salida rápida sea asociable
+  // a la cuenta mediante fetch keepalive.
+  warmAuthToken();
   // Primera señal al abrir (cuenta la visita aunque dure poco).
   setTimeout(() => void send(), 4000);
   setInterval(() => { if (document.visibilityState === "visible") void send(); }, 60_000);
