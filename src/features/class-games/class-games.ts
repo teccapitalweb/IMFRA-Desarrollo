@@ -782,6 +782,95 @@ function gameCompletar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "com
   mark();
 }
 
+// ─────────────────────────── Experiencias inmersivas ───────────────────────────
+export function worksiteSceneSvg(kind: "izaje" | "excavacion" | "colado" | "andamio") {
+  const accent = kind === "excavacion" ? "#ff8a34" : kind === "colado" ? "#45c6ef" : kind === "andamio" ? "#8b7cff" : "#ffc24b";
+  const subject = kind === "izaje"
+    ? `<g class="site-scene__crane"><path d="M86 202V45h14v157M93 55h184M158 55l-58 42M228 55l49 40"/><path d="M225 55v68"/><path class="site-scene__cable" d="M225 55v99"/><rect x="192" y="153" width="66" height="24" rx="4"/><path d="M198 177v18M252 177v18"/></g><path class="site-scene__danger" d="M164 197h124l-18 27h-88z"/><g class="site-scene__worker"><circle cx="132" cy="185" r="7"/><path d="M132 192v24M132 200l-12 10M132 200l13 9M132 216l-10 19M132 216l12 19"/></g>`
+    : kind === "excavacion"
+      ? `<path class="site-scene__pit" d="m76 161 93-47 129 57-94 54z"/><path class="site-scene__cut" d="m76 161 14 44 112 52 2-32zM204 225l94-54-10 45-86 41z"/><g class="site-scene__ladder"><path d="m214 151-31 83M226 157l-31 83"/>${[0,1,2,3,4,5].map((i)=>`<path d="m${211-i*5} ${163+i*13} 13 6"/>`).join("")}</g><path class="site-scene__danger" d="M58 151h122l-13 19H70z"/><circle cx="243" cy="124" r="8"/><path class="site-scene__worker" d="M243 132v27m0-18-15 9m15-9 14 8m-14 10-10 20m10-20 13 18"/>`
+      : kind === "colado"
+        ? `<path class="site-scene__slab" d="m78 166 126-65 118 58-127 68z"/><g class="site-scene__rebar">${[0,1,2,3,4].map((i)=>`<path d="m${105+i*28} 151 111 54"/>`).join("")}${[0,1,2,3].map((i)=>`<path d="m${126+i*31} 126-2 101"/>`).join("")}</g><path class="site-scene__hose" d="M292 84c-54 4-29 69-79 72-37 2-41 29-38 48"/><circle cx="291" cy="82" r="13"/><g class="site-scene__worker"><circle cx="130" cy="132" r="7"/><path d="M130 139v27m0-18-14 10m14-10 17 6m-17 12-10 19m10-19 15 18"/></g>`
+        : `<path class="site-scene__wall" d="m101 76 124-26v168l-124 26z"/><g class="site-scene__scaffold"><path d="M72 221 91 79M175 224l18-166M65 121h132M60 168h132M55 215h132M80 82l111 133M193 61 65 215"/><path class="site-scene__deck" d="m61 164 135-30 4 14-141 31z"/></g><g class="site-scene__worker"><circle cx="130" cy="128" r="7"/><path d="M130 135v26m0-18-13 10m13-10 15 8m-15 10-9 20m9-20 14 18"/></g><path class="site-scene__danger" d="M51 225h155l-18 19H65z"/>`;
+  return `<svg class="site-scene" viewBox="0 0 380 280" role="img" aria-label="Escena tridimensional de obra"><defs><linearGradient id="siteSky-${kind}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#17263c"/><stop offset="1" stop-color="#07101d"/></linearGradient><linearGradient id="siteFloor-${kind}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#24354a"/><stop offset="1" stop-color="#101a28"/></linearGradient></defs><rect width="380" height="280" rx="22" fill="url(#siteSky-${kind})"/><circle cx="305" cy="54" r="70" fill="${accent}" opacity=".08"/><path d="M0 220 191 123l189 94v63H0z" fill="url(#siteFloor-${kind})"/><g class="site-scene__grid"><path d="M0 245 241 123M48 280l241-123M144 280l191-96M380 244 137 123M334 280 94 160M242 280 48 183"/></g><g style="--scene-accent:${accent}">${subject}</g><g class="site-scene__hud"><path d="M24 48V25h23M333 25h23v23M24 232v23h23M356 232v23h-23"/><circle cx="190" cy="140" r="28"/><path d="M190 104v18M190 158v18M154 140h18M208 140h18"/></g></svg>`;
+}
+
+function gameInspeccion(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "inspeccion" }>, ctx: GameContext) {
+  let index = 0;
+  let busy = false;
+  const render = () => {
+    const scene = cfg.escenas[index];
+    stage.innerHTML = `<div class="cg-immersive cg-inspect">
+      <div class="cg-immersive__visual" data-tilt>
+        <img src="${esc(scene.imagen)}" alt="Evidencia de ${esc(scene.titulo)}">
+        <span class="cg-scanline" aria-hidden="true"></span><span class="cg-reticle" data-reticle style="--x:${scene.foco.x}%;--y:${scene.foco.y}%" aria-hidden="true"></span>
+        <div class="cg-immersive__hud"><span>INSPECCIÓN ${String(index + 1).padStart(2, "0")}/${String(cfg.escenas.length).padStart(2, "0")}</span><b>● EN CAMPO</b></div>
+        <span class="cg-immersive__tag">${esc(scene.etiqueta)}</span>
+      </div>
+      <div class="cg-immersive__panel"><span class="cg-kicker">Decisión profesional</span><h3>${esc(scene.titulo)}</h3><p>${esc(scene.pregunta)}</p>
+        <div class="cg-decision">${scene.opciones.map((option, i) => `<button type="button" data-answer="${i}"><b>${String.fromCharCode(65 + i)}</b><span>${esc(option)}</span></button>`).join("")}</div>
+      </div></div>`;
+    ctx.progress(index, cfg.escenas.length);
+    const visual = stage.querySelector<HTMLElement>("[data-tilt]")!;
+    visual.addEventListener("pointermove", (event) => {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const rect = visual.getBoundingClientRect();
+      visual.style.setProperty("--rx", `${((event.clientY - rect.top) / rect.height - .5) * -3}deg`);
+      visual.style.setProperty("--ry", `${((event.clientX - rect.left) / rect.width - .5) * 4}deg`);
+    });
+    visual.addEventListener("pointerleave", () => { visual.style.setProperty("--rx", "0deg"); visual.style.setProperty("--ry", "0deg"); });
+    const reveal = () => {
+      stage.querySelector(`[data-answer="${scene.correcta}"]`)?.classList.add("is-hint");
+      stage.querySelector("[data-reticle]")?.classList.add("is-visible");
+      ctx.feedback("Pista activada: resaltamos la evidencia y la decisión más segura.", "info");
+    };
+    ctx.help("Activar pista de inspección", reveal);
+    stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => {
+      if (busy) return;
+      if (Number(button.dataset.answer) !== scene.correcta) {
+        button.classList.add("is-wrong");
+        reveal();
+        ctx.feedback("Esa acción podría ocultar el problema. Te marcamos la opción segura para que puedas continuar.", "error");
+        return;
+      }
+      busy = true;
+      button.classList.add("is-correct");
+      ctx.feedback(scene.explicacion, "ok");
+      ctx.progress(index + 1, cfg.escenas.length);
+      window.setTimeout(() => { index += 1; busy = false; if (index >= cfg.escenas.length) ctx.win("Inspección completada con criterio técnico."); else render(); }, 950);
+    }));
+  };
+  render();
+}
+
+function gameSimulador(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "simulador" }>, ctx: GameContext) {
+  let index = 0;
+  let busy = false;
+  const render = () => {
+    const scene = cfg.escenas[index];
+    stage.innerHTML = `<div class="cg-immersive cg-simulator">
+      <div class="cg-immersive__visual cg-simulator__visual">${worksiteSceneSvg(scene.escena)}<div class="cg-immersive__hud"><span>SIMULACIÓN ${String(index + 1).padStart(2, "0")}/${String(cfg.escenas.length).padStart(2, "0")}</span><b>RIESGO · ${esc(scene.riesgo)}</b></div></div>
+      <div class="cg-immersive__panel"><span class="cg-kicker">Toma el mando</span><h3>${esc(scene.titulo)}</h3><p>${esc(scene.pregunta)}</p>
+        <div class="cg-decision">${scene.opciones.map((option, i) => `<button type="button" data-answer="${i}"><b>${String.fromCharCode(65 + i)}</b><span>${esc(option)}</span></button>`).join("")}</div>
+      </div></div>`;
+    ctx.progress(index, cfg.escenas.length);
+    const reveal = () => { stage.querySelector(`[data-answer="${scene.correcta}"]`)?.classList.add("is-hint"); ctx.feedback("La guía de seguridad ya señaló la maniobra correcta.", "info"); };
+    ctx.help("Consultar al residente", reveal);
+    stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => {
+      if (busy) return;
+      if (Number(button.dataset.answer) !== scene.correcta) {
+        button.classList.add("is-wrong"); reveal();
+        ctx.feedback("Alto preventivo. No pierdes el avance: revisa la maniobra marcada y continúa.", "error");
+        return;
+      }
+      busy = true; button.classList.add("is-correct"); stage.querySelector(".site-scene")?.classList.add("is-safe");
+      ctx.feedback(scene.explicacion, "ok"); ctx.progress(index + 1, cfg.escenas.length);
+      window.setTimeout(() => { index += 1; busy = false; if (index >= cfg.escenas.length) ctx.win("Simulación terminada: obra segura y decisión trazable."); else render(); }, 950);
+    }));
+  };
+  render();
+}
+
 // ─────────────────────────── Ventana del juego ───────────────────────────
 const GAMES: { [K in GameType]: (stage: HTMLElement, cfg: Extract<GameConfig, { tipo: K }>, ctx: GameContext) => void } = {
   sopa: gameSopa,
@@ -792,7 +881,9 @@ const GAMES: { [K in GameType]: (stage: HTMLElement, cfg: Extract<GameConfig, { 
   ordenar: gameOrdenar,
   clasificar: gameClasificar,
   ahorcado: gameAhorcado,
-  completar: gameCompletar
+  completar: gameCompletar,
+  inspeccion: gameInspeccion,
+  simulador: gameSimulador
 };
 
 let activeOverlay: HTMLElement | null = null;

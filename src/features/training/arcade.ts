@@ -1,6 +1,6 @@
 import "./arcade.css";
 import { GAME_INFO, type GameConfig } from "../class-games/content";
-import { layoutCrossword, normalizeWord, shuffle, type CrossWord } from "../class-games/class-games";
+import { layoutCrossword, normalizeWord, shuffle, worksiteSceneSvg, type CrossWord } from "../class-games/class-games";
 import { celebrate } from "../shared/celebration";
 import type { RetoGame } from "./games-catalog";
 
@@ -46,7 +46,9 @@ const PAR: Record<string, { seconds: number; e3: number; e2: number }> = {
   memorama: { seconds: 120, e3: 4, e2: 9 },
   ordenar: { seconds: 90, e3: 0, e2: 2 },
   ahorcado: { seconds: 180, e3: 3, e2: 7 },
-  clasificar: { seconds: 75, e3: 0, e2: 2 }
+  clasificar: { seconds: 75, e3: 0, e2: 2 },
+  inspeccion: { seconds: 120, e3: 0, e2: 2 },
+  simulador: { seconds: 110, e3: 0, e2: 2 }
 };
 
 const RULES: Record<string, string[]> = {
@@ -55,7 +57,9 @@ const RULES: Record<string, string[]> = {
   memorama: ["Voltea dos cartas: une cada término con su definición.", "Aciertos seguidos hacen racha y dan puntos extra.", "Menos movimientos, más estrellas."],
   ordenar: ["Arrastra los pasos o usa las flechas.", "Comprueba cuando creas que el orden es correcto.", "Acertar al primer intento da 3 estrellas."],
   ahorcado: ["Adivina 3 términos técnicos letra por letra.", "Cada error derriba un bloque de la estructura.", "Si caen los 6 bloques, pasas al siguiente término."],
-  clasificar: ["Lleva cada tarjeta a su categoría.", "Toca la categoría o arrastra la tarjeta hasta ella.", "Aciertos seguidos hacen racha."]
+  clasificar: ["Lleva cada tarjeta a su categoría.", "Toca la categoría o arrastra la tarjeta hasta ella.", "Aciertos seguidos hacen racha."],
+  inspeccion: ["Observa una evidencia real de obra.", "Elige la actuación que protege calidad y trazabilidad.", "Si fallas, la guía resalta la opción segura para continuar."],
+  simulador: ["Explora una escena isométrica de obra.", "Evalúa el riesgo y toma el mando de la maniobra.", "Nunca quedas bloqueado: cada error se convierte en una pista."]
 };
 
 const ICONS = {
@@ -916,11 +920,80 @@ function runClasificar(engine: Engine, cfg: GameConfig) {
   show();
 }
 
+function runInspeccion(engine: Engine, cfg: GameConfig) {
+  if (cfg.tipo !== "inspeccion") return;
+  let index = 0;
+  let locked = false;
+  const render = () => {
+    const scene = cfg.escenas[index];
+    engine.stage.innerHTML = `<div class="ar-immersive ar-inspect">
+      <div class="ar-immersive__visual" data-tilt><img src="${esc(scene.imagen)}" alt="Evidencia de ${esc(scene.titulo)}"><span class="ar-scanline"></span><span class="ar-reticle" style="--x:${scene.foco.x}%;--y:${scene.foco.y}%"></span><div class="ar-immersive__hud"><span>ESCANEO ${String(index + 1).padStart(2, "0")}/${String(cfg.escenas.length).padStart(2, "0")}</span><b>● EVIDENCIA REAL</b></div><span class="ar-immersive__tag">${esc(scene.etiqueta)}</span></div>
+      <div class="ar-immersive__panel"><small>Decisión profesional</small><h3>${esc(scene.titulo)}</h3><p>${esc(scene.pregunta)}</p><div class="ar-decision">${scene.opciones.map((option, i) => `<button type="button" data-answer="${i}"><b>${String.fromCharCode(65 + i)}</b><span>${esc(option)}</span></button>`).join("")}</div><div class="ar-explain" data-explain hidden></div></div>
+    </div>`;
+    engine.progress(index, cfg.escenas.length);
+    engine.stat("Hallazgo", `${index + 1}/${cfg.escenas.length}`);
+    const visual = engine.stage.querySelector<HTMLElement>("[data-tilt]")!;
+    visual.addEventListener("pointermove", (event) => {
+      if (reducedMotion()) return;
+      const rect = visual.getBoundingClientRect();
+      visual.style.setProperty("--rx", `${((event.clientY - rect.top) / rect.height - .5) * -3}deg`);
+      visual.style.setProperty("--ry", `${((event.clientX - rect.left) / rect.width - .5) * 4}deg`);
+    });
+    visual.addEventListener("pointerleave", () => { visual.style.setProperty("--rx", "0deg"); visual.style.setProperty("--ry", "0deg"); });
+    engine.stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => {
+      if (locked || engine.isOver()) return;
+      const answer = Number(button.dataset.answer);
+      if (answer !== scene.correcta) {
+        button.classList.add("is-wrong"); engine.mistake(button, 10);
+        engine.stage.querySelector(`[data-answer="${scene.correcta}"]`)?.classList.add("is-hint");
+        const explain = engine.stage.querySelector<HTMLElement>("[data-explain]")!; explain.hidden = false; explain.textContent = "Pista activada: la opción marcada mantiene la seguridad y la trazabilidad.";
+        return;
+      }
+      locked = true; button.classList.add("is-correct"); engine.points(100, button, "+100 · criterio");
+      const explain = engine.stage.querySelector<HTMLElement>("[data-explain]")!; explain.hidden = false; explain.classList.add("is-good"); explain.textContent = scene.explicacion;
+      engine.progress(index + 1, cfg.escenas.length);
+      window.setTimeout(() => { index += 1; locked = false; if (index >= cfg.escenas.length) engine.win(); else render(); }, 1050);
+    }));
+  };
+  render();
+}
+
+function runSimulador(engine: Engine, cfg: GameConfig) {
+  if (cfg.tipo !== "simulador") return;
+  let index = 0;
+  let locked = false;
+  const render = () => {
+    const scene = cfg.escenas[index];
+    engine.stage.innerHTML = `<div class="ar-immersive ar-simulator">
+      <div class="ar-immersive__visual ar-simulator__visual">${worksiteSceneSvg(scene.escena)}<div class="ar-immersive__hud"><span>MISIÓN ${String(index + 1).padStart(2, "0")}/${String(cfg.escenas.length).padStart(2, "0")}</span><b>RIESGO · ${esc(scene.riesgo)}</b></div></div>
+      <div class="ar-immersive__panel"><small>Toma el mando</small><h3>${esc(scene.titulo)}</h3><p>${esc(scene.pregunta)}</p><div class="ar-decision">${scene.opciones.map((option, i) => `<button type="button" data-answer="${i}"><b>${String.fromCharCode(65 + i)}</b><span>${esc(option)}</span></button>`).join("")}</div><div class="ar-explain" data-explain hidden></div></div>
+    </div>`;
+    engine.progress(index, cfg.escenas.length); engine.stat("Misión", `${index + 1}/${cfg.escenas.length}`);
+    engine.stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => {
+      if (locked || engine.isOver()) return;
+      const answer = Number(button.dataset.answer);
+      if (answer !== scene.correcta) {
+        button.classList.add("is-wrong"); engine.mistake(button, 10);
+        engine.stage.querySelector(`[data-answer="${scene.correcta}"]`)?.classList.add("is-hint");
+        const explain = engine.stage.querySelector<HTMLElement>("[data-explain]")!; explain.hidden = false; explain.textContent = "Alto preventivo: te señalamos la maniobra segura para que no quedes detenido.";
+        return;
+      }
+      locked = true; button.classList.add("is-correct"); engine.stage.querySelector(".site-scene")?.classList.add("is-safe"); engine.points(120, button, "+120 · obra segura");
+      const explain = engine.stage.querySelector<HTMLElement>("[data-explain]")!; explain.hidden = false; explain.classList.add("is-good"); explain.textContent = scene.explicacion;
+      engine.progress(index + 1, cfg.escenas.length);
+      window.setTimeout(() => { index += 1; locked = false; if (index >= cfg.escenas.length) engine.win(); else render(); }, 1050);
+    }));
+  };
+  render();
+}
+
 const RUNNERS: Record<string, GameRunner> = {
   crucigrama: runCrucigrama,
   sopa: runSopa,
   memorama: runMemorama,
   ordenar: runOrdenar,
   ahorcado: runAhorcado,
-  clasificar: runClasificar
+  clasificar: runClasificar,
+  inspeccion: runInspeccion,
+  simulador: runSimulador
 };

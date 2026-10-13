@@ -105,7 +105,9 @@ const GAME_ART: Record<string, string> = {
   sopa: `<div class="ga-ws">${"KTRAZ|CBMOP|GRAVA|LUNEX|NIVEL".split("|").join("").split("").map((ch) => `<b>${ch}</b>`).join("")}<span class="ga-ws__mark"></span></div>`,
   ordenar: `<div class="ga-ord"><span><b>1</b><i></i></span><span><b>2</b><i></i></span><span class="is-lift"><b>3</b><i></i></span></div>`,
   ahorcado: `<div class="ga-hm"><span>L</span><span></span><span>S</span><span>A</span></div>`,
-  clasificar: `<div class="ga-cl"><em>Casco</em><span></span><span></span></div>`
+  clasificar: `<div class="ga-cl"><em>Casco</em><span></span><span></span></div>`,
+  inspeccion: `<div class="ga-inspect"><img src="./assets/quiz/concreto-nido-grava.webp" alt=""><span></span><b>SCAN 01</b><i></i></div>`,
+  simulador: `<div class="ga-sim"><i class="ga-sim__slab"></i><i class="ga-sim__tower"></i><i class="ga-sim__load"></i><span></span><b>3D</b></div>`
 };
 
 function registerDay(state: TrainingState) {

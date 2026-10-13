@@ -3,6 +3,26 @@
 // panel), así que una resincronización con Bunny no borra los juegos.
 
 export type PlanKind = "obra" | "planta";
+export type SiteSceneKind = "izaje" | "excavacion" | "colado" | "andamio";
+
+export interface PracticalDecision {
+  titulo: string;
+  pregunta: string;
+  opciones: string[];
+  correcta: number;
+  explicacion: string;
+}
+
+export interface InspectionDecision extends PracticalDecision {
+  imagen: string;
+  etiqueta: string;
+  foco: { x: number; y: number };
+}
+
+export interface SimulatorDecision extends PracticalDecision {
+  escena: SiteSceneKind;
+  riesgo: string;
+}
 
 export type GameConfig =
   | { tipo: "sopa"; palabras: string[] }
@@ -13,7 +33,9 @@ export type GameConfig =
   | { tipo: "ordenar"; pregunta: string; pasos: string[] }
   | { tipo: "clasificar"; pregunta: string; categorias: string[]; elementos: { texto: string; categoria: number }[] }
   | { tipo: "ahorcado"; palabras: { palabra: string; pista: string }[] }
-  | { tipo: "completar"; texto: string; distractores: string[] };
+  | { tipo: "completar"; texto: string; distractores: string[] }
+  | { tipo: "inspeccion"; escenas: InspectionDecision[] }
+  | { tipo: "simulador"; escenas: SimulatorDecision[] };
 
 export type GameType = GameConfig["tipo"];
 
@@ -29,7 +51,9 @@ export const GAME_INFO: Record<GameType, { nombre: string; instruccion: string; 
   ordenar: { nombre: "Ordena el proceso", instruccion: "Acomoda los pasos en el orden correcto.", icono: svg('<path d="M10 6h11M10 12h11M10 18h11"/><path d="M4 4h1.5v4M4 8h3"/><path d="M3.5 14.5a1.6 1.6 0 0 1 3.2 0c0 1.1-3.2 2.3-3.2 3.5h3.2"/>') },
   clasificar: { nombre: "Clasifica", instruccion: "Coloca cada elemento en la categoría que le corresponde.", icono: svg('<rect x="3" y="4" width="7.5" height="16" rx="1.8"/><rect x="13.5" y="4" width="7.5" height="16" rx="1.8"/><path d="M5.5 8.5h2.5M5.5 12h2.5M16 8.5h2.5"/>') },
   ahorcado: { nombre: "Adivina la palabra", instruccion: "Descubre el término técnico antes de cometer 6 errores.", icono: svg('<path d="M3.5 17 7.5 6l4 11M5 13h5"/><path d="M14 17h7"/><path d="M16.5 7h2.5a1.5 1.5 0 0 1 0 3h-2.5V5.5"/>') },
-  completar: { nombre: "Completa la frase", instruccion: "Coloca cada palabra en el espacio correcto.", icono: svg('<path d="M4 6h16M4 12h4M16 12h4M4 18h10"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>') }
+  completar: { nombre: "Completa la frase", instruccion: "Coloca cada palabra en el espacio correcto.", icono: svg('<path d="M4 6h16M4 12h4M16 12h4M4 18h10"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>') },
+  inspeccion: { nombre: "Inspector de campo", instruccion: "Observa la evidencia real, detecta el hallazgo y toma una decisión técnica.", icono: svg('<path d="M3 7h4l1.6-2h6.8L17 7h4v12H3z"/><circle cx="12" cy="13" r="3.6"/><path d="m16.8 17.8 3 3"/>') },
+  simulador: { nombre: "Simulador de obra 3D", instruccion: "Recorre la escena, evalúa el riesgo y elige la maniobra segura.", icono: svg('<path d="m12 3 8 4.5-8 4.5-8-4.5z"/><path d="m4 12 8 4.5 8-4.5M4 16.5 12 21l8-4.5"/>') }
 };
 
 const CALIDAD: GameConfig[] = [
@@ -74,12 +98,11 @@ const CALIDAD: GameConfig[] = [
   },
   // 5 · Inspección, pruebas y liberación
   {
-    tipo: "plano",
-    plano: "obra",
-    rondas: [
-      { pregunta: "¿Dónde se toman las muestras de concreto para revenimiento y cilindros?", zona: "colado", explicacion: "Las muestras se toman en el frente de colado, del concreto que realmente se coloca en el elemento." },
-      { pregunta: "¿Dónde verificas diámetro, grado y estado del acero antes de habilitarlo?", zona: "acero", explicacion: "La inspección de recepción se hace en el patio de habilitado, antes de cortar y doblar." },
-      { pregunta: "¿Dónde se resguardan las liberaciones firmadas y los resultados de laboratorio?", zona: "caseta", explicacion: "Los registros de calidad se controlan en la oficina de obra, junto con la bitácora." }
+    tipo: "inspeccion",
+    escenas: [
+      { imagen: "./assets/quiz/concreto-nido-grava.webp", etiqueta: "Concreto · inspección visual", foco: { x: 54, y: 50 }, titulo: "Elemento recién descimbrado", pregunta: "¿Cuál es la actuación correcta antes de liberar este elemento?", opciones: ["Cubrirlo con acabado y continuar", "Delimitar, evaluar profundidad y definir una reparación aprobada", "Mojarlo y esperar a que desaparezca"], correcta: 1, explicacion: "El nido de grava se documenta y evalúa antes de reparar. Ocultarlo impide conocer su profundidad y posible afectación." },
+      { imagen: "./assets/quiz/concreto-grieta.webp", etiqueta: "Patología · diagnóstico", foco: { x: 49, y: 44 }, titulo: "Fisura observada en recorrido", pregunta: "¿Qué haces primero para tomar una decisión responsable?", opciones: ["Sellarla de inmediato", "Medir ancho, registrar ubicación y vigilar evolución", "Pintarla para identificarla después"], correcta: 1, explicacion: "Primero se caracteriza y registra la fisura; con esa evidencia se determina su causa y el método de reparación." },
+      { imagen: "./assets/quiz/concreto-depositos-blancos.webp", etiqueta: "Humedad · evidencia", foco: { x: 61, y: 53 }, titulo: "Depósitos blancos en superficie", pregunta: "¿Qué debes corregir para que el problema no reaparezca?", opciones: ["Sólo limpiar la mancha", "Aplicar más pintura", "Localizar y eliminar el ingreso de humedad"], correcta: 2, explicacion: "La eflorescencia indica transporte de sales por humedad. La solución duradera comienza eliminando su origen." }
     ]
   },
   // 6 · No conformidades y acciones correctivas
@@ -278,12 +301,11 @@ const SUPERINTENDENCIA: GameConfig[] = [
   },
   // 7 · Seguridad y prevención en campo
   {
-    tipo: "plano",
-    plano: "obra",
-    rondas: [
-      { pregunta: "Señala la zona con mayor riesgo de caída de objetos.", zona: "grua", explicacion: "El radio de giro de la grúa se delimita y nadie permanece bajo la carga suspendida." },
-      { pregunta: "¿Dónde se requiere talud o entibado antes de que entre personal?", zona: "excavacion", explicacion: "Las paredes de una excavación profunda deben estabilizarse para evitar derrumbes." },
-      { pregunta: "¿A dónde se dirige el personal durante una evacuación?", zona: "reunion", explicacion: "El punto de reunión permite contar al personal y confirmar que nadie quedó dentro." }
+    tipo: "simulador",
+    escenas: [
+      { escena: "izaje", riesgo: "Carga suspendida", titulo: "Izaje sobre el frente de trabajo", pregunta: "La carga está lista para moverse. ¿Qué autorizas?", opciones: ["Pasarla sobre la cuadrilla para ahorrar tiempo", "Aislar el radio, usar señalero y despejar la trayectoria", "Pedir que todos miren hacia arriba"], correcta: 1, explicacion: "Nadie debe permanecer bajo una carga suspendida. Se delimita la zona y una sola persona guía la maniobra." },
+      { escena: "excavacion", riesgo: "Derrumbe", titulo: "Ingreso a excavación", pregunta: "La cuadrilla debe bajar a revisar una tubería. ¿Qué verificas primero?", opciones: ["Talud o entibado, acceso seguro y material lejos del borde", "Que lleven chaleco reflejante", "Que entren rápido para reducir la exposición"], correcta: 0, explicacion: "Antes del ingreso se controla el derrumbe, se asegura el acceso y se retira la sobrecarga del borde." },
+      { escena: "andamio", riesgo: "Caída de altura", titulo: "Trabajo en fachada", pregunta: "¿Qué condición permite iniciar el trabajo?", opciones: ["Una escalera apoyada sobre el andamio", "Plataforma completa, barandales, acceso y anclaje inspeccionados", "Que el trabajador tenga experiencia"], correcta: 1, explicacion: "La experiencia no sustituye controles físicos: plataforma, protección colectiva, acceso y sistema personal deben verificarse." }
     ]
   },
   // 8 · Control administrativo de la obra

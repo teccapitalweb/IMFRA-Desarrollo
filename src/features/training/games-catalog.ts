@@ -361,6 +361,79 @@ export const retoGames: RetoGame[] = [
         }
       }
     ]
+  },
+  {
+    tipo: "inspeccion",
+    titulo: "Inspector de campo",
+    descripcion: "Diagnostica evidencia real y decide qué hacer",
+    color: "#16a6a1",
+    tableros: [
+      {
+        titulo: "Patologías del concreto",
+        config: { tipo: "inspeccion", escenas: [
+          { imagen: "./assets/quiz/concreto-nido-grava.webp", etiqueta: "Concreto · inspección visual", foco: { x: 54, y: 50 }, titulo: "Elemento recién descimbrado", pregunta: "¿Cuál es la actuación correcta?", opciones: ["Ocultarlo con acabado", "Evaluar profundidad y definir una reparación aprobada", "Mojarlo y continuar"], correcta: 1, explicacion: "El nido de grava debe registrarse, evaluarse y repararse con un método aprobado antes de liberar." },
+          { imagen: "./assets/quiz/concreto-grieta.webp", etiqueta: "Patología · diagnóstico", foco: { x: 49, y: 44 }, titulo: "Fisura en recorrido", pregunta: "¿Qué dato obtienes primero?", opciones: ["Ancho, ubicación y evolución", "Color de la pintura", "Costo del acabado"], correcta: 0, explicacion: "Caracterizar la fisura permite investigar la causa y elegir una reparación técnicamente adecuada." },
+          { imagen: "./assets/quiz/concreto-depositos-blancos.webp", etiqueta: "Humedad · evidencia", foco: { x: 61, y: 53 }, titulo: "Depósitos blancos", pregunta: "¿Qué evita que reaparezcan?", opciones: ["Limpiarlos cada semana", "Una capa de pintura", "Eliminar el origen de la humedad"], correcta: 2, explicacion: "La eflorescencia reaparece mientras exista transporte de agua y sales hacia la superficie." }
+        ] }
+      },
+      {
+        titulo: "Acero y durabilidad",
+        config: { tipo: "inspeccion", escenas: [
+          { imagen: "./assets/quiz/concreto-corrosion-acero.webp", etiqueta: "Durabilidad · acero", foco: { x: 50, y: 52 }, titulo: "Acero expuesto y oxidado", pregunta: "¿Qué secuencia es la correcta?", opciones: ["Pintar encima y resanar", "Retirar concreto suelto, evaluar acero, limpiar/proteger y restituir", "Cubrir con mortero sin revisar"], correcta: 1, explicacion: "La reparación debe llegar a sustrato sano y recuperar la protección del acero, no sólo ocultar el daño." },
+          { imagen: "./assets/quiz/estructura-viga-reforzada.jpg", etiqueta: "Estructura · liberación", foco: { x: 52, y: 48 }, titulo: "Armado de viga", pregunta: "Antes del colado, ¿qué evidencia libera el elemento?", opciones: ["Fotos sin escala", "Inspección de diámetro, separación, traslapes y recubrimiento", "Sólo contar varillas"], correcta: 1, explicacion: "La liberación comprueba el armado completo contra plano y especificaciones, incluyendo recubrimientos y empalmes." }
+        ] }
+      },
+      {
+        titulo: "Cimentación",
+        config: { tipo: "inspeccion", escenas: [
+          { imagen: "./assets/quiz/estructura-zapata.jpg", etiqueta: "Cimentación · previo al colado", foco: { x: 51, y: 55 }, titulo: "Zapata preparada", pregunta: "¿Qué condición es crítica antes de autorizar el concreto?", opciones: ["Que la excavación se vea grande", "Nivel, plantilla, armado, recubrimiento y limpieza verificados", "Que haya suficiente personal"], correcta: 1, explicacion: "La revisión previa evita errores que quedarán ocultos después del colado." },
+          { imagen: "./assets/quiz/estructura-columna.jpg", etiqueta: "Estructura · verticalidad", foco: { x: 55, y: 45 }, titulo: "Arranque de columna", pregunta: "¿Qué control previene una columna fuera de posición?", opciones: ["Ejes, plomo y fijación del armado", "Color de la cimbra", "Hora de llegada del concreto"], correcta: 0, explicacion: "Los ejes y el plomeo aseguran posición; la fijación evita desplazamientos durante el colado." }
+        ] }
+      },
+      {
+        titulo: "Liberación estructural",
+        config: { tipo: "inspeccion", escenas: [
+          { imagen: "./assets/quiz/estructura-viga-detalle.jpg", etiqueta: "Detalle · lectura de campo", foco: { x: 48, y: 50 }, titulo: "Encuentro de acero", pregunta: "Si el detalle no coincide con el plano, ¿qué haces?", opciones: ["Improvisar el acomodo", "Detener, documentar y solicitar definición técnica", "Colar y reportarlo después"], correcta: 1, explicacion: "Una discrepancia se resuelve antes de ocultarla; la definición debe quedar documentada y autorizada." },
+          { imagen: "./assets/quiz/concreto-grieta.webp", etiqueta: "Control · seguimiento", foco: { x: 49, y: 44 }, titulo: "Seguimiento de fisura", pregunta: "¿Qué registro permite saber si está activa?", opciones: ["Fecha, ancho, longitud, ubicación y testigos periódicos", "Una sola fotografía", "El nombre del trabajador"], correcta: 0, explicacion: "El seguimiento comparable en el tiempo distingue una fisura estable de una que continúa evolucionando." }
+        ] }
+      }
+    ]
+  },
+  {
+    tipo: "simulador",
+    titulo: "Misión Obra 3D",
+    descripcion: "Decide maniobras seguras dentro de una obra viva",
+    color: "#6e67e8",
+    tableros: [
+      {
+        titulo: "Izaje seguro",
+        config: { tipo: "simulador", escenas: [
+          { escena: "izaje", riesgo: "Carga suspendida", titulo: "La carga está lista", pregunta: "¿Qué autorizas antes de elevar?", opciones: ["Despejar y aislar la trayectoria, revisar aparejos y asignar señalero", "Que cada trabajador dé señales", "Elevar rápido antes de que cambie el clima"], correcta: 0, explicacion: "La maniobra necesita área controlada, aparejos inspeccionados y comunicación de una sola persona." },
+          { escena: "izaje", riesgo: "Radio de giro", titulo: "Cambio de trayectoria", pregunta: "Aparece personal dentro del radio. ¿Qué haces?", opciones: ["Continuar con alarma", "Detener la maniobra hasta despejar y confirmar la zona", "Subir más la carga"], correcta: 1, explicacion: "Una carga suspendida se detiene de forma estable; se reanuda sólo cuando la exclusión vuelve a estar asegurada." }
+        ] }
+      },
+      {
+        titulo: "Excavación controlada",
+        config: { tipo: "simulador", escenas: [
+          { escena: "excavacion", riesgo: "Derrumbe", titulo: "Ingreso a la zanja", pregunta: "¿Qué verificas primero?", opciones: ["Talud o entibado, acceso y material lejos del borde", "Sólo casco y chaleco", "Que el trabajo dure poco"], correcta: 0, explicacion: "El control principal evita el derrumbe y permite salir con seguridad; el EPP por sí solo no lo hace." },
+          { escena: "excavacion", riesgo: "Servicios ocultos", titulo: "La excavadora va a iniciar", pregunta: "No hay certeza sobre instalaciones enterradas. ¿Qué decides?", opciones: ["Excavar lentamente", "Localizar servicios, marcar y definir excavación segura antes de iniciar", "Pedir al operador que esté atento"], correcta: 1, explicacion: "La localización previa evita golpear líneas eléctricas, gas, agua u otros servicios peligrosos." }
+        ] }
+      },
+      {
+        titulo: "Colado bajo control",
+        config: { tipo: "simulador", escenas: [
+          { escena: "colado", riesgo: "Falla de cimbra", titulo: "Minutos antes del colado", pregunta: "¿Qué libera el inicio?", opciones: ["La llegada de la bomba", "Inspección firmada de cimbra, apuntalamiento, acero y accesos", "Que la cuadrilla esté completa"], correcta: 1, explicacion: "Una lista de liberación comprueba que el sistema soportará la carga y que el elemento cumple el proyecto." },
+          { escena: "colado", riesgo: "Segregación", titulo: "Descarga del concreto", pregunta: "La caída libre es excesiva. ¿Qué corriges?", opciones: ["Agregar agua", "Reducir la altura con manga o conducción adecuada", "Vibrar durante más tiempo"], correcta: 1, explicacion: "Controlar la altura de descarga reduce segregación; agregar agua altera la mezcla y sobre-vibrar también puede separarla." }
+        ] }
+      },
+      {
+        titulo: "Trabajo en altura",
+        config: { tipo: "simulador", escenas: [
+          { escena: "andamio", riesgo: "Caída de altura", titulo: "Inicio en fachada", pregunta: "¿Qué condición permite subir?", opciones: ["Plataforma completa, barandales, acceso y tarjeta de inspección vigente", "Experiencia de la cuadrilla", "Subir materiales primero"], correcta: 0, explicacion: "El andamio se usa sólo después de su inspección y con protección colectiva completa." },
+          { escena: "andamio", riesgo: "Caída de objetos", titulo: "Hay tránsito debajo", pregunta: "¿Cómo proteges a terceros?", opciones: ["Avisar que miren hacia arriba", "Delimitar abajo, asegurar herramientas y colocar protección contra caída de objetos", "Trabajar únicamente más rápido"], correcta: 1, explicacion: "La zona inferior se excluye y los objetos se aseguran; la advertencia no sustituye barreras físicas." }
+        ] }
+      }
+    ]
   }
 ];
 
