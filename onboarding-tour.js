@@ -92,11 +92,24 @@
     try { return Boolean(localStorage.getItem(storageKey(id))); } catch (error) { return false; }
   }
 
-  function markSeen(reason) {
-    if (!state.accountId) return;
+  function markSeenFor(id, reason) {
+    if (!id) return;
     try {
-      localStorage.setItem(storageKey(state.accountId), JSON.stringify({ version: VERSION, status: reason, viewedAt: new Date().toISOString() }));
+      localStorage.setItem(storageKey(id), JSON.stringify({ version: VERSION, status: reason, viewedAt: new Date().toISOString() }));
     } catch (error) { /* El recorrido sigue funcionando sin almacenamiento. */ }
+  }
+
+  function markSeen(reason) { markSeenFor(state.accountId, reason); }
+
+  async function claimAutomaticExperience() {
+    if (window.UserState?.modo === 'demo') return true;
+    const claim = window.IMFRACredits?.claimExperience;
+    if (typeof claim !== 'function') return null;
+    try { return await claim('panel-tour', VERSION); }
+    catch (error) {
+      console.warn('[recorrido] No se pudo sincronizar el estado único', error);
+      return null;
+    }
   }
 
   function ensureUi() {
@@ -253,7 +266,7 @@
     const opts = options || {};
     if (state.active) return;
     const id = accountId();
-    if (opts.automatic && (!id || wasSeen(id))) return;
+    if (opts.automatic && (!id || (!opts.serverClaimed && wasSeen(id)))) return;
     ensureUi();
     const first = availableIndex(0, 1);
     if (first < 0) return;
@@ -297,14 +310,13 @@
       }
       return;
     }
-    if (wasSeen(id)) return;
     if (blockingDialogVisible()) {
       clearTimeout(automaticTimer);
       automaticTimer = setTimeout(() => scheduleAutomatic(0), 500);
       return;
     }
     clearTimeout(automaticTimer);
-    automaticTimer = setTimeout(() => {
+    automaticTimer = setTimeout(async () => {
       automaticTimer = null;
       const latestId = accountId();
       const stillReady = Boolean(latestId && latestId === id && window.UserState && window.UserState.modo !== 'cargando');
@@ -312,12 +324,21 @@
         scheduleAutomatic(attempt + 1);
         return;
       }
-      if (wasSeen(latestId)) return;
       if (blockingDialogVisible()) {
         scheduleAutomatic(0);
         return;
       }
-      start({ automatic: true });
+      const localSeen = wasSeen(latestId);
+      const claimed = await claimAutomaticExperience();
+      if (claimed === null) {
+        if (attempt < 80) scheduleAutomatic(attempt + 1);
+        return;
+      }
+      if (localSeen || !claimed) {
+        if (!localSeen) markSeenFor(latestId, 'server');
+        return;
+      }
+      start({ automatic: true, serverClaimed: true });
     }, 650);
   }
 

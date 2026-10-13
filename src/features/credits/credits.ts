@@ -72,6 +72,7 @@ declare global {
       completeChallenge(mode: ChallengeMode): Promise<ChallengeAccess>;
       redeem(rewardId: string): Promise<CreditSnapshot>;
       awardCorrect(activityId: string, source: "quiz" | "inspector", selected: number): Promise<CreditSnapshot>;
+      claimExperience(experience: "welcome-credits" | "panel-tour", version: string): Promise<boolean>;
       markNotificationsRead(ids: string[]): Promise<void>;
     };
     WEBHOOK_URL?: string;
@@ -368,6 +369,19 @@ export async function markCreditNotificationsRead(ids: string[]) {
   current = { ...current, notifications: current.notifications.map((item) => normalized.includes(item.id) ? { ...item, readAt } : item) };
 }
 
+export async function claimOneTimeExperience(experience: "welcome-credits" | "panel-tour", version: string) {
+  if (isDemo()) return true;
+  const response = await fetch(apiUrl("/credits/experience/claim"), {
+    method: "POST",
+    cache: "no-store",
+    headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ experience, version })
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || "No pudimos confirmar esta experiencia.");
+  return data.claimed === true;
+}
+
 async function pollCredits() {
   if (document.visibilityState === "hidden" || isDemo()) return;
   if (!window.__currentUser || window.UserState?.modo === "invitado" || currentIdentity() === "guest") return;
@@ -489,6 +503,7 @@ window.IMFRACredits = {
   completeChallenge: completeChallengeAttempt,
   redeem: redeemCreditReward,
   awardCorrect: awardCreditForCorrect,
+  claimExperience: claimOneTimeExperience,
   markNotificationsRead: markCreditNotificationsRead
 };
 window.dispatchEvent(new CustomEvent("imfra:credits-ready"));
