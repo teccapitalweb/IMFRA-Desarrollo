@@ -4742,6 +4742,32 @@ function toolRequiereVIP(nombreHerramienta){
    ═══════════════════════════════════════════════════════════════ */
 const SECCION_DEFAULT_VIP = 'inicio';
 let __seccionActualVIP = null;
+let __renderVIPSecuencia = 0;
+
+// Cada visita a una sección recibe su propio nodo de montaje. De ese modo, si
+// una sección anterior termina una consulta asíncrona después de navegar, solo
+// puede repintar su nodo ya desconectado y nunca reemplazar la pestaña visible.
+// Plantillas conserva el suyo porque su editor mantiene estado interno entre
+// visitas; al estar desconectado tampoco puede interferir con otra sección.
+const __hostsPersistentesVIP = new Map();
+function __crearHostSeccionVIP(dyn, section){
+  let host = section === 'plantillas' ? __hostsPersistentesVIP.get(section) : null;
+  if (!host) {
+    host = document.createElement('div');
+    host.className = 'vip-section-host';
+    if (section === 'plantillas') __hostsPersistentesVIP.set(section, host);
+  }
+  host.dataset.vipSection = section;
+  host.dataset.vipRender = String(++__renderVIPSecuencia);
+  dyn.replaceChildren(host);
+  return host;
+}
+function __hostSeccionActivaVIP(section){
+  const dyn = document.getElementById('dynamic-section');
+  const host = dyn?.firstElementChild;
+  return host instanceof HTMLElement && host.classList.contains('vip-section-host')
+    && (!section || host.dataset.vipSection === section) ? host : null;
+}
 
 function __seccionesValidasVIP(){
   const s = new Set(Array.from(
@@ -4806,7 +4832,7 @@ function navigateToSection(section, opciones){
     try { window.__imfraCheckout.destroy(); } catch(e) {}
     window.__imfraCheckout = null;
   }
-  if(section==='inicio'){inicio.style.display='';dyn.style.display='none';if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();window.scrollTo({top:0,left:0,behavior:'auto'});return;}
+  if(section==='inicio'){dyn.replaceChildren();inicio.style.display='';dyn.style.display='none';if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();window.scrollTo({top:0,left:0,behavior:'auto'});return;}
   inicio.style.display='none';dyn.style.display='';
   let renderer=Sections.renderers[section];
   const claseMatch=section.match(/^curso\/([^/]+)\/clase\/(\d+)$/);
@@ -4821,8 +4847,9 @@ function navigateToSection(section, opciones){
     const libroId=decodeURIComponent(section.slice('libro/'.length));
     renderer=(contenedor)=>Sections.renderLibroVisor(contenedor,libroId);
   }
-  if(renderer){dyn.innerHTML='';renderer(dyn);}
-  else{dyn.innerHTML=sectionPlaceholder(section);}
+  const host = __crearHostSeccionVIP(dyn, section);
+  if(renderer){renderer(host);}
+  else{host.innerHTML=sectionPlaceholder(section);}
   window.scrollTo({top:0,left:0,behavior:'auto'});
   document.querySelector('main.main')?.scrollTo({top:0,left:0,behavior:'auto'});
 }
@@ -6934,9 +6961,10 @@ const Sections = (function(){
   // instante tras marcar una como vista, sin convertir el curso en un modal.
   window.__refrescarCursoDetalle = function(cid){
     if (!cid) return;
-    const dyn=document.getElementById('dynamic-section');
-    if(dyn && location.hash==='#curso/'+encodeURIComponent(String(cid))){
-      try { openCursoDetalle(cid,dyn); } catch(e){}
+    const ruta='#curso/'+encodeURIComponent(String(cid));
+    const host=__hostSeccionActivaVIP(ruta.slice(1));
+    if(host && location.hash===ruta){
+      try { openCursoDetalle(cid,host); } catch(e){}
     }
   };
 
@@ -7869,7 +7897,7 @@ const Sections = (function(){
     const m=Modal.open({id:'web-'+id,title:isProx?'Clase en vivo':'Grabación',subtitle:formatFechaLarga(f),icon:'i-broadcast',size:'lg',body,footer});
     footer.querySelector('#wd-close').addEventListener('click',()=>m.close());
     footer.querySelector('#wd-ics')?.addEventListener('click',()=>descargarICS(w));
-    footer.querySelector('#wd-toggle')?.addEventListener('click',()=>{w.registrado=!w.registrado;Toast.success(w.registrado?'Te inscribiste':'Cancelaste registro',w.registrado?'Recibirás recordatorio una hora antes':'');m.close();renderWebinars(document.getElementById('dynamic-section'));});
+    footer.querySelector('#wd-toggle')?.addEventListener('click',()=>{w.registrado=!w.registrado;Toast.success(w.registrado?'Te inscribiste':'Cancelaste registro',w.registrado?'Recibirás recordatorio una hora antes':'');m.close();const host=__hostSeccionActivaVIP('webinars');if(host)renderWebinars(host);});
     footer.querySelector('#wd-join')?.addEventListener('click',()=>{
       // ⚡ Bloqueo paywall · solo VIP puede unirse
       const S = window.UserState;
@@ -7887,7 +7915,7 @@ const Sections = (function(){
       Toast.success('Abriendo transmisión…', w.titulo);
       window.open(url, '_blank', 'noopener,noreferrer');
     });
-    footer.querySelector('#wd-play')?.addEventListener('click',()=>{w.visto=true;Toast.info('Reproductor','En Sprint 4 esto reproducirá el video real.');m.close();renderWebinars(document.getElementById('dynamic-section'));});
+    footer.querySelector('#wd-play')?.addEventListener('click',()=>{w.visto=true;Toast.info('Reproductor','En Sprint 4 esto reproducirá el video real.');m.close();const host=__hostSeccionActivaVIP('webinars');if(host)renderWebinars(host);});
   }
 
   function descargarICS(w){
@@ -12833,7 +12861,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   .topbar__right{flex-shrink:0;gap:6px}
   .pill{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .theme-toggle,.icon-btn,.install-app-btn{min-width:44px;min-height:44px}
-  #dynamic-section,#dynamic-section>.fade-up,#inicio-content{width:100%;min-width:0;max-width:100%;align-self:stretch}
+  #dynamic-section,#dynamic-section>.vip-section-host,#dynamic-section>.vip-section-host>.fade-up,#inicio-content{width:100%;min-width:0;max-width:100%;align-self:stretch}
   .banner,.section-header,.news-grid,.kpi-grid,.cursos-grid,.certs-grid,.webinars-grid{width:100%;min-width:0;max-width:100%}
   .mobile-nav{z-index:1000;min-height:var(--club-mobile-nav-h);padding:6px 4px max(7px,env(safe-area-inset-bottom));background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 -8px 30px rgba(0,0,0,.12)}
   .mobile-nav__item{flex:1;min-width:0;min-height:54px;justify-content:center;padding:6px 3px;touch-action:manipulation}
