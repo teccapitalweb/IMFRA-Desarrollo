@@ -274,6 +274,11 @@ function runCrucigrama(engine: Engine, cfg: GameConfig) {
   engine.progress(0, words.length);
   engine.stat("Palabras", `0/${words.length}`);
 
+  const paintLetter = (el: HTMLInputElement) => {
+    const correct = Boolean(el.value) && el.value === solution.get(el.dataset.k!);
+    el.parentElement?.classList.toggle("is-letter-correct", correct);
+  };
+
   const highlight = () => {
     stage.querySelectorAll(".is-active,.is-current").forEach((el) => el.classList.remove("is-active", "is-current"));
     cellsOf(words[active]).forEach((k) => input(k).parentElement!.classList.add("is-active"));
@@ -352,6 +357,7 @@ function runCrucigrama(engine: Engine, cfg: GameConfig) {
       if (letters.length > 1 && previous && letters.endsWith(previous)) letters = letters.slice(0, -previous.length);
       el.value = letters.slice(0, 1);
       el.dataset.prev = el.value;
+      paintLetter(el);
       if (!el.value) return;
       const list = cellsOf(words[active]);
       const pos = list.indexOf(el.dataset.k!);
@@ -363,6 +369,7 @@ function runCrucigrama(engine: Engine, cfg: GameConfig) {
         if (!target || target.readOnly) return;
         target.value = letter;
         target.dataset.prev = letter;
+        paintLetter(target);
         last = target;
       });
       [el, last].forEach((item) => {
@@ -379,7 +386,7 @@ function runCrucigrama(engine: Engine, cfg: GameConfig) {
       const pos = list.indexOf(el.dataset.k!);
       if (event.key === "Backspace" && !el.value) {
         const prev = list.slice(0, pos).reverse().find((k) => !input(k).readOnly);
-        if (prev) { event.preventDefault(); input(prev).value = ""; input(prev).dataset.prev = ""; input(prev).focus({ preventScroll: true }); }
+        if (prev) { event.preventDefault(); input(prev).value = ""; input(prev).dataset.prev = ""; paintLetter(input(prev)); input(prev).focus({ preventScroll: true }); }
       } else if (event.key === "Enter" || event.key === "Tab") {
         event.preventDefault();
         focusWord(nextUnsolved(active, event.shiftKey ? -1 : 1));
@@ -397,6 +404,7 @@ function runCrucigrama(engine: Engine, cfg: GameConfig) {
     el.value = solution.get(k)!; el.dataset.prev = el.value;
     el.readOnly = true;
     el.parentElement!.classList.add("is-revealed");
+    paintLetter(el);
     hints -= 1;
     stage.querySelector("[data-hints]")!.textContent = String(hints);
     if (hints <= 0) (event.currentTarget as HTMLButtonElement).disabled = true;

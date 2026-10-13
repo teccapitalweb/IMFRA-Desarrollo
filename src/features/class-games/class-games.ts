@@ -31,6 +31,7 @@ interface GameContext {
   progress(done: number, total: number): void;
   win(message?: string): void;
   feedback(message: string, tone?: "ok" | "error" | "info"): void;
+  help(label: string, action: () => void): void;
   cover: string;
 }
 
@@ -81,7 +82,7 @@ function hasWon(cursoId: string, num: number) {
 
 // ─────────────────────────── Sopa de letras ───────────────────────────
 function gameSopa(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "sopa" }>, ctx: GameContext) {
-  const words = cfg.palabras.map(normalizeWord).filter((w) => w.length >= 2).slice(0, 9);
+  const words = cfg.palabras.map(normalizeWord).filter((w) => w.length >= 2).slice(0, 5);
   const dirs = [[0, 1], [1, 0], [1, 1], [-1, 1]];
   const letters = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
   let size = Math.max(10, Math.max(...words.map((w) => w.length)) + 1);
@@ -112,6 +113,21 @@ function gameSopa(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "sopa" }>
       if (!ok) { if (attempt % 5 === 4) size = Math.min(15, size + 1); continue build; }
     }
     break;
+  }
+  // Respaldo determinista: aun si el generador aleatorio no logra acomodarlas,
+  // ninguna palabra queda fuera del tablero ni puede bloquear el avance.
+  if (placed.size !== words.length) {
+    size = Math.max(size, words.length * 2 - 1);
+    grid = Array.from({ length: size }, () => Array(size).fill(""));
+    placed.clear();
+    words.forEach((word, index) => {
+      const cells = [...word].map((letter, column) => {
+        const row = index * 2;
+        grid[row][column] = letter;
+        return [row, column] as [number, number];
+      });
+      placed.set(word, cells);
+    });
   }
   grid = grid.map((row) => row.map((ch) => ch || letters[Math.floor(Math.random() * letters.length)]));
 
@@ -154,6 +170,19 @@ function gameSopa(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "sopa" }>
     ctx.progress(found.size, words.length);
     if (found.size === words.length) ctx.win("¡Encontraste todas las palabras!");
   };
+
+  ctx.help("Encontrar una palabra", () => {
+    const word = words.find((item) => !found.has(item));
+    if (!word) return;
+    const cells = placed.get(word);
+    if (!cells) return;
+    found.add(word);
+    cells.forEach(([r, c]) => cellAt(r, c)?.classList.add("is-found"));
+    stage.querySelector(`[data-word="${word}"]`)?.classList.add("is-found");
+    ctx.feedback(`Te ayudamos con ${word}. ¡Vamos por la siguiente!`, "ok");
+    ctx.progress(found.size, words.length);
+    if (found.size === words.length) ctx.win("¡Encontraste todas las palabras!");
+  });
 
   gridEl.addEventListener("pointerdown", (event) => {
     const pos = posOf(event.target as Element);
@@ -257,7 +286,7 @@ function tryCrossword(items: { word: string; clue: string }[]): { placed: CrossW
 }
 
 function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "crucigrama" }>, ctx: GameContext) {
-  const words = layoutCrossword(cfg.entradas);
+  const words = layoutCrossword(cfg.entradas.slice(0, 4));
   const rows = Math.max(...words.map((w) => w.r + (w.dir === "v" ? w.word.length : 1)));
   const cols = Math.max(...words.map((w) => w.c + (w.dir === "h" ? w.word.length : 1)));
   const solution = new Map<string, string>();
@@ -278,14 +307,17 @@ function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cr
     <div class="cg-cross__clues">
       ${words.some((w) => w.dir === "h") ? `<span class="cg-label">Horizontales</span><ol>${clueList("h")}</ol>` : ""}
       ${words.some((w) => w.dir === "v") ? `<span class="cg-label">Verticales</span><ol>${clueList("v")}</ol>` : ""}
-      <button type="button" class="cg-ghost" data-reveal>Revelar una letra · <span data-reveal-left>3</span></button>
     </div>
   </div>`;
   const input = (k: string) => stage.querySelector<HTMLInputElement>(`input[data-k="${k}"]`);
   let active = 0;
-  let reveals = 3;
   const solved = new Set<number>();
   ctx.progress(0, words.length);
+
+  const paintLetter = (el: HTMLInputElement) => {
+    const correct = Boolean(el.value) && el.value === solution.get(el.dataset.k!);
+    el.parentElement?.classList.toggle("is-letter-correct", correct);
+  };
 
   const highlight = () => {
     stage.querySelectorAll(".is-active").forEach((el) => el.classList.remove("is-active"));
@@ -321,6 +353,7 @@ function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cr
     });
     el.addEventListener("input", () => {
       el.value = normalizeWord(el.value).slice(-1);
+      paintLetter(el);
       check();
       if (!el.value) return;
       const list = cellsOf(words[active]);
@@ -331,7 +364,7 @@ function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cr
       if (event.key !== "Backspace" || el.value) return;
       const list = cellsOf(words[active]);
       const prev = list[list.indexOf(el.dataset.k!) - 1];
-      if (prev) { event.preventDefault(); const p = input(prev); if (p) { p.value = ""; p.focus(); } }
+      if (prev) { event.preventDefault(); const p = input(prev); if (p) { p.value = ""; paintLetter(p); p.focus(); } }
     });
   });
   stage.querySelectorAll<HTMLElement>("[data-clue]").forEach((li) => li.addEventListener("click", () => {
@@ -340,8 +373,7 @@ function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cr
     input(firstEmpty)?.focus();
     highlight();
   }));
-  stage.querySelector<HTMLButtonElement>("[data-reveal]")!.addEventListener("click", (event) => {
-    if (reveals <= 0) return;
+  ctx.help("Regalarme una letra", () => {
     const target = words[active] && !solved.has(active) ? words[active] : words.find((_, i) => !solved.has(i));
     if (!target) return;
     const k = cellsOf(target).find((key) => input(key)?.value !== solution.get(key));
@@ -349,9 +381,8 @@ function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cr
     const el = input(k)!;
     el.value = solution.get(k)!;
     el.parentElement?.classList.add("is-revealed");
-    reveals -= 1;
-    stage.querySelector("[data-reveal-left]")!.textContent = String(reveals);
-    if (reveals <= 0) (event.currentTarget as HTMLButtonElement).disabled = true;
+    paintLetter(el);
+    ctx.feedback("Letra correcta colocada. Puedes pedir todas las que necesites.", "ok");
     check();
   });
   highlight();
@@ -359,7 +390,7 @@ function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cr
 
 // ─────────────────────────── Rompecabezas ───────────────────────────
 function gameRompecabezas(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "rompecabezas" }>, ctx: GameContext) {
-  const side = Math.min(5, Math.max(3, cfg.lado || 3));
+  const side = 3;
   const total = side * side;
   const solved = Array.from({ length: total }, (_, i) => i);
   let order = shuffleUnsolved(solved);
@@ -381,6 +412,25 @@ function gameRompecabezas(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "
     const placed = order.filter((piece, slot) => piece === slot).length;
     ctx.progress(placed, total);
   };
+  const finishIfReady = () => {
+    if (!order.every((piece, i) => piece === i)) return false;
+    done = true;
+    board.classList.add("is-complete");
+    ctx.win(cfg.mensaje || "¡Imagen completa!");
+    return true;
+  };
+  ctx.help("Colocar una pieza", () => {
+    if (done) return;
+    const slot = order.findIndex((piece, i) => piece !== i);
+    if (slot < 0) return;
+    const source = order.indexOf(slot);
+    [order[slot], order[source]] = [order[source], order[slot]];
+    selected = null;
+    order = order.slice();
+    render();
+    ctx.feedback("Pieza colocada. Las correctas tienen borde verde.", "ok");
+    finishIfReady();
+  });
   board.addEventListener("click", (event) => {
     if (done) return;
     const btn = (event.target as Element).closest<HTMLElement>("[data-slot]");
@@ -390,35 +440,51 @@ function gameRompecabezas(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "
     if (selected !== slot) { [order[selected], order[slot]] = [order[slot], order[selected]]; order = order.slice(); }
     selected = null;
     render();
-    if (order.every((piece, i) => piece === i)) { done = true; board.classList.add("is-complete"); ctx.win(cfg.mensaje || "¡Imagen completa!"); }
+    finishIfReady();
   });
   render();
 }
 
 // ─────────────────────────── Señala en el plano ───────────────────────────
 function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" }>, ctx: GameContext) {
+  const rounds = cfg.rondas.slice(0, 2);
   let round = 0;
   let locked = false;
+  let mistakes = 0;
   stage.innerHTML = `<div class="cg-planogame">
     <p class="cg-planogame__q" data-question></p>
     <div class="cg-planogame__map">${planSvg(cfg.plano)}</div>
   </div>`;
   const question = stage.querySelector<HTMLElement>("[data-question]")!;
   const svg = stage.querySelector<SVGSVGElement>("svg")!;
-  const showRound = () => {
-    question.innerHTML = `<span>Situación ${round + 1} de ${cfg.rondas.length}</span>${esc(cfg.rondas[round].pregunta)}`;
-    ctx.progress(round, cfg.rondas.length);
+  const showHelp = () => {
+    const current = rounds[round];
+    if (!current) return;
+    svg.querySelectorAll(".is-hint").forEach((el) => el.classList.remove("is-hint"));
+    const zone = svg.querySelector<SVGElement>(`[data-zone="${current.zona}"]`);
+    zone?.classList.add("is-hint");
+    if (zone?.dataset.idx) svg.querySelector(`[data-label-idx="${zone.dataset.idx}"]`)?.classList.add("is-visible");
+    ctx.feedback("La zona correcta está brillando. Tócala para continuar.", "info");
   };
+  const showRound = () => {
+    mistakes = 0;
+    svg.querySelectorAll(".is-hint").forEach((el) => el.classList.remove("is-hint"));
+    question.innerHTML = `<span>Situación ${round + 1} de ${rounds.length}</span>${esc(rounds[round].pregunta)}`;
+    ctx.progress(round, rounds.length);
+  };
+  ctx.help("Mostrarme dónde", showHelp);
   svg.addEventListener("click", (event) => {
     if (locked) return;
     const zone = (event.target as Element).closest<SVGElement>("[data-zone]");
     if (!zone) return;
-    const current = cfg.rondas[round];
+    const current = rounds[round];
     if (zone.dataset.zone !== current.zona) {
       zone.classList.remove("is-wrong");
       void zone.getBoundingClientRect();
       zone.classList.add("is-wrong");
       ctx.feedback("Ese no es el lugar correcto. Observa el plano e inténtalo de nuevo.", "error");
+      mistakes += 1;
+      if (mistakes >= 2) showHelp();
       return;
     }
     locked = true;
@@ -426,8 +492,8 @@ function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" 
     zone.classList.add("is-correct", "is-correct-now");
     svg.querySelector(`[data-label-idx="${zone.dataset.idx}"]`)?.classList.add("is-visible");
     round += 1;
-    ctx.progress(round, cfg.rondas.length);
-    if (round >= cfg.rondas.length) { ctx.feedback(current.explicacion, "ok"); ctx.win("¡Ubicaste todo correctamente en el plano!"); return; }
+    ctx.progress(round, rounds.length);
+    if (round >= rounds.length) { ctx.feedback(current.explicacion, "ok"); ctx.win("¡Ubicaste todo correctamente en el plano!"); return; }
     ctx.feedback(current.explicacion, "ok");
     setTimeout(() => { locked = false; showRound(); }, 1100);
   });
@@ -438,7 +504,7 @@ function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" 
 const PAIR_COLORS = ["#f59d1a", "#2f8fdd", "#14a37f", "#8b62d9", "#e2577b", "#d9a400", "#1fa8b8", "#e46b2e"];
 
 function gameMemorama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "memorama" }>, ctx: GameContext) {
-  const pairs = cfg.pares.slice(0, 8);
+  const pairs = cfg.pares.slice(0, 4);
   const cards = shuffle(pairs.flatMap((p, i) => [{ pair: i, text: p.termino, kind: "term" }, { pair: i, text: p.definicion, kind: "def" }]));
   const matched = new Set<number>();
   let open: number[] = [];
@@ -451,6 +517,31 @@ function gameMemorama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "memo
     </span></button>`).join("")}</div>`;
   ctx.progress(0, pairs.length);
   const cardEl = (i: number) => stage.querySelector<HTMLElement>(`[data-i="${i}"]`);
+  const completePair = (pair: number) => {
+    if (matched.has(pair)) return;
+    matched.add(pair);
+    found += 1;
+    const color = PAIR_COLORS[(found - 1) % PAIR_COLORS.length];
+    cards.forEach((card, idx) => {
+      if (card.pair !== pair) return;
+      const el = cardEl(idx);
+      if (!el) return;
+      el.style.setProperty("--pair", color);
+      el.querySelector(".cg-memo__pair")!.textContent = `✓ ${found}`;
+      el.classList.add("is-open", "is-matched");
+    });
+    ctx.progress(matched.size, pairs.length);
+    if (matched.size === pairs.length) ctx.win("¡Encontraste todas las parejas!");
+  };
+  ctx.help("Encontrar una pareja", () => {
+    if (busy) return;
+    open.forEach((idx) => cardEl(idx)?.classList.remove("is-open", "is-wrong"));
+    open = [];
+    const pair = pairs.findIndex((_, i) => !matched.has(i));
+    if (pair < 0) return;
+    completePair(pair);
+    ctx.feedback("Pareja encontrada. Puedes pedir otra cuando quieras.", "ok");
+  });
   stage.querySelector(".cg-memo")!.addEventListener("click", (event) => {
     const btn = (event.target as Element).closest<HTMLElement>("[data-i]");
     if (!btn || busy) return;
@@ -461,19 +552,8 @@ function gameMemorama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "memo
     if (open.length < 2) return;
     const [a, b] = open;
     if (cards[a].pair === cards[b].pair && cards[a].kind !== cards[b].kind) {
-      matched.add(cards[a].pair);
-      found += 1;
-      const color = PAIR_COLORS[(found - 1) % PAIR_COLORS.length];
-      open.forEach((idx) => {
-        const el = cardEl(idx);
-        if (!el) return;
-        el.style.setProperty("--pair", color);
-        el.querySelector(".cg-memo__pair")!.textContent = `✓ ${found}`;
-        el.classList.add("is-matched");
-      });
+      completePair(cards[a].pair);
       open = [];
-      ctx.progress(matched.size, pairs.length);
-      if (matched.size === pairs.length) ctx.win("¡Encontraste todas las parejas!");
       return;
     }
     busy = true;
@@ -488,7 +568,7 @@ function gameMemorama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "memo
 
 // ─────────────────────────── Ordena el proceso ───────────────────────────
 function gameOrdenar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "ordenar" }>, ctx: GameContext) {
-  const correct = cfg.pasos.slice();
+  const correct = cfg.pasos.slice(0, 5);
   let order = shuffleUnsolved(correct);
   let done = false;
   stage.innerHTML = `<div class="cg-order"><p class="cg-order__q">${esc(cfg.pregunta)}</p><ol class="cg-order__list"></ol>
@@ -500,6 +580,29 @@ function gameOrdenar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "orden
       <span class="cg-order__moves"><button type="button" data-move="${i}" data-dir="-1" aria-label="Subir" ${i === 0 || done ? "disabled" : ""}>▲</button><button type="button" data-move="${i}" data-dir="1" aria-label="Bajar" ${i === order.length - 1 || done ? "disabled" : ""}>▼</button></span>
     </li>`).join("");
   };
+  const finishIfReady = () => {
+    if (!order.every((step, i) => step === correct[i])) return false;
+    done = true;
+    render(true);
+    stage.querySelector<HTMLButtonElement>("[data-check]")!.disabled = true;
+    ctx.progress(correct.length, correct.length);
+    ctx.win("¡Orden correcto!");
+    return true;
+  };
+  ctx.help("Acomodar un paso", () => {
+    if (done) return;
+    const target = order.findIndex((step, i) => step !== correct[i]);
+    if (target < 0) return;
+    const source = order.indexOf(correct[target]);
+    const [step] = order.splice(source, 1);
+    order.splice(target, 0, step);
+    order = order.slice();
+    render(true);
+    const ok = order.filter((item, i) => item === correct[i]).length;
+    ctx.progress(ok, correct.length);
+    ctx.feedback("Colocamos el siguiente paso. Los verdes ya están bien.", "ok");
+    finishIfReady();
+  });
   ctx.progress(0, correct.length);
   list.addEventListener("click", (event) => {
     const btn = (event.target as Element).closest<HTMLElement>("[data-move]");
@@ -510,14 +613,11 @@ function gameOrdenar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "orden
     order = order.slice();
     render();
   });
-  stage.querySelector<HTMLButtonElement>("[data-check]")!.addEventListener("click", (event) => {
+  stage.querySelector<HTMLButtonElement>("[data-check]")!.addEventListener("click", () => {
     const ok = order.filter((step, i) => step === correct[i]).length;
     ctx.progress(ok, correct.length);
     if (ok === correct.length) {
-      done = true;
-      render(true);
-      (event.currentTarget as HTMLButtonElement).disabled = true;
-      ctx.win("¡Orden correcto!");
+      finishIfReady();
       return;
     }
     render(true);
@@ -528,7 +628,7 @@ function gameOrdenar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "orden
 
 // ─────────────────────────── Clasifica ───────────────────────────
 function gameClasificar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "clasificar" }>, ctx: GameContext) {
-  const items = shuffle(cfg.elementos.map((e, i) => ({ ...e, id: i })));
+  const items = shuffle(cfg.elementos.slice(0, 5).map((e, i) => ({ ...e, id: i })));
   const placed = new Set<number>();
   let selected: number | null = items[0]?.id ?? null;
   stage.innerHTML = `<div class="cg-sort">
@@ -543,6 +643,20 @@ function gameClasificar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cl
     if (selected !== null && placed.has(selected)) selected = left[0]?.id ?? null;
     pool.innerHTML = left.map((it) => `<button type="button" class="cg-chip ${selected === it.id ? "is-selected" : ""}" data-item="${it.id}">${esc(it.texto)}</button>`).join("");
   };
+  const place = (item: typeof items[number], assisted = false) => {
+    const col = stage.querySelector<HTMLElement>(`[data-cat="${item.categoria}"]`)!;
+    placed.add(item.id);
+    col.querySelector("ul")!.insertAdjacentHTML("beforeend", `<li>${esc(item.texto)}</li>`);
+    ctx.feedback(assisted ? `Te ayudamos: va en ${cfg.categorias[item.categoria]}.` : "¡Correcto!", "ok");
+    ctx.progress(placed.size, items.length);
+    renderPool();
+    if (placed.size === items.length) ctx.win("¡Todo quedó bien clasificado!");
+  };
+  ctx.help("Clasificar uno", () => {
+    if (selected === null) return;
+    const item = items.find((it) => it.id === selected);
+    if (item) place(item, true);
+  });
   ctx.progress(0, items.length);
   pool.addEventListener("click", (event) => {
     const btn = (event.target as Element).closest<HTMLElement>("[data-item]");
@@ -558,12 +672,7 @@ function gameClasificar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cl
       ctx.feedback(`“${item.texto}” no va en ${cfg.categorias[Number(col.dataset.cat)]}. Piénsalo de nuevo.`, "error");
       return;
     }
-    placed.add(item.id);
-    col.querySelector("ul")!.insertAdjacentHTML("beforeend", `<li>${esc(item.texto)}</li>`);
-    ctx.feedback("¡Correcto!", "ok");
-    ctx.progress(placed.size, items.length);
-    renderPool();
-    if (placed.size === items.length) ctx.win("¡Todo quedó bien clasificado!");
+    place(item);
   }));
   renderPool();
 }
@@ -584,7 +693,6 @@ function gameAhorcado(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "ahor
       <p class="cg-hang__clue"><span>Pista</span>${esc(entry.pista)}</p>
       <div class="cg-hang__word"></div>
       <div class="cg-hang__keys">${"ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("").map((l) => `<button type="button" data-key="${l}">${l}</button>`).join("")}</div>
-      <div class="cg-hang__retry" hidden><p>Se acabaron los intentos. La palabra era <strong>${word}</strong>.</p><button type="button" class="cg-primary" data-retry>Intentar con otra palabra</button></div>
     </div>`;
     const wordEl = stage.querySelector<HTMLElement>(".cg-hang__word")!;
     const draw = () => {
@@ -593,6 +701,18 @@ function gameAhorcado(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "ahor
       const unique = new Set(word);
       ctx.progress([...unique].filter((l) => guessed.has(l)).length, unique.size);
     };
+    const revealLetter = () => {
+      if (over) return;
+      const letter = [...word].find((item) => !guessed.has(item));
+      if (!letter) return;
+      guessed.add(letter);
+      const key = stage.querySelector<HTMLButtonElement>(`[data-key="${letter}"]`);
+      if (key) { key.disabled = true; key.classList.add("is-hit"); }
+      draw();
+      ctx.feedback(`Pista divertida: revelamos la letra ${letter}.`, "ok");
+      if ([...word].every((item) => guessed.has(item))) { over = true; ctx.win(`¡Correcto! La palabra es ${word}.`); }
+    };
+    ctx.help("Regalarme una letra", revealLetter);
     stage.querySelector(".cg-hang__keys")!.addEventListener("click", (event) => {
       const btn = (event.target as Element).closest<HTMLButtonElement>("[data-key]");
       if (!btn || over || btn.disabled) return;
@@ -604,11 +724,11 @@ function gameAhorcado(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "ahor
       draw();
       if ([...word].every((l) => guessed.has(l))) { over = true; ctx.win(`¡Correcto! La palabra es ${word}.`); return; }
       if (errors >= MAX_ERRORS) {
-        over = true;
-        stage.querySelector<HTMLElement>(".cg-hang__retry")!.hidden = false;
+        errors = Math.ceil(MAX_ERRORS / 2);
+        ctx.feedback("No pasa nada: te regalamos una letra y puedes seguir jugando.", "info");
+        revealLetter();
       }
     });
-    stage.querySelector("[data-retry]")!.addEventListener("click", () => { turn += 1; start(); });
     draw();
   };
   start();
@@ -628,6 +748,22 @@ function gameCompletar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "com
   </div>`;
   const blanks = [...stage.querySelectorAll<HTMLElement>("[data-blank]")];
   const mark = () => blanks.forEach((b, i) => b.classList.toggle("is-target", i === target && !filled.has(i)));
+  const fill = (index: number, assisted = false) => {
+    const blank = blanks[index];
+    if (!blank || filled.has(index)) return;
+    filled.add(index);
+    blank.classList.add("is-filled");
+    blank.innerHTML = `<span>${esc(answers[index])}</span>`;
+    const answer = bank.find((word) => word.id === `a${index}`);
+    if (answer) stage.querySelector<HTMLButtonElement>(`[data-word="${answer.id}"]`)!.disabled = true;
+    ctx.feedback(assisted ? "Palabra colocada. Sigue con la siguiente." : "¡Bien!", "ok");
+    ctx.progress(filled.size, answers.length);
+    const next = blanks.findIndex((_, i) => !filled.has(i));
+    if (next === -1) { ctx.win("¡Frase completa!"); mark(); return; }
+    target = next;
+    mark();
+  };
+  ctx.help("Completar un espacio", () => fill(target, true));
   ctx.progress(0, answers.length);
   blanks.forEach((blank, i) => blank.addEventListener("click", () => { if (!filled.has(i)) { target = i; mark(); } }));
   stage.querySelector(".cg-fill__bank")!.addEventListener("click", (event) => {
@@ -641,16 +777,7 @@ function gameCompletar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "com
       ctx.feedback(`“${word.text}” no completa bien esa parte. Prueba con otra palabra.`, "error");
       return;
     }
-    filled.add(target);
-    blank.classList.add("is-filled");
-    blank.innerHTML = `<span>${esc(answers[target])}</span>`;
-    chip.disabled = true;
-    ctx.feedback("¡Bien!", "ok");
-    ctx.progress(filled.size, answers.length);
-    const next = blanks.findIndex((_, i) => !filled.has(i));
-    if (next === -1) { ctx.win("¡Frase completa!"); mark(); return; }
-    target = next;
-    mark();
+    fill(target);
   });
   mark();
 }
@@ -684,13 +811,13 @@ function play(options: PlayOptions): Promise<boolean> {
       <button type="button" class="cg-close" aria-label="Cerrar">×</button>
     </header>
     <div class="cg-body">
-      <div class="cg-lead"><span>${esc(info.instruccion)}</span><div class="cg-progress"><i data-bar></i></div><b data-count>0 / 0</b></div>
+      <div class="cg-lead"><span>${esc(info.instruccion)} <small>Si te atoras, usa <b>Ayúdame</b>; no hay penalización.</small></span><div class="cg-progress"><i data-bar></i></div><b data-count>0 / 0</b></div>
       <div class="cg-stage" data-stage></div>
       <p class="cg-feedback" data-feedback role="status" hidden></p>
     </div>
     <footer class="cg-foot">
       <span class="cg-foot__note"><i aria-hidden="true">✓</i><span>${options.nota !== undefined ? options.nota : options.practica ? "Modo práctica: esta clase ya está marcada como vista." : `Supera el reto para abrir la siguiente clase${options.creditos ? ` y recibir <b>+${options.creditos} créditos</b>` : ""}.`}</span></span>
-      <button type="button" class="cg-continue" data-continue disabled>${options.practica ? "Terminar" : "Abrir siguiente clase"} <span aria-hidden="true">→</span></button>
+      <span class="cg-foot__actions"><button type="button" class="cg-help" data-help hidden>Ayúdame</button><button type="button" class="cg-continue" data-continue disabled>${options.practica ? "Terminar" : "Abrir siguiente clase"} <span aria-hidden="true">→</span></button></span>
     </footer>
   </section>`;
   document.body.appendChild(overlay);
@@ -704,6 +831,8 @@ function play(options: PlayOptions): Promise<boolean> {
     let settled = false;
     const feedbackEl = overlay.querySelector<HTMLElement>("[data-feedback]")!;
     const continueBtn = overlay.querySelector<HTMLButtonElement>("[data-continue]")!;
+    const helpBtn = overlay.querySelector<HTMLButtonElement>("[data-help]")!;
+    let helpAction: (() => void) | null = null;
     let feedbackTimer = 0;
     const close = (result: boolean) => {
       if (settled) return;
@@ -733,6 +862,11 @@ function play(options: PlayOptions): Promise<boolean> {
         clearTimeout(feedbackTimer);
         if (tone === "error") feedbackTimer = window.setTimeout(() => { feedbackEl.hidden = true; }, 3600);
       },
+      help(label, action) {
+        helpAction = action;
+        helpBtn.hidden = false;
+        helpBtn.textContent = `✦ ${label}`;
+      },
       win(message) {
         if (won) return;
         won = true;
@@ -744,12 +878,14 @@ function play(options: PlayOptions): Promise<boolean> {
         feedbackEl.hidden = false;
         feedbackEl.className = "cg-feedback cg-feedback--win";
         feedbackEl.textContent = `🏆 ${message || "¡Lo lograste!"}${extra}`;
+        helpBtn.disabled = true;
         continueBtn.disabled = false;
         continueBtn.focus({ preventScroll: true });
         celebrate("big");
         options.onWin?.();
       }
     };
+    helpBtn.addEventListener("click", () => helpAction?.());
     const stage = overlay.querySelector<HTMLElement>("[data-stage]")!;
     (GAMES[cfg.tipo] as (stage: HTMLElement, cfg: GameConfig, ctx: GameContext) => void)(stage, cfg, ctx);
     requestAnimationFrame(() => overlay.classList.add("is-open"));

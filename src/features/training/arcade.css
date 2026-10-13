@@ -104,6 +104,8 @@
 .ar-cw__cell input{width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:transparent;color:var(--ar-text);font:800 calc(var(--cell) * .48) 'Plus Jakarta Sans',sans-serif;text-align:center;text-transform:uppercase;caret-color:transparent;cursor:pointer}
 .ar-cw__cell input:focus{outline:none}
 .ar-cw__cell.is-active{background:color-mix(in srgb,var(--g) 13%,var(--ar-surface));box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--g) 50%,transparent)}
+.ar-cw__cell.is-letter-correct{background:color-mix(in srgb,var(--ok) 15%,var(--ar-surface));box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--ok) 76%,transparent)}
+.ar-cw__cell.is-letter-correct input{color:var(--ok)}
 .ar-cw__cell:focus-within{box-shadow:inset 0 0 0 2.5px var(--g),0 4px 12px color-mix(in srgb,var(--g) 30%,transparent);transform:translateY(-1px)}
 .ar-cw__cell.is-typed input{animation:arType .22s ease}
 @keyframes arType{0%{transform:scale(.4);opacity:.2}70%{transform:scale(1.15)}}
@@ -112,6 +114,7 @@
 @keyframes arWave{40%{transform:translateY(-5px) scale(1.08)}}
 .ar-cw__cell.is-wrong{animation:arShake .36s ease;box-shadow:inset 0 0 0 2px var(--bad)}
 .ar-cw__cell.is-revealed:not(.is-solved) input{color:var(--g)}
+.ar-cw__cell.is-letter-correct:not(.is-solved) input{color:var(--ok)}
 .ar-cw__list{max-height:440px;overflow:auto;padding-right:4px}
 .ar-cw__list ol{display:grid;gap:4px;margin:0 0 16px;padding:0;list-style:none}
 .ar-cw__list li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:start;padding:9px 10px;border-radius:11px;font-size:13px;line-height:1.35;cursor:pointer;transition:background .15s}
