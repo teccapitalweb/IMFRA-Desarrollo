@@ -4140,7 +4140,6 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-tools" viewBox="0 0 24 24"><path d="M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4"/><path d="M14.5 5.5l4 4"/></symbol>
 <symbol id="i-crown" viewBox="0 0 24 24"><path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4z"/></symbol>
 <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></symbol>
-<symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></symbol>
 </defs>
 </svg>
 
@@ -6341,6 +6340,11 @@ const Sections = (function(){
   let _webinarsLoading = false;
 
   async function cargarWebinarsFirestore() {
+    if (window.__isDemoMode) {
+      webinars = [];
+      _webinarsLoaded = true;
+      return;
+    }
     if (_webinarsLoading) return;
     _webinarsLoading = true;
     try {
@@ -11269,6 +11273,13 @@ const NOTIFS_DEMO = [
 // Setup del listener de notificaciones — se llama al cargar el panel
 // Es robusto: si __fs aún no está listo (módulo Firebase aún cargando), reintenta hasta 10s
 function setupNotificacionesListener(intento = 0) {
+  if (window.__isDemoMode) {
+    window.__notifsState.items = NOTIFS_DEMO;
+    window.__notifsState.loaded = true;
+    window.__notifsState.source = 'demo';
+    actualizarBadgeNotif();
+    return;
+  }
   const fs = window.__fs;
 
   // Si __fs aún no está listo, reintentar hasta 10 segundos (cada 500ms)

@@ -89,14 +89,14 @@ HT.icons = () => {
   svg.id = 'ht-icons'; svg.setAttribute('style','display:none');
   const A = 'viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"';
   svg.innerHTML = `
-  <symbol id="i-cube" ${A}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5"/><path d="M12 22V12"/></symbol>
+  <symbol id="ht-i-cube" ${A}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5"/><path d="M12 22V12"/></symbol>
   <symbol id="i-rebar" ${A}><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/><path d="M8 3v18"/><path d="M16 3v18"/></symbol>
   <symbol id="i-wall" ${A}><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18"/><path d="M3 14h18"/><path d="M9 4v5"/><path d="M15 9v5"/><path d="M9 14v6"/></symbol>
   <symbol id="i-percent" ${A}><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></symbol>
   <symbol id="i-trend" ${A}><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></symbol>
   <symbol id="i-notebook" ${A}><path d="M4 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4z"/><path d="M4 9h3M4 14h3M4 19h3"/><path d="M11 8h5M11 12h5"/></symbol>
-  <symbol id="i-ruler" ${A}><path d="M3 17.3L17.3 3l3.7 3.7L6.7 21z"/><path d="M14 6.3l1.5 1.5M11 9.3l1.5 1.5M8 12.3l1.5 1.5M5 15.3l1.5 1.5"/></symbol>
-  <symbol id="i-plus" ${A}><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="ht-i-ruler" ${A}><path d="M3 17.3L17.3 3l3.7 3.7L6.7 21z"/><path d="M14 6.3l1.5 1.5M11 9.3l1.5 1.5M8 12.3l1.5 1.5M5 15.3l1.5 1.5"/></symbol>
+  <symbol id="ht-i-plus" ${A}><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-refresh" ${A}><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></symbol>
   <symbol id="i-chevron" ${A}><path d="M6 9l6 6 6-6"/></symbol>
   <symbol id="i-sliders" ${A}><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></symbol>
@@ -172,7 +172,7 @@ HT.ui = {
   note(txt, warn){ return `<div class="ht-note ${warn?'ht-note--warn':''}"><svg class="ic"><use href="#i-info"/></svg><div>${txt}</div></div>`; },
   empty(o){ const {icon='i-tools', title, desc} = o; return `<div class="ht-empty"><div class="ht-empty__ic"><svg class="ic"><use href="#${icon}"/></svg></div><h3>${title}</h3>${desc?`<p>${desc}</p>`:''}</div>`; },
   del(){ return `<button class="ht-row__del" data-del type="button" aria-label="Quitar"><svg class="ic"><use href="#i-trash"/></svg></button>`; },
-  add(txt){ return `<button class="ht-add" type="button" data-add><svg class="ic"><use href="#i-plus"/></svg>${txt}</button>`; }
+  add(txt){ return `<button class="ht-add" type="button" data-add><svg class="ic"><use href="#ht-i-plus"/></svg>${txt}</button>`; }
 };
 
 /* Binds comunes */
@@ -427,7 +427,7 @@ Tools.concreto = (function(){
     root.innerHTML = `
       <div class="ht-meta"><span class="ht-folio">${S.folio}</span><span class="ht-meta__txt">${R.filas.length} elemento${R.filas.length!==1?'s':''} · ${HT.fmt(R.vol,2)} m³</span></div>
       <div class="ht-card">
-        <div class="ht-card__head"><div><h2 class="ht-card__title"><svg class="ic"><use href="#i-cube"/></svg>Elementos a colar</h2><p class="ht-card__sub">Captura cada elemento con sus medidas en metros. El volumen se calcula al instante.</p></div></div>
+        <div class="ht-card__head"><div><h2 class="ht-card__title"><svg class="ic"><use href="#ht-i-cube"/></svg>Elementos a colar</h2><p class="ht-card__sub">Captura cada elemento con sus medidas en metros. El volumen se calcula al instante.</p></div></div>
         <div class="ht-form" style="margin-bottom:14px">
           ${HT.ui.input({id:'c-obra',label:'Obra / frente',value:S.obra,placeholder:'Ej. Casa habitación · Lote 12',full:true})}
         </div>
@@ -541,7 +541,7 @@ Tools.concreto = (function(){
     HT.icons();
     S = st.get(null) || def();
     if (!S.folio) S.folio = HT.folio('CON');
-    root = HT.shell(container,{icon:'i-cube',image:'assets/tool-icons/concrete-volume.png',titulo:'Volumen de concreto',sub:'m³ por elemento, cemento, arena, grava y viajes de revolvedora'});
+    root = HT.shell(container,{icon:'ht-i-cube',image:'assets/tool-icons/concrete-volume.png',titulo:'Volumen de concreto',sub:'m³ por elemento, cemento, arena, grava y viajes de revolvedora'});
     render();
   }
   return { mount };
@@ -809,7 +809,7 @@ Tools.muros = (function(){
             <div class="ht-row__out"><small>Área</small><b>${HT.fmt(v.area,2)} m²</b></div>
             ${HT.ui.del()}
           </div>`).join(''):'<div class="ht-hint">Sin vanos. Si el muro tiene puertas o ventanas, agrégalas para no comprar de más.</div>'}</div>
-        <div style="margin-top:10px"><button class="ht-add" type="button" data-addvano><svg class="ic"><use href="#i-plus"/></svg>Agregar vano</button></div>
+        <div style="margin-top:10px"><button class="ht-add" type="button" data-addvano><svg class="ic"><use href="#ht-i-plus"/></svg>Agregar vano</button></div>
       </div>
       <div class="ht-card ht-card--accent">
         <div class="ht-card__head"><div><h2 class="ht-card__title"><svg class="ic"><use href="#i-check-circle"/></svg>Resultado</h2><p class="ht-card__sub">${HT.esc(PIEZAS[S.pieza].t)} · mortero ${S.mezcla} · ${HT.num(S.despPz)}% desp. pieza · ${HT.num(S.despMort)}% desp. mortero</p></div></div>
@@ -1423,7 +1423,7 @@ Tools.bitacora = (function(){
     main.innerHTML = `
       <div class="ht-card">
         <div class="ht-card__head"><div><h2 class="ht-card__title"><svg class="ic"><use href="#i-calendar"/></svg>Entradas</h2><p class="ht-card__sub">${lista.length?`${lista.length} día${lista.length!==1?'s':''} registrado${lista.length!==1?'s':''}`:'Aún no hay entradas'}</p></div>
-          <button class="btn btn--accent btn--sm" id="b-nueva"><svg class="ic"><use href="#i-plus"/></svg>Nueva entrada</button></div>
+          <button class="btn btn--accent btn--sm" id="b-nueva"><svg class="ic"><use href="#ht-i-plus"/></svg>Nueva entrada</button></div>
         ${lista.length ? `<div class="ht-hist">${lista.map(e => { const d = new Date(e.fecha+'T12:00:00'); return `<div class="ht-hist__item" data-id="${e.id}">
             <div class="ht-hist__date"><b>${isNaN(d)?'—':d.getDate()}</b>${isNaN(d)?'':d.toLocaleDateString('es-MX',{month:'short'}).replace('.','')}</div>
             <div class="ht-hist__body"><div class="ht-hist__title">${HT.esc((e.actividades||'').split('\n')[0]||'Sin actividades registradas')}</div><div class="ht-hist__sub">${e.clima}${e.temp?` · ${HT.num(e.temp)}°C`:''} · ${totalPersonal(e)} personas${e.avanceAcum!==''?` · ${HT.pct(HT.num(e.avanceAcum),1)} acum.`:''}${e.incidencias?' · ⚠ incidencia':''}</div></div>
@@ -1461,7 +1461,7 @@ Tools.bitacora = (function(){
               ${HT.ui.input({id:'ep-cant-'+i,label:'Cant.',type:'number',value:p.cant,step:'1',min:0,inputmode:'numeric',placeholder:'0'})}
               ${HT.ui.del()}
             </div>`).join('')}</div>
-          <div style="margin-top:10px"><button class="ht-add" type="button" data-addp><svg class="ic"><use href="#i-plus"/></svg>Agregar categoría</button></div>
+          <div style="margin-top:10px"><button class="ht-add" type="button" data-addp><svg class="ic"><use href="#ht-i-plus"/></svg>Agregar categoría</button></div>
         </div>
         <div class="ht-card">
           <div class="ht-card__head"><div><h2 class="ht-card__title"><svg class="ic"><use href="#i-tools"/></svg>Maquinaria y equipo</h2></div></div>
@@ -1470,7 +1470,7 @@ Tools.bitacora = (function(){
               ${HT.ui.input({id:'em-h-'+i,label:'Horas',type:'number',value:m.h,unit:'h',step:'0.5',min:0,placeholder:'0'})}
               ${HT.ui.del()}
             </div>`).join(''):'<div class="ht-hint">Sin maquinaria registrada hoy.</div>'}</div>
-          <div style="margin-top:10px"><button class="ht-add" type="button" data-addm><svg class="ic"><use href="#i-plus"/></svg>Agregar equipo</button></div>
+          <div style="margin-top:10px"><button class="ht-add" type="button" data-addm><svg class="ic"><use href="#ht-i-plus"/></svg>Agregar equipo</button></div>
         </div>
       </div>
       <div class="ht-card">
@@ -1581,7 +1581,7 @@ Tools.generadores = (function(){
     root.innerHTML = `
       <div class="ht-meta"><span class="ht-folio">${S.folio}</span><span class="ht-meta__txt">${R.conceptos.length} concepto${R.conceptos.length!==1?'s':''}</span></div>
       <div class="ht-card">
-        <div class="ht-card__head"><div><h2 class="ht-card__title"><svg class="ic"><use href="#i-ruler"/></svg>Datos de la estimación</h2></div></div>
+        <div class="ht-card__head"><div><h2 class="ht-card__title"><svg class="ic"><use href="#ht-i-ruler"/></svg>Datos de la estimación</h2></div></div>
         <div class="ht-form ht-form--4">
           ${HT.ui.input({id:'g-obra',label:'Obra',value:S.obra,placeholder:'Nombre de la obra'})}
           ${HT.ui.input({id:'g-contratista',label:'Contratista',value:S.contratista})}
@@ -1624,7 +1624,7 @@ Tools.generadores = (function(){
             ${HT.ui.del()}
           </div>`).join('')}</div>
         <div class="ht-inline" style="margin-top:12px;justify-content:space-between">
-          <button class="ht-add" type="button" data-addr style="width:auto"><svg class="ic"><use href="#i-plus"/></svg>Agregar renglón</button>
+          <button class="ht-add" type="button" data-addr style="width:auto"><svg class="ic"><use href="#ht-i-plus"/></svg>Agregar renglón</button>
           <div class="ht-mono" style="font-size:14px"><span class="ht-muted">Total:</span> <b>${HT.fmt(c.total,c.unidad==='pza'?0:3)} ${unidadCorta(c.unidad)}</b></div>
         </div>
       </div>
@@ -1679,7 +1679,7 @@ Tools.generadores = (function(){
   }
   function mount(container){
     HT.icons(); S = st.get(null) || def(); if (!S.folio) S.folio = HT.folio('GEN');
-    root = HT.shell(container,{icon:'i-ruler',image:'assets/tool-icons/quantity-generators.png',titulo:'Números generadores',sub:'Hoja de cuantificación por concepto: piezas × largo × ancho × alto, con resumen para estimación'});
+    root = HT.shell(container,{icon:'ht-i-ruler',image:'assets/tool-icons/quantity-generators.png',titulo:'Números generadores',sub:'Hoja de cuantificación por concepto: piezas × largo × ancho × alto, con resumen para estimación'});
     render();
   }
   return { mount };
@@ -1687,14 +1687,14 @@ Tools.generadores = (function(){
 
 /* Metadatos para el panel (nav, orden, íconos) */
 Tools.__meta = [
-  {k:'concreto',    t:'Volumen de concreto',   icon:'i-cube'},
+  {k:'concreto',    t:'Volumen de concreto',   icon:'ht-i-cube'},
   {k:'acero',       t:'Cuantificación de acero',icon:'i-rebar'},
   {k:'muros',       t:'Muros y albañilería',   icon:'i-wall'},
   {k:'retenciones', t:'Retenciones en estimaciones', icon:'i-percent'},
   {k:'curvas',      t:'Curva S',               icon:'i-trend'},
   {k:'checklist',   t:'Checklist de supervisión', icon:'i-clipboard-check'},
   {k:'bitacora',    t:'Bitácora de obra',      icon:'i-notebook'},
-  {k:'generadores', t:'Números generadores',   icon:'i-ruler'}
+  {k:'generadores', t:'Números generadores',   icon:'ht-i-ruler'}
 ];
 
 })();
