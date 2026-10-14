@@ -40,47 +40,82 @@ function planoObra() {
   </div>`;
 }
 
-// Planta arquitectónica con ejes, cotas, muros y carpintería.
+// Planta arquitectónica estilo CAD: ejes, muros con poché, columnas,
+// carpintería, escalera, muebles sanitarios y cadenas de cotas.
 function planoPlanta() {
-  const ejesX = [100, 320, 540];
-  const ejesY = [80, 210, 340];
+  const X = [150, 380, 610];
+  const Y = [110, 250, 390];
+  const tick = (x: number, y: number) => `<path d="M${x - 5} ${y + 5}L${x + 5} ${y - 5}" class="cg-cad__tick"/>`;
+  const treads = Array.from({ length: 10 }, (_, i) => `<path d="M${444 + i * 14} 282V374" class="cg-cad__thin"/>`).join("");
   const art = `
-    <rect x="0" y="0" width="640" height="400" rx="14" class="cg-plan__paper"/>
-    ${ejesX.map((x) => `<path d="M${x} 52V360" class="cg-plan__axis"/>`).join("")}
-    ${ejesY.map((y) => `<path d="M72 ${y}H568" class="cg-plan__axis"/>`).join("")}
-    ${ejesX.map((x, i) => `<circle cx="${x}" cy="36" r="14" class="cg-plan__bubble"/><text x="${x}" y="41" text-anchor="middle" class="cg-plan__bubble-t">${"ABC"[i]}</text>`).join("")}
-    ${ejesY.map((y, i) => `<circle cx="52" cy="${y}" r="14" class="cg-plan__bubble"/><text x="52" y="${y + 5}" text-anchor="middle" class="cg-plan__bubble-t">${i + 1}</text>`).join("")}
-    <!-- muros exteriores con vano de ventana -->
-    <path d="M100 80H380M480 80H540V340H100V80" class="cg-plan__wall"/>
-    <path d="M380 76h100M380 80h100M380 84h100" class="cg-plan__window"/>
-    <!-- muros interiores con vano de puerta -->
-    <path d="M100 210H190M246 210H320M320 210V340" class="cg-plan__wall cg-plan__wall--in"/>
-    <path d="M190 210a56 56 0 0 0 56 56M190 210v56" class="cg-plan__door"/>
-    <!-- columnas -->
-    ${ejesX.map((x) => ejesY.map((y) => `<rect x="${x - 10}" y="${y - 10}" width="20" height="20" class="cg-plan__col-fill"/>`).join("")).join("")}
-    <!-- escalera -->
-    <rect x="384" y="232" width="132" height="86" class="cg-plan__stairs"/>
-    ${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<path d="M${398 + i * 14} 232v86" class="cg-plan__tread"/>`).join("")}
-    <path d="M392 275h110m-10-7 10 7-10 7" class="cg-plan__ink"/>
-    <!-- muebles sanitarios -->
-    <rect x="130" y="290" width="30" height="20" rx="4" class="cg-plan__fixture"/><ellipse cx="145" cy="322" rx="12" ry="9" class="cg-plan__fixture"/>
-    <!-- cota -->
-    <path d="M100 376H320M100 368v16M320 368v16M94 382l12-12M314 382l12-12" class="cg-plan__dim"/>
-    <text x="210" y="370" text-anchor="middle" class="cg-plan__dim-t">6.00</text>`;
+    <defs>
+      <pattern id="cgCadGrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#dfe6ec" stroke-width=".8"/></pattern>
+      <pattern id="cgCadHatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V6" stroke="#fff" stroke-width="1.4" opacity=".55"/></pattern>
+    </defs>
+    <rect width="760" height="470" rx="14" fill="#fbfcfd"/>
+    <rect width="760" height="470" rx="14" fill="url(#cgCadGrid)"/>
+    <text x="22" y="28" class="cg-cad__title">PLANTA ARQUITECTÓNICA · NIVEL 1</text>
+    <text x="22" y="44" class="cg-cad__sub">ESC. 1:100 · ACOT. METROS</text>
+    <!-- Norte -->
+    <g transform="translate(712 44)"><circle r="17" class="cg-cad__north-c"/><path d="M0-13 6 9 0 4-6 9z" class="cg-cad__north"/><text y="-21" text-anchor="middle" class="cg-cad__sub">N</text></g>
+    <!-- Ejes -->
+    ${X.map((x) => `<path d="M${x} 77V426" class="cg-cad__axis"/>`).join("")}
+    ${Y.map((y) => `<path d="M112 ${y}H646" class="cg-cad__axis"/>`).join("")}
+    ${X.map((x, i) => `<circle cx="${x}" cy="62" r="15" class="cg-cad__bubble"/><text x="${x}" y="67" text-anchor="middle" class="cg-cad__bubble-t">${"ABC"[i]}</text>`).join("")}
+    ${Y.map((y, i) => `<circle cx="97" cy="${y}" r="15" class="cg-cad__bubble"/><text x="97" y="${y + 5}" text-anchor="middle" class="cg-cad__bubble-t">${i + 1}</text>`).join("")}
+    <!-- Pisos -->
+    <rect x="157" y="117" width="446" height="266" class="cg-cad__floor"/>
+    <rect x="157" y="255" width="218" height="128" class="cg-cad__floor-wet"/>
+    <!-- Muros exteriores (poché) -->
+    <path d="M143 103H617V397H143ZM157 117V383H603V117Z" fill-rule="evenodd" class="cg-cad__wall"/>
+    <!-- Ventana -->
+    <rect x="452" y="102" width="106" height="16" class="cg-cad__win-bg"/>
+    <path d="M452 103H558M452 117H558M452 110H558M452 103V117M558 103V117" class="cg-cad__win"/>
+    <path d="M448 121H562" class="cg-cad__thin"/>
+    <!-- Muros interiores -->
+    <rect x="157" y="245" width="71" height="10" class="cg-cad__wall"/><rect x="292" y="245" width="83" height="10" class="cg-cad__wall"/>
+    <rect x="375" y="245" width="10" height="138" class="cg-cad__wall"/>
+    <!-- Puerta -->
+    <rect x="228" y="255" width="4" height="62" class="cg-cad__leaf"/>
+    <path d="M292 255A64 64 0 0 1 232 317" class="cg-cad__swing"/>
+    <!-- Escalera -->
+    <rect x="430" y="282" width="154" height="92" class="cg-cad__stairs"/>
+    ${treads}
+    <path d="M436 328H570M558 321l12 7-12 7" class="cg-cad__ink"/><text x="440" y="322" class="cg-cad__note">SUBE</text>
+    <!-- Mobiliario -->
+    <rect x="186" y="146" width="92" height="38" rx="3" class="cg-cad__furn"/><circle cx="232" cy="200" r="11" class="cg-cad__furn"/>
+    <rect x="300" y="138" width="54" height="24" rx="3" class="cg-cad__furn"/>
+    <rect x="172" y="362" width="36" height="16" rx="3" class="cg-cad__fix"/><ellipse cx="190" cy="342" rx="13" ry="17" class="cg-cad__fix"/>
+    <rect x="304" y="356" width="56" height="24" rx="4" class="cg-cad__fix"/><ellipse cx="332" cy="367" rx="17" ry="8" class="cg-cad__fix"/>
+    <!-- Locales -->
+    <text x="300" y="215" text-anchor="middle" class="cg-cad__room">OFICINA</text><text x="300" y="229" text-anchor="middle" class="cg-cad__area">24.00 m²</text>
+    <text x="328" y="300" text-anchor="middle" class="cg-cad__room">SANITARIOS</text><text x="328" y="314" text-anchor="middle" class="cg-cad__area">24.00 m²</text>
+    <text x="495" y="190" text-anchor="middle" class="cg-cad__room">ÁREA DE TRABAJO</text><text x="495" y="204" text-anchor="middle" class="cg-cad__area">48.00 m²</text>
+    <!-- Cotas -->
+    ${X.map((x) => `<path d="M${x} 404V448" class="cg-cad__ext"/>`).join("")}
+    <path d="M144 442H616" class="cg-cad__dim"/>${X.map((x) => tick(x, 442)).join("")}
+    <text x="265" y="436" text-anchor="middle" class="cg-cad__dim-t">6.00</text><text x="495" y="436" text-anchor="middle" class="cg-cad__dim-t">6.00</text>
+    ${Y.map((y) => `<path d="M624 ${y}H676" class="cg-cad__ext"/>`).join("")}
+    <path d="M670 104V396" class="cg-cad__dim"/>${Y.map((y) => tick(670, y)).join("")}
+    <text x="664" y="180" text-anchor="middle" transform="rotate(-90 664 180)" class="cg-cad__dim-t">4.00</text><text x="664" y="320" text-anchor="middle" transform="rotate(-90 664 320)" class="cg-cad__dim-t">4.00</text>
+    <!-- Columnas -->
+    ${X.flatMap((x) => Y.map((y) => `<rect x="${x - 11}" y="${y - 11}" width="22" height="22" class="cg-cad__col"/><rect x="${x - 11}" y="${y - 11}" width="22" height="22" fill="url(#cgCadHatch)"/>`)).join("")}`;
   const zones: Zone[] = [
-    { id: "eje", label: "Eje B", shape: `<rect x="300" y="18" width="40" height="52"/>`, labelX: 360, labelY: 20 },
-    { id: "eje", label: "Eje 2", shape: `<rect x="34" y="194" width="58" height="32"/>`, labelX: 52, labelY: 250 },
-    ...ejesX.flatMap((x) => ejesY.map((y) => ({ id: "columna", label: "Columna", shape: `<rect x="${x - 15}" y="${y - 15}" width="30" height="30"/>`, labelX: x, labelY: y - 20 }))),
-    { id: "muro", label: "Muro", shape: `<rect x="312" y="224" width="16" height="104"/>`, labelX: 300, labelY: 286 },
-    { id: "muro", label: "Muro", shape: `<rect x="92" y="94" width="16" height="104"/>`, labelX: 130, labelY: 150 },
-    { id: "puerta", label: "Puerta", shape: `<rect x="186" y="198" width="66" height="74"/>`, labelX: 218, labelY: 190 },
-    { id: "ventana", label: "Ventana", shape: `<rect x="376" y="66" width="108" height="26"/>`, labelX: 430, labelY: 108 },
-    { id: "escalera", label: "Escalera", shape: `<rect x="380" y="228" width="140" height="94"/>`, labelX: 450, labelY: 222 },
-    { id: "cota", label: "Cota", shape: `<rect x="96" y="356" width="228" height="34"/>`, labelX: 210, labelY: 352 }
+    ...X.map((x, i) => ({ id: "eje", label: `Eje ${"ABC"[i]}`, shape: `<rect x="${x - 25}" y="37" width="50" height="50" rx="25"/>`, labelX: x + 40, labelY: 54 })),
+    ...Y.map((y, i) => ({ id: "eje", label: `Eje ${i + 1}`, shape: `<rect x="72" y="${y - 25}" width="50" height="50" rx="25"/>`, labelX: 97, labelY: y - 24 })),
+    { id: "muro", label: "Muro", shape: `<rect x="368" y="262" width="24" height="114"/>`, labelX: 410, labelY: 322 },
+    { id: "muro", label: "Muro", shape: `<rect x="136" y="128" width="28" height="108"/>`, labelX: 182, labelY: 140 },
+    { id: "muro", label: "Muro", shape: `<rect x="168" y="96" width="196" height="28"/>`, labelX: 265, labelY: 92 },
+    { id: "puerta", label: "Puerta", shape: `<rect x="222" y="240" width="76" height="82"/>`, labelX: 262, labelY: 236 },
+    { id: "ventana", label: "Ventana", shape: `<rect x="446" y="94" width="118" height="32"/>`, labelX: 505, labelY: 142 },
+    { id: "escalera", label: "Escalera", shape: `<rect x="424" y="276" width="166" height="104"/>`, labelX: 507, labelY: 270 },
+    { id: "cota", label: "Cota", shape: `<rect x="160" y="424" width="210" height="28"/>`, labelX: 265, labelY: 466 },
+    { id: "cota", label: "Cota", shape: `<rect x="390" y="424" width="210" height="28"/>`, labelX: 495, labelY: 466 },
+    { id: "cota", label: "Cota", shape: `<rect x="652" y="122" width="34" height="116"/>`, labelX: 705, labelY: 186 },
+    { id: "cota", label: "Cota", shape: `<rect x="652" y="262" width="34" height="116"/>`, labelX: 705, labelY: 326 },
+    ...X.flatMap((x) => Y.map((y) => ({ id: "columna", label: "Columna", shape: `<rect x="${x - 22}" y="${y - 22}" width="44" height="44"/>`, labelX: x, labelY: y - 22 })))
   ];
-  // Las columnas se dibujan al final para quedar por encima de los muros.
-  const ordenadas = [...zones.filter((z) => z.id !== "columna"), ...zones.filter((z) => z.id === "columna")];
-  return render("0 0 640 400", art, ordenadas);
+  return render("0 0 760 470", art, zones);
 }
 
 export function planSvg(kind: PlanKind) {
