@@ -4811,12 +4811,20 @@ function __leerSeccionURLVIP(){
   if (s === 'retos') s = 'entrenamiento';
   return (__seccionesValidasVIP().has(s) || __esRutaDinamicaVIP(s)) ? s : SECCION_DEFAULT_VIP;
 }
+function __esEntradaMovilEnDirectorioVIP(){
+  return window.matchMedia('(max-width:880px)').matches && __leerSeccionURLVIP() === 'directorio';
+}
 function __sincronizarDesdeURLVIP(){
   const s = __leerSeccionURLVIP();
   if (s !== __seccionActualVIP) navigateToSection(s, { reemplazar: true });
 }
 window.addEventListener('popstate', __sincronizarDesdeURLVIP);
 window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
+window.addEventListener('pageshow', function(event){
+  if (event.persisted && __esEntradaMovilEnDirectorioVIP()) {
+    navigateToSection('inicio', { reemplazar: true });
+  }
+});
 
 function navigateToSection(section, opciones){
   if(section === 'retos') section = 'entrenamiento';
@@ -12174,8 +12182,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if (!window.__rutaInicialAplicada) {
       window.__rutaInicialAplicada = true;
       try {
-        const destino = window.__leerSeccionURLVIP ? window.__leerSeccionURLVIP() : 'inicio';
-        if (destino !== 'inicio' && typeof window.navigateToSection === 'function') {
+        const destinoURL = window.__leerSeccionURLVIP ? window.__leerSeccionURLVIP() : 'inicio';
+        // Safari/Chrome móvil pueden restaurar #directorio de la visita previa.
+        // Al entrar al panel lo sustituimos por Inicio sin tocar rutas profundas.
+        const destino = __esEntradaMovilEnDirectorioVIP() ? 'inicio' : destinoURL;
+        if ((destino !== 'inicio' || destino !== destinoURL) && typeof window.navigateToSection === 'function') {
           window.navigateToSection(destino, { reemplazar: true });
         }
       } catch (e) { console.warn('[ruta inicial]', e.message); }
