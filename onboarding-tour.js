@@ -52,6 +52,8 @@
   let backBtn;
   let nextBtn;
   let automaticTimer = null;
+  let swipeStartX = null;
+  let swipeStartY = null;
 
   function isVisible(el) {
     if (!el || !el.isConnected) return false;
@@ -152,6 +154,31 @@
     layer.querySelector('.onboarding-tour-skip').addEventListener('click', () => finish('omitted'));
     backBtn.addEventListener('click', previous);
     nextBtn.addEventListener('click', next);
+    dialog.addEventListener('pointerdown', onPointerDown);
+    dialog.addEventListener('pointerup', onPointerUp);
+    dialog.addEventListener('pointercancel', resetSwipe);
+  }
+
+  function resetSwipe() {
+    swipeStartX = null;
+    swipeStartY = null;
+  }
+
+  function onPointerDown(event) {
+    if (!state.active || event.target.closest('button, a, input, textarea, select')) return;
+    swipeStartX = event.clientX;
+    swipeStartY = event.clientY;
+    try { dialog.setPointerCapture(event.pointerId); } catch (error) { /* iOS puede administrar la captura. */ }
+  }
+
+  function onPointerUp(event) {
+    if (swipeStartX === null || swipeStartY === null) return;
+    const deltaX = event.clientX - swipeStartX;
+    const deltaY = event.clientY - swipeStartY;
+    resetSwipe();
+    if (Math.abs(deltaX) < 52 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) return;
+    if (deltaX < 0) next();
+    else previous();
   }
 
   function positionUi() {
@@ -248,6 +275,12 @@
     window.dispatchEvent(new CustomEvent('imfra:onboarding-finished', { detail: { reason, automatic: state.automatic === true } }));
   }
 
+  function notifyAutomaticSkip(reason) {
+    window.dispatchEvent(new CustomEvent('imfra:onboarding-finished', {
+      detail: { reason, automatic: true, shown: false }
+    }));
+  }
+
   function onKeydown(event) {
     if (!state.active) return;
     if (event.key === 'Escape') { event.preventDefault(); finish('omitted'); return; }
@@ -302,7 +335,7 @@
 
   function scheduleAutomatic(attempt) {
     const id = accountId();
-    const ready = Boolean(id && window.UserState && window.UserState.modo !== 'cargando' && window.__IMFRA_PROFILE_FLOW_READY === true);
+    const ready = Boolean(id && window.UserState && window.UserState.modo !== 'cargando' && window.__IMFRA_ONBOARDING_FLOW_READY === true);
     if (!ready) {
       if (attempt < 80) {
         clearTimeout(automaticTimer);
@@ -332,10 +365,12 @@
       const claimed = await claimAutomaticExperience();
       if (claimed === null) {
         if (attempt < 80) scheduleAutomatic(attempt + 1);
+        else notifyAutomaticSkip('unavailable');
         return;
       }
       if (localSeen || !claimed) {
         if (!localSeen) markSeenFor(latestId, 'server');
+        notifyAutomaticSkip(localSeen ? 'local' : 'server');
         return;
       }
       start({ automatic: true, serverClaimed: true });
@@ -368,6 +403,10 @@
   }
 
   window.startimfraOnboarding = () => start({ automatic: false });
+  window.__runAutomaticIMFRAOnboarding = () => {
+    clearTimeout(automaticTimer);
+    scheduleAutomatic(0);
+  };
   window.__IMFRA_ONBOARDING_VERSION = VERSION;
 
   function init() {

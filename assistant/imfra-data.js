@@ -9,8 +9,8 @@
     brand: {
       name: 'IMFRA Desarrollo',
       assistant: 'Guía IMFRA',
-      whatsapp: '522382196286',
-      generalWhatsapp: '5212225245127',
+      whatsapp: '5212382220811',
+      generalWhatsapp: '5212382220811',
       privacyUrl: 'privacidad.html'
     },
 

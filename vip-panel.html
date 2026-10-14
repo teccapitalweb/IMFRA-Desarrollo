@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="onboarding-tour.css?v=2">
+<link rel="stylesheet" href="onboarding-tour.css?v=3">
 <link rel="stylesheet" href="assets/imfra-tools.css?v=2">
 
 <style>
@@ -3453,7 +3453,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 #free-course-intro.is-open{opacity:1}
 #free-course-intro.is-closing{opacity:0}
 .fci__backdrop{position:absolute;inset:0;background:rgba(10,8,5,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
-.fci__card{position:relative;width:min(440px,100%);padding:26px 26px 22px;border-radius:24px;text-align:center;background:var(--surface);border:1px solid var(--border);box-shadow:0 30px 80px rgba(0,0,0,.35);transform:translateY(14px) scale(.97);transition:transform .35s cubic-bezier(.2,1.2,.4,1)}
+.fci__card{position:relative;width:min(440px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;padding:26px 26px 22px;border-radius:24px;text-align:center;background:var(--surface);border:1px solid var(--border);box-shadow:0 30px 80px rgba(0,0,0,.35);transform:translateY(14px) scale(.97);transition:transform .35s cubic-bezier(.2,1.2,.4,1)}
 #free-course-intro.is-open .fci__card{transform:none}
 .fci__close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:var(--text-3);font-size:22px;line-height:1;cursor:pointer}
 .fci__close:hover{background:var(--surface-2);color:var(--text)}
@@ -3745,7 +3745,7 @@ window.__requestTrialActivation = function(){
 // Si ya estamos en modo demo (configurado en script anterior), aplicar UserState y salir
 if (window.__isDemoMode) {
   setTimeout(() => { window.__applyUserState && window.__applyUserState(); }, 80);
-  setTimeout(() => { window.__maybeAskProfile && window.__maybeAskProfile(); }, 520);
+  setTimeout(() => { window.__runInitialExperienceFlow && window.__runInitialExperienceFlow(); }, 520);
 } else {
   // ─── Auth normal · puede ser sin-membresia o vip ───
   onAuthStateChanged(auth, async (user) => {
@@ -3864,8 +3864,8 @@ if (window.__isDemoMode) {
       }, 420);
     }
 
-    // ─── Primera entrada: ficha profesional y después recorrido/bienvenida ───
-    setTimeout(() => { try { window.__maybeAskProfile && window.__maybeAskProfile(); } catch(e){} }, 500);
+    // ─── Primera entrada: bienvenida → recorrido → ficha → curso gratis ───
+    setTimeout(() => { try { window.__runInitialExperienceFlow && window.__runInitialExperienceFlow(); } catch(e){} }, 500);
 
     // Arrancar listener de notificaciones de Firestore (tiempo real)
     setTimeout(() => { if (typeof setupNotificacionesListener === 'function') setupNotificacionesListener(); }, 100);
@@ -3962,7 +3962,7 @@ window.__showWelcomeSplash = function(opts) {
         <div class="splash-film__dots" id="splash-dots"></div>
         <button class="splash-bnv__btn splash-film__next" id="splash-next">Siguiente →</button>
       </div>
-      <div class="splash-bnv__foot">Cualquier duda · <a href="https://wa.me/522382220811" target="_blank" rel="noopener">Escríbenos por WhatsApp</a></div>
+      <div class="splash-bnv__foot">Cualquier duda · <a href="https://wa.me/5212382220811" target="_blank" rel="noopener">Escríbenos por WhatsApp</a></div>
     </div>
   `;
   document.body.appendChild(splash);
@@ -3977,7 +3977,8 @@ window.__showWelcomeSplash = function(opts) {
   dotsEl.innerHTML = slides.map((_,i)=>`<span class="splash-film__dot" data-i="${i}"></span>`).join('');
   const dots = Array.from(dotsEl.querySelectorAll('.splash-film__dot'));
 
-  let cur = -1, timer = null, marcado = false;
+  let cur = -1, timer = null, marcado = false, cerrado = false;
+  let swipeStartX = null, swipeStartY = null;
 
   function confetti(){
     confEl.innerHTML = Array.from({length:32}).map((_,i)=>
@@ -4039,11 +4040,33 @@ window.__showWelcomeSplash = function(opts) {
   }
 
   function close(){
+    if (cerrado) return;
+    cerrado = true;
     if (timer) clearInterval(timer);
     marcarMostrada();
     splash.style.animation = 'bnvFadeOut .3s ease forwards';
-    setTimeout(() => splash.remove(), 300);
+    setTimeout(() => {
+      splash.remove();
+      window.dispatchEvent(new CustomEvent('imfra:welcome-splash-finished'));
+    }, 300);
   }
+
+  function resetSwipe(){ swipeStartX = null; swipeStartY = null; }
+  stage.addEventListener('pointerdown', event => {
+    if (event.target.closest('button, a')) return;
+    swipeStartX = event.clientX;
+    swipeStartY = event.clientY;
+    try { stage.setPointerCapture(event.pointerId); } catch(e) {}
+  });
+  stage.addEventListener('pointerup', event => {
+    if (swipeStartX === null || swipeStartY === null) return;
+    const deltaX = event.clientX - swipeStartX;
+    const deltaY = event.clientY - swipeStartY;
+    resetSwipe();
+    if (Math.abs(deltaX) < 52 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.15) return;
+    goTo(cur + (deltaX < 0 ? 1 : -1));
+  });
+  stage.addEventListener('pointercancel', resetSwipe);
 
   // listeners
   nextBtn.addEventListener('click', () => goTo(cur+1));
@@ -5373,13 +5396,13 @@ const Sections = (function(){
     refrescarVistaCursos();
     const bannerText = document.getElementById('fomo-banner-text');
     if (bannerText && window.UserState?.modo === 'sin-membresia') bannerText.innerHTML = textoOfertaGratis();
-    if (cursoGratisPendiente()) programarInvitacionCursoGratis();
+    if (cursoGratisPendiente() && window.__IMFRA_INITIAL_FLOW_DONE === true) programarInvitacionCursoGratis();
     return cursoGratisEstado;
   }
   window.__cargarCursoGratis = cargarCursoGratisEstado;
 
   // ─── Invitación "Elige tu curso gratis" ───
-  // Aparece una vez por visita a quien aún no elige, cuando ya terminaron la
+  // Aparece una sola vez por cuenta a quien aún no elige, cuando ya terminaron la
   // ficha inicial, el recorrido guiado y el regalo de bienvenida.
   let _invitacionCursoGratis = false;
   let _tourTerminadoEn = 0;
@@ -5408,16 +5431,33 @@ const Sections = (function(){
   function programarInvitacionCursoGratis(){
     if (_invitacionCursoGratis || !window.UserState?.uid) return;
     const clave = `imfra:curso-gratis-intro:${window.UserState.uid}`;
-    try { if (sessionStorage.getItem(clave)) return; } catch(e) {}
+    try {
+      if (localStorage.getItem(clave) || window.memberData?.cursoGratisIntroVista === true) {
+        localStorage.setItem(clave, '1');
+        return;
+      }
+    } catch(e) {}
     _invitacionCursoGratis = true;
     esperarPanelLibre(async () => {
       if (!cursoGratisPendiente()) return;
       if (!_cursosLoaded) { try { await cargarCursosFirestore(); } catch(e) {} }
       if (!cursoGratisPendiente() || document.getElementById('free-course-intro')) return;
-      try { sessionStorage.setItem(clave, '1'); } catch(e) {}
+      try { localStorage.setItem(clave, '1'); } catch(e) {}
+      try {
+        const S = window.UserState || {};
+        const fs = window.__fs;
+        if (fs?.setDoc && S.uid) {
+          await fs.setDoc(fs.doc(fs.db, 'miembros', S.uid), {
+            cursoGratisIntroVista: true,
+            cursoGratisIntroVistaAt: fs.serverTimestamp()
+          }, { merge: true });
+          window.memberData = Object.assign({}, window.memberData || {}, { cursoGratisIntroVista: true });
+        }
+      } catch(e) { console.warn('[curso gratis] No se pudo sincronizar el aviso único', e); }
       mostrarInvitacionCursoGratis();
     });
   }
+  window.__programarInvitacionCursoGratis = programarInvitacionCursoGratis;
 
   function irAElegirCursoGratis(){
     navigateToSection('cursos');
@@ -6532,7 +6572,7 @@ const Sections = (function(){
         <div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div>
         <h3>Aún no hay cursos publicados</h3>
         <p>Estamos preparando los primeros cursos de IMFRA. Apenas se publiquen, los verás aquí. Síguenos en WhatsApp para enterarte primero.</p>
-        <a class="btn btn--ghost" href="https://wa.me/522382220811" target="_blank" rel="noopener" data-bypass-paywall="true" style="margin-top:14px;"><svg class="ic"><use href="#i-whatsapp"/></svg>Avísame por WhatsApp</a>
+        <a class="btn btn--ghost" href="https://wa.me/5212382220811" target="_blank" rel="noopener" data-bypass-paywall="true" style="margin-top:14px;"><svg class="ic"><use href="#i-whatsapp"/></svg>Avísame por WhatsApp</a>
       </div>`;
       return;
     }
@@ -10802,9 +10842,9 @@ const Sections = (function(){
 // ═══════════════════════════════════════════════════════════════════
 const IMFRA_CONTACT = {
   // Ventas: descuentos, información comercial, invitaciones
-  whatsapp: '522382220811',        // 238 222 0811
-  // Coordinación: soporte de cuenta y temas de dirección
-  coordinacion: '522225245127',     // 222 524 5127 · Katya Arredondo Martínez
+  whatsapp: '5212382220811',       // +52 1 238 222 0811
+  // Ventas, membresías, soporte de cuenta y temas de dirección usan el mismo contacto.
+  coordinacion: '5212382220811',
   // Canal de difusión oficial de IMFRA Desarrollo
   canal: 'https://whatsapp.com/channel/0029VbDVIqoGOj9mnLhbLx3d',
   // Redes sociales oficiales
@@ -10921,12 +10961,14 @@ function openPasswordResetModal(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Primera entrada: ficha profesional → bienvenida → recorrido guiado.
+// Primera entrada: la ficha profesional se solicita después de la bienvenida
+// y del recorrido guiado. Al terminar emite un evento para abrir el siguiente paso.
 // La ficha se considera completa con nombre y WhatsApp; los demás
 // campos ayudan a personalizar el soporte sin frenar el acceso.
 // ═══════════════════════════════════════════════════════════════════
 window.__IMFRA_PROFILE_FLOW_READY = false;
 window.__maybeAskProfile = function(){
+  let flowFinished = false;
   try {
     if (document.getElementById('profile-intake-modal')) return;
     const S = window.UserState || {};
@@ -10936,23 +10978,11 @@ window.__maybeAskProfile = function(){
     const intakeKey = `imfra:profile-intake:v1:${String(S.uid || S.email || 'guest').toLowerCase()}`;
 
     const finish = () => {
+      if (flowFinished) return;
+      flowFinished = true;
       window.__IMFRA_PROFILE_FLOW_READY = true;
       try { window.__dirAutoCrear && window.__dirAutoCrear(); } catch(e){}
-      const pending = window.__pendingWelcomeSplash;
-      window.__pendingWelcomeSplash = null;
-      let alreadySawTour = false;
-      try { alreadySawTour = !!localStorage.getItem(`imfra:onboarding:panel:v2:${String(S.uid || S.email || '').toLowerCase()}`); } catch(e){}
-      if (pending && alreadySawTour && window.__showWelcomeSplash) {
-        setTimeout(() => window.__showWelcomeSplash(pending), 180);
-      } else if (pending) {
-        if (window.history.replaceState) {
-          const cleanUrl = new URL(window.location.href); cleanUrl.searchParams.delete('checkout');
-          window.history.replaceState({}, '', cleanUrl.toString());
-        }
-        if (pending.fromNotif && window.__fs?.updateDoc && S.uid) {
-          window.__fs.updateDoc(window.__fs.doc(window.__fs.db, 'miembros', S.uid), { 'notificacionPendiente.mostrada': true }).catch(()=>{});
-        }
-      }
+      window.dispatchEvent(new CustomEvent('imfra:profile-intake-finished'));
     };
 
     if (!S.uid || S.modo === 'demo' || S.modo === 'invitado') { finish(); return; }
@@ -11069,6 +11099,7 @@ window.__maybeAskProfile = function(){
   } catch(e) {
     console.warn('maybeAskProfile:', e);
     window.__IMFRA_PROFILE_FLOW_READY = true;
+    window.dispatchEvent(new CustomEvent('imfra:profile-intake-finished', { detail: { reason: 'error' } }));
   }
 };
 // Alias temporal para cualquier llamada almacenada por una versión anterior.
@@ -11081,14 +11112,16 @@ window.__maybeAskName = window.__maybeAskProfile;
 window.__showWelcomeCreditsGift = async function(){
   const S = window.UserState || {};
   const id = String(S.uid || S.email || '').toLowerCase();
-  if (!id || S.modo === 'invitado' || document.getElementById('welcome-gift')) return;
+  const finish = reason => window.dispatchEvent(new CustomEvent('imfra:welcome-credits-finished', { detail: { reason } }));
+  if (!id || S.modo === 'invitado' || document.getElementById('welcome-gift')) { finish('not-applicable'); return false; }
   const key = `imfra:welcome-credits-pop:v1:${id}`;
   let seenOnThisDevice = false;
   try { seenOnThisDevice = Boolean(localStorage.getItem(key)); } catch(e){}
   if (seenOnThisDevice) {
     // Migra el indicador anterior del navegador al servidor sin volver a mostrarlo.
     window.IMFRACredits?.claimExperience?.('welcome-credits', 'v1').catch(e => console.warn('[bienvenida] Sincronización pendiente', e));
-    return;
+    finish('local');
+    return false;
   }
   let amount = 0, balance = 0;
   try {
@@ -11096,18 +11129,20 @@ window.__showWelcomeCreditsGift = async function(){
     amount = Math.max(0, Number(snap?.welcomeCredits) || 0);
     balance = Math.max(0, Number(snap?.balance) || 0);
   } catch(e){ console.warn('[bienvenida] No se pudo leer el saldo', e); }
-  if (!amount || document.getElementById('welcome-gift')) return;
+  if (!amount || document.getElementById('welcome-gift')) { finish('empty'); return false; }
   let firstDisplay = false;
   try {
     firstDisplay = await window.IMFRACredits?.claimExperience?.('welcome-credits', 'v1') === true;
   } catch(e) {
     // Si el servidor no puede confirmar el primer uso, no repetimos un aviso dudoso.
     console.warn('[bienvenida] No se pudo confirmar el aviso único', e);
-    return;
+    finish('unavailable');
+    return false;
   }
   if (!firstDisplay || document.getElementById('welcome-gift')) {
     try { localStorage.setItem(key, new Date().toISOString()); } catch(e){}
-    return;
+    finish('server');
+    return false;
   }
   try { localStorage.setItem(key, new Date().toISOString()); } catch(e){}
 
@@ -11130,10 +11165,17 @@ window.__showWelcomeCreditsGift = async function(){
     </section>`;
   document.body.appendChild(pop);
   const previousFocus = document.activeElement;
+  let closed = false;
   const close = () => {
+    if (closed) return;
+    closed = true;
     document.removeEventListener('keydown', onKey, true);
     pop.classList.add('is-closing');
-    setTimeout(() => { pop.remove(); if (previousFocus && previousFocus.isConnected) previousFocus.focus?.({ preventScroll: true }); }, 200);
+    setTimeout(() => {
+      pop.remove();
+      if (previousFocus && previousFocus.isConnected) previousFocus.focus?.({ preventScroll: true });
+      finish('shown');
+    }, 200);
   };
   const onKey = e => { if (e.key === 'Escape') { e.preventDefault(); close(); } };
   document.addEventListener('keydown', onKey, true);
@@ -11146,10 +11188,38 @@ window.__showWelcomeCreditsGift = async function(){
   });
   setTimeout(() => pop.querySelector('.wg-cta')?.focus({ preventScroll: true }), 80);
   window.IMFRACelebrate?.('big');
+  return true;
 };
-window.addEventListener('imfra:onboarding-finished', e => {
-  if (e.detail && e.detail.automatic) setTimeout(() => window.__showWelcomeCreditsGift(), 450);
-});
+
+// Coordinador único: evita ventanas superpuestas y mantiene el orden lógico
+// bienvenida → recorrido → ficha profesional → elección del curso gratis.
+window.__runInitialExperienceFlow = async function(){
+  if (window.__IMFRA_INITIAL_FLOW_STARTED) return;
+  window.__IMFRA_INITIAL_FLOW_STARTED = true;
+
+  const waitFor = (eventName, trigger) => new Promise(resolve => {
+    const done = event => { window.removeEventListener(eventName, done); resolve(event); };
+    window.addEventListener(eventName, done, { once: true });
+    try { trigger(); } catch(error) { window.removeEventListener(eventName, done); resolve(null); }
+  });
+
+  const pendingWelcome = window.__pendingWelcomeSplash;
+  window.__pendingWelcomeSplash = null;
+  if (pendingWelcome && typeof window.__showWelcomeSplash === 'function') {
+    await waitFor('imfra:welcome-splash-finished', () => window.__showWelcomeSplash(pendingWelcome));
+  } else {
+    await waitFor('imfra:welcome-credits-finished', () => window.__showWelcomeCreditsGift());
+  }
+
+  await waitFor('imfra:onboarding-finished', () => {
+    window.__IMFRA_ONBOARDING_FLOW_READY = true;
+    window.__runAutomaticIMFRAOnboarding?.();
+  });
+
+  await waitFor('imfra:profile-intake-finished', () => window.__maybeAskProfile());
+  window.__IMFRA_INITIAL_FLOW_DONE = true;
+  window.__programarInvitacionCursoGratis?.();
+};
 
 function openEditField(field){
   const wrap=document.querySelector(`[data-field="${field}"]`);
@@ -12473,7 +12543,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #welcome-gift{position:fixed;inset:0;z-index:2147483200;display:grid;place-items:center;padding:20px;font-family:'Inter',sans-serif;animation:piFade .22s ease-out}
 #welcome-gift.is-closing{opacity:0;transition:opacity .18s ease;pointer-events:none}
 #welcome-gift .wg-backdrop{position:absolute;inset:0;background:rgba(8,6,3,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-#welcome-gift .wg-card{position:relative;width:min(440px,100%);padding:34px 30px 26px;border-radius:22px;text-align:center;color:#FBF4EC;
+#welcome-gift .wg-card{position:relative;width:min(440px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;padding:34px 30px 26px;border-radius:22px;text-align:center;color:#FBF4EC;
   background:radial-gradient(120% 80% at 50% 0%,rgba(245,157,26,.22),transparent 60%),linear-gradient(180deg,#1c1710,#120f0b);
   border:1px solid rgba(245,157,26,.28);box-shadow:0 30px 80px rgba(0,0,0,.5);animation:wgRise .32s cubic-bezier(.2,.9,.3,1.2)}
 #welcome-gift .wg-close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:#9A8E80;font-size:22px;line-height:1;cursor:pointer}
@@ -12511,7 +12581,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 /* ═══ Splash de BIENVENIDA post-pago ═══ */
 #splash-bienvenida{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:20px;animation:bnvFadeIn .4s ease}
 .splash-bnv__overlay{position:absolute;inset:0;background:rgba(7,5,3,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.splash-bnv__box{position:relative;width:100%;max-width:600px;background:linear-gradient(160deg,#161616,#0D0D0D);border:1px solid rgba(255,179,71,.3);border-radius:24px;padding:40px 36px 32px;text-align:center;box-shadow:0 36px 100px rgba(0,0,0,.7),0 0 80px color-mix(in srgb,var(--primary) 28%,transparent),inset 0 0 0 1px rgba(255,255,255,.04);animation:bnvPop .65s cubic-bezier(.22,1.4,.36,1)}
+.splash-bnv__box{position:relative;width:100%;max-width:600px;max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;background:linear-gradient(160deg,#161616,#0D0D0D);border:1px solid rgba(255,179,71,.3);border-radius:24px;padding:40px 36px 32px;text-align:center;box-shadow:0 36px 100px rgba(0,0,0,.7),0 0 80px color-mix(in srgb,var(--primary) 28%,transparent),inset 0 0 0 1px rgba(255,255,255,.04);animation:bnvPop .65s cubic-bezier(.22,1.4,.36,1)}
 .splash-bnv__close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s ease}
 .splash-bnv__close:hover{background:rgba(255,255,255,.06);color:var(--text)}
 .splash-bnv__confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:24px}
@@ -12540,7 +12610,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .splash-film{padding-top:34px}
 .splash-film__progress{position:absolute;top:0;left:0;right:0;height:3px;background:rgba(255,255,255,.07);border-radius:24px 24px 0 0;overflow:hidden}
 .splash-film__bar{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--highlight));transition:width .5s cubic-bezier(.4,0,.2,1)}
-.splash-film__stage{min-height:230px;display:flex;align-items:center;justify-content:center}
+.splash-film__stage{min-height:230px;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
 .splash-film__slide{width:100%;animation:filmIn .5s cubic-bezier(.22,1,.36,1)}
 @keyframes filmIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 .splash-film__feat{text-align:center;padding:8px 4px}
@@ -13192,7 +13262,7 @@ body{letter-spacing:-.05px}
   border-color:var(--border-strong)!important;
   box-shadow:0 8px 22px rgba(0,0,0,.12)!important;
 }
-.curso-card__cover{height:150px!important;background-color:var(--surface-2)!important}
+.curso-card__cover{height:auto!important;aspect-ratio:16/9;background-color:var(--surface-2)!important;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
 .curso-card__cover::before{display:none!important}
 .curso-card__cover>svg{display:none!important}
 .curso-card__cover-badge{
@@ -13306,6 +13376,7 @@ body{letter-spacing:-.05px}
   border-color:var(--border-strong)!important;
   box-shadow:0 8px 22px rgba(0,0,0,.10)!important;
 }
+.news-card__cover{height:auto!important;aspect-ratio:16/9;background-size:cover!important;background-position:center!important;background-repeat:no-repeat!important}
 .fomo-banner{
   background:var(--surface)!important;
   color:var(--text-2)!important;
@@ -13363,9 +13434,11 @@ body{letter-spacing:-.05px}
   .perfil-hero__actions .btn{width:100%;justify-content:center}
   .perfil-hero__actions .btn:last-child{grid-column:1/-1}
 }
+@media (min-width:600px) and (max-width:880px){
+  .cursos-grid,.news-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+}
 @media (max-width:560px){
   .banner{padding:18px 16px!important}
-  .curso-card__cover{height:160px!important}
   #dynamic-section .tabs .tab{padding:7px 4px!important;border-radius:7px!important}
   .perfil-page-head{padding-top:2px;margin-bottom:14px}.perfil-page-head h1{font-size:32px}.perfil-page-head p{font-size:13px;line-height:1.5}
   .perfil-hero{display:grid!important;grid-template-columns:58px minmax(0,1fr);gap:13px!important;padding:17px 15px!important}
@@ -13568,7 +13641,7 @@ body{letter-spacing:-.05px}
   #dynamic-section,#dynamic-section>.vip-section-host,#dynamic-section>.vip-section-host>.fade-up,#inicio-content{width:100%;min-width:0;max-width:100%}
 }
 </style>
-<script src="onboarding-tour.js?v=4" defer></script>
+<script src="onboarding-tour.js?v=5" defer></script>
 <script src="assets/imfra-tools.js?v=20260928-1"></script>
 <script src="assets/imfra-plantillas/imfra-plantillas-logo.js?v=1.0.0"></script>
 <script src="assets/imfra-plantillas/imfra-plantillas.js?v=1.2.2"></script>
