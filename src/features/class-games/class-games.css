@@ -46,6 +46,7 @@
 .cg-ghost{min-height:38px;padding:0 14px;border-radius:10px;border:1px dashed var(--border-2,#d5cec2);background:transparent;color:var(--text-2,#555);font:600 12.5px Inter,sans-serif;cursor:pointer}
 .cg-ghost:disabled{opacity:.45;cursor:not-allowed}
 .cg-chip{padding:9px 13px;border-radius:11px;border:1px solid var(--border-2,#d5cec2);background:var(--surface,#fff);color:var(--text,#141414);font:600 13px/1.35 Inter,sans-serif;text-align:left;cursor:pointer;transition:transform .12s ease,border-color .12s ease,background .12s ease}
+.cg-chip.is-hint{border-color:var(--success,#0f9d58);background:color-mix(in srgb,var(--success,#0f9d58) 12%,var(--surface,#fff));box-shadow:0 0 0 3px color-mix(in srgb,var(--success,#0f9d58) 13%,transparent)}
 .cg-chip:hover{border-color:var(--primary,#f59d1a)}
 .cg-chip.is-selected{border-color:var(--primary,#f59d1a);background:color-mix(in srgb,var(--primary,#f59d1a) 14%,transparent);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary,#f59d1a) 18%,transparent)}
 .cg-chip:disabled{opacity:.35;cursor:default;text-decoration:line-through}
@@ -189,6 +190,7 @@
 .cg-sort{display:grid;gap:14px}
 .cg-sort__pool{display:flex;flex-wrap:wrap;gap:8px;min-height:44px}
 .cg-sort__cols{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:12px}
+.cg-sort__col.is-hint{border-color:var(--success,#0f9d58);background:color-mix(in srgb,var(--success,#0f9d58) 10%,var(--surface,#fff));box-shadow:0 0 0 3px color-mix(in srgb,var(--success,#0f9d58) 13%,transparent)}
 .cg-sort__col{display:flex;flex-direction:column;align-items:stretch;gap:8px;min-height:150px;padding:14px;border-radius:16px;border:2px dashed var(--border-2,#d5cec2);background:var(--surface-2,#f8f6f1);color:var(--text,#141414);text-align:left;cursor:pointer;transition:border-color .15s ease,background .15s ease}
 .cg-sort__col:hover{border-color:var(--primary,#f59d1a);background:color-mix(in srgb,var(--primary,#f59d1a) 6%,var(--surface-2,#f8f6f1))}
 .cg-sort__col strong{font:800 14px "Plus Jakarta Sans",Inter,sans-serif}

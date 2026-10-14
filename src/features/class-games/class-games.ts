@@ -472,7 +472,26 @@ function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" 
     question.innerHTML = `<span>Situación ${round + 1} de ${rounds.length}</span>${esc(rounds[round].pregunta)}`;
     ctx.progress(round, rounds.length);
   };
-  ctx.help("Mostrarme dónde", showHelp);
+  const completeRound = (zone: SVGElement, assisted = false) => {
+    if (locked) return;
+    const current = rounds[round];
+    locked = true;
+    svg.querySelectorAll(".is-correct-now").forEach((el) => el.classList.remove("is-correct-now"));
+    zone.classList.add("is-correct", "is-correct-now");
+    svg.querySelector(`[data-label-idx="${zone.dataset.idx}"]`)?.classList.add("is-visible");
+    round += 1;
+    ctx.progress(round, rounds.length);
+    ctx.feedback(assisted ? `Resuelto con ayuda. ${current.explicacion}` : current.explicacion, "ok");
+    if (round >= rounds.length) { ctx.win("¡Ubicaste todo correctamente en el plano!"); return; }
+    setTimeout(() => { locked = false; showRound(); }, assisted ? 650 : 1100);
+  };
+  ctx.help("Resolver esta situación", () => {
+    const current = rounds[round];
+    if (!current || locked) return;
+    showHelp();
+    const zone = svg.querySelector<SVGElement>(`[data-zone="${current.zona}"]`);
+    if (zone) completeRound(zone, true);
+  });
   svg.addEventListener("click", (event) => {
     if (locked) return;
     const zone = (event.target as Element).closest<SVGElement>("[data-zone]");
@@ -487,15 +506,7 @@ function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" 
       if (mistakes >= 2) showHelp();
       return;
     }
-    locked = true;
-    svg.querySelectorAll(".is-correct-now").forEach((el) => el.classList.remove("is-correct-now"));
-    zone.classList.add("is-correct", "is-correct-now");
-    svg.querySelector(`[data-label-idx="${zone.dataset.idx}"]`)?.classList.add("is-visible");
-    round += 1;
-    ctx.progress(round, rounds.length);
-    if (round >= rounds.length) { ctx.feedback(current.explicacion, "ok"); ctx.win("¡Ubicaste todo correctamente en el plano!"); return; }
-    ctx.feedback(current.explicacion, "ok");
-    setTimeout(() => { locked = false; showRound(); }, 1100);
+    completeRound(zone);
   });
   showRound();
 }
@@ -645,6 +656,7 @@ function gameClasificar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cl
   };
   const place = (item: typeof items[number], assisted = false) => {
     const col = stage.querySelector<HTMLElement>(`[data-cat="${item.categoria}"]`)!;
+    stage.querySelectorAll(".cg-sort__col.is-hint").forEach((el) => el.classList.remove("is-hint"));
     placed.add(item.id);
     col.querySelector("ul")!.insertAdjacentHTML("beforeend", `<li>${esc(item.texto)}</li>`);
     ctx.feedback(assisted ? `Te ayudamos: va en ${cfg.categorias[item.categoria]}.` : "¡Correcto!", "ok");
@@ -670,6 +682,7 @@ function gameClasificar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cl
     if (item.categoria !== Number(col.dataset.cat)) {
       col.classList.remove("cg-shake"); void col.offsetWidth; col.classList.add("cg-shake");
       ctx.feedback(`“${item.texto}” no va en ${cfg.categorias[Number(col.dataset.cat)]}. Piénsalo de nuevo.`, "error");
+      stage.querySelector(`[data-cat="${item.categoria}"]`)?.classList.add("is-hint");
       return;
     }
     place(item);
@@ -751,6 +764,7 @@ function gameCompletar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "com
   const fill = (index: number, assisted = false) => {
     const blank = blanks[index];
     if (!blank || filled.has(index)) return;
+    stage.querySelectorAll(".cg-chip.is-hint").forEach((el) => el.classList.remove("is-hint"));
     filled.add(index);
     blank.classList.add("is-filled");
     blank.innerHTML = `<span>${esc(answers[index])}</span>`;
@@ -775,6 +789,7 @@ function gameCompletar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "com
     if (normalizeWord(word.text) !== normalizeWord(answers[target])) {
       blank.classList.remove("cg-shake"); void blank.offsetWidth; blank.classList.add("cg-shake");
       ctx.feedback(`“${word.text}” no completa bien esa parte. Prueba con otra palabra.`, "error");
+      stage.querySelector(`[data-word="a${target}"]`)?.classList.add("is-hint");
       return;
     }
     fill(target);
@@ -824,10 +839,11 @@ function gameInspeccion(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "in
       stage.querySelector("[data-reticle]")?.classList.add("is-visible");
       ctx.feedback("Pista activada: resaltamos la evidencia y la decisión más segura.", "info");
     };
-    ctx.help("Activar pista de inspección", reveal);
-    stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => {
+    const choose = (answer: number, assisted = false) => {
       if (busy) return;
-      if (Number(button.dataset.answer) !== scene.correcta) {
+      const button = stage.querySelector<HTMLButtonElement>(`[data-answer="${answer}"]`);
+      if (!button) return;
+      if (answer !== scene.correcta) {
         button.classList.add("is-wrong");
         reveal();
         ctx.feedback("Esa acción podría ocultar el problema. Te marcamos la opción segura para que puedas continuar.", "error");
@@ -835,10 +851,12 @@ function gameInspeccion(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "in
       }
       busy = true;
       button.classList.add("is-correct");
-      ctx.feedback(scene.explicacion, "ok");
+      ctx.feedback(assisted ? `Resuelto con ayuda. ${scene.explicacion}` : scene.explicacion, "ok");
       ctx.progress(index + 1, cfg.escenas.length);
       window.setTimeout(() => { index += 1; busy = false; if (index >= cfg.escenas.length) ctx.win("Inspección completada con criterio técnico."); else render(); }, 950);
-    }));
+    };
+    ctx.help("Resolver esta decisión", () => { reveal(); choose(scene.correcta, true); });
+    stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => choose(Number(button.dataset.answer))));
   };
   render();
 }
@@ -855,18 +873,21 @@ function gameSimulador(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "sim
       </div></div>`;
     ctx.progress(index, cfg.escenas.length);
     const reveal = () => { stage.querySelector(`[data-answer="${scene.correcta}"]`)?.classList.add("is-hint"); ctx.feedback("La guía de seguridad ya señaló la maniobra correcta.", "info"); };
-    ctx.help("Consultar al residente", reveal);
-    stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => {
+    const choose = (answer: number, assisted = false) => {
       if (busy) return;
-      if (Number(button.dataset.answer) !== scene.correcta) {
+      const button = stage.querySelector<HTMLButtonElement>(`[data-answer="${answer}"]`);
+      if (!button) return;
+      if (answer !== scene.correcta) {
         button.classList.add("is-wrong"); reveal();
         ctx.feedback("Alto preventivo. No pierdes el avance: revisa la maniobra marcada y continúa.", "error");
         return;
       }
       busy = true; button.classList.add("is-correct"); stage.querySelector(".site-scene")?.classList.add("is-safe");
-      ctx.feedback(scene.explicacion, "ok"); ctx.progress(index + 1, cfg.escenas.length);
+      ctx.feedback(assisted ? `Resuelto con ayuda. ${scene.explicacion}` : scene.explicacion, "ok"); ctx.progress(index + 1, cfg.escenas.length);
       window.setTimeout(() => { index += 1; busy = false; if (index >= cfg.escenas.length) ctx.win("Simulación terminada: obra segura y decisión trazable."); else render(); }, 950);
-    }));
+    };
+    ctx.help("Resolver esta maniobra", () => { reveal(); choose(scene.correcta, true); });
+    stage.querySelectorAll<HTMLButtonElement>("[data-answer]").forEach((button) => button.addEventListener("click", () => choose(Number(button.dataset.answer))));
   };
   render();
 }
@@ -902,7 +923,7 @@ function play(options: PlayOptions): Promise<boolean> {
       <button type="button" class="cg-close" aria-label="Cerrar">×</button>
     </header>
     <div class="cg-body">
-      <div class="cg-lead"><span>${esc(info.instruccion)} <small>Si te atoras, usa <b>Ayúdame</b>; no hay penalización.</small></span><div class="cg-progress"><i data-bar></i></div><b data-count>0 / 0</b></div>
+      <div class="cg-lead"><span>${esc(info.instruccion)} <small>Si te atoras, pulsa <b>Ayúdame</b> cuantas veces necesites: cada toque resuelve un paso y no hay penalización.</small></span><div class="cg-progress"><i data-bar></i></div><b data-count>0 / 0</b></div>
       <div class="cg-stage" data-stage></div>
       <p class="cg-feedback" data-feedback role="status" hidden></p>
     </div>
