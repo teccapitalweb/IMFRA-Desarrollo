@@ -28,6 +28,7 @@ export const retoGames: RetoGame[] = [
         titulo: "Concreto",
         config: {
           tipo: "crucigrama",
+          imagen: "./assets/juegos/imfra-sim-colado.webp",
           entradas: [
             { palabra: "REVENIMIENTO", pista: "Prueba que mide la consistencia del concreto fresco" },
             { palabra: "FRAGUADO", pista: "Etapa en que el concreto pierde plasticidad y empieza a endurecer" },
@@ -43,6 +44,7 @@ export const retoGames: RetoGame[] = [
         titulo: "Administración de obra",
         config: {
           tipo: "crucigrama",
+          imagen: "./assets/juegos/imfra-obra-supervision.webp",
           entradas: [
             { palabra: "ESTIMACION", pista: "Documento para cobrar el avance ejecutado en un periodo" },
             { palabra: "BITACORA", pista: "Registro oficial de los hechos y acuerdos de la obra" },
@@ -58,6 +60,7 @@ export const retoGames: RetoGame[] = [
         titulo: "Estructuras",
         config: {
           tipo: "crucigrama",
+          imagen: "./assets/juegos/imfra-obra-residente.webp",
           entradas: [
             { palabra: "ZAPATA", pista: "Cimentación aislada que recibe una columna" },
             { palabra: "TRABE", pista: "Elemento horizontal que recibe las cargas de la losa" },
@@ -73,6 +76,7 @@ export const retoGames: RetoGame[] = [
         titulo: "Seguridad en obra",
         config: {
           tipo: "crucigrama",
+          imagen: "./assets/juegos/imfra-sim-andamio.webp",
           entradas: [
             { palabra: "ANDAMIO", pista: "Estructura provisional para trabajar en altura" },
             { palabra: "ARNES", pista: "Equipo de cuerpo completo contra caídas" },
@@ -401,7 +405,7 @@ export const retoGames: RetoGame[] = [
   },
   {
     tipo: "simulador",
-    titulo: "Misión Obra 3D",
+    titulo: "Misión Obra",
     descripcion: "Decide maniobras seguras dentro de una obra viva",
     color: "#6e67e8",
     tableros: [

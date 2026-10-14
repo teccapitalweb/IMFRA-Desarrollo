@@ -26,8 +26,8 @@ export interface SimulatorDecision extends PracticalDecision {
 
 export type GameConfig =
   | { tipo: "sopa"; palabras: string[] }
-  | { tipo: "crucigrama"; entradas: { palabra: string; pista: string }[] }
-  | { tipo: "rompecabezas"; lado: number; mensaje: string }
+  | { tipo: "crucigrama"; entradas: { palabra: string; pista: string }[]; imagen?: string }
+  | { tipo: "rompecabezas"; lado: number; mensaje: string; imagen?: string }
   | { tipo: "plano"; plano: PlanKind; rondas: { pregunta: string; zona: string; explicacion: string }[] }
   | { tipo: "memorama"; pares: { termino: string; definicion: string }[] }
   | { tipo: "ordenar"; pregunta: string; pasos: string[] }
@@ -53,7 +53,17 @@ export const GAME_INFO: Record<GameType, { nombre: string; instruccion: string; 
   ahorcado: { nombre: "Adivina la palabra", instruccion: "Descubre el término técnico antes de cometer 6 errores.", icono: svg('<path d="M3.5 17 7.5 6l4 11M5 13h5"/><path d="M14 17h7"/><path d="M16.5 7h2.5a1.5 1.5 0 0 1 0 3h-2.5V5.5"/>') },
   completar: { nombre: "Completa la frase", instruccion: "Coloca cada palabra en el espacio correcto.", icono: svg('<path d="M4 6h16M4 12h4M16 12h4M4 18h10"/><rect x="9.5" y="9.5" width="5" height="5" rx="1.2"/>') },
   inspeccion: { nombre: "Inspector de campo", instruccion: "Observa la evidencia real, detecta el hallazgo y toma una decisión técnica.", icono: svg('<path d="M3 7h4l1.6-2h6.8L17 7h4v12H3z"/><circle cx="12" cy="13" r="3.6"/><path d="m16.8 17.8 3 3"/>') },
-  simulador: { nombre: "Simulador de obra 3D", instruccion: "Recorre la escena, evalúa el riesgo y elige la maniobra segura.", icono: svg('<path d="m12 3 8 4.5-8 4.5-8-4.5z"/><path d="m4 12 8 4.5 8-4.5M4 16.5 12 21l8-4.5"/>') }
+  simulador: { nombre: "Simulador de obra", instruccion: "Observa la escena real de obra, evalúa el riesgo y elige la maniobra segura.", icono: svg('<path d="m12 3 8 4.5-8 4.5-8-4.5z"/><path d="m4 12 8 4.5 8-4.5M4 16.5 12 21l8-4.5"/>') }
+};
+
+// Fotografías reales de obra para crucigramas y rompecabezas (assets/juegos).
+const FOTO = {
+  superintendencia: "./assets/juegos/imfra-obra-superintendencia.webp",
+  residente: "./assets/juegos/imfra-obra-residente.webp",
+  supervision: "./assets/juegos/imfra-obra-supervision.webp",
+  maquinaria: "./assets/juegos/imfra-obra-maquinaria.webp",
+  hidrogeologia: "./assets/juegos/imfra-obra-hidrogeologia.webp",
+  pavimentacion: "./assets/juegos/imfra-obra-pavimentacion.webp"
 };
 
 const CALIDAD: GameConfig[] = [
@@ -87,6 +97,7 @@ const CALIDAD: GameConfig[] = [
   // 4 · Responsabilidades y competencias
   {
     tipo: "crucigrama",
+    imagen: FOTO.residente,
     entradas: [
       { palabra: "RESIDENTE", pista: "Responsable técnico de la ejecución en el sitio" },
       { palabra: "SUPERVISOR", pista: "Verifica que lo ejecutado cumpla con el proyecto" },
@@ -129,7 +140,7 @@ const CALIDAD: GameConfig[] = [
     ]
   },
   // 8 · Indicadores y mejora continua
-  { tipo: "rompecabezas", lado: 3, mensaje: "Como en la mejora continua: cada pieza en su lugar hace que el sistema funcione." },
+  { tipo: "rompecabezas", lado: 3, imagen: FOTO.supervision, mensaje: "Como en la mejora continua: cada pieza en su lugar hace que el sistema funcione." },
   // 9 · Implementación del sistema en la constructora
   {
     tipo: "completar",
@@ -164,6 +175,7 @@ const GENERADORES: GameConfig[] = [
   // 3 · Cuantificación de volúmenes de obra
   {
     tipo: "crucigrama",
+    imagen: FOTO.maquinaria,
     entradas: [
       { palabra: "VOLUMEN", pista: "Cantidad medida en metros cúbicos" },
       { palabra: "AREA", pista: "Cantidad medida en metros cuadrados" },
@@ -209,7 +221,7 @@ const GENERADORES: GameConfig[] = [
   // 7 · Evidencia y soporte de campo
   { tipo: "sopa", palabras: ["CROQUIS", "FOTOGRAFIA", "BITACORA", "MEDICION", "FIRMA", "UBICACION", "SOPORTE"] },
   // 8 · Presupuestos, avances y estimaciones
-  { tipo: "rompecabezas", lado: 3, mensaje: "Presupuesto, avance y estimación encajan cuando cada pieza está bien medida." },
+  { tipo: "rompecabezas", lado: 3, imagen: FOTO.residente, mensaje: "Presupuesto, avance y estimación encajan cuando cada pieza está bien medida." },
   // 9 · Revisión, conciliación y correcciones
   {
     tipo: "ahorcado",
@@ -235,6 +247,7 @@ const SUPERINTENDENCIA: GameConfig[] = [
   // 1 · Rol técnico del superintendente
   {
     tipo: "crucigrama",
+    imagen: FOTO.supervision,
     entradas: [
       { palabra: "PROGRAMA", pista: "Plan de tiempos que el superintendente debe cumplir" },
       { palabra: "CALIDAD", pista: "Cumplir especificaciones y requisitos del proyecto" },
@@ -249,9 +262,9 @@ const SUPERINTENDENCIA: GameConfig[] = [
     tipo: "plano",
     plano: "obra",
     rondas: [
-      { pregunta: "¿Dónde conviene la oficina de obra para controlar quién entra?", zona: "caseta", explicacion: "Junto al acceso, la oficina controla personal, materiales y visitas desde el primer día." },
+      { pregunta: "¿Dónde está la caseta que controla quién entra y sale de la obra?", zona: "acceso", explicacion: "Junto al portón, la caseta controla personal, materiales y visitas desde el primer día." },
       { pregunta: "Ubica el acopio de arena y grava.", zona: "agregados", explicacion: "El acopio debe estar cerca de la zona de mezclado y con acceso para camiones." },
-      { pregunta: "¿Dónde se ubica el punto de reunión de emergencia?", zona: "reunion", explicacion: "En una zona abierta, alejada de la estructura, la grúa y las excavaciones." }
+      { pregunta: "¿Dónde se habilita el acero de refuerzo antes de llevarlo a la estructura?", zona: "acero", explicacion: "El patio de habilitado concentra varilla y armados, cerca de la estructura y lejos del tránsito de camiones." }
     ]
   },
   // 3 · Coordinación de contratistas y cuadrillas
@@ -320,13 +333,24 @@ const SUPERINTENDENCIA: GameConfig[] = [
     ]
   },
   // 10 · Caso integral de superintendencia
-  { tipo: "rompecabezas", lado: 3, mensaje: "Así es la superintendencia: coordinar cada pieza hasta entregar la obra completa." }
+  { tipo: "rompecabezas", lado: 3, imagen: FOTO.superintendencia, mensaje: "Así es la superintendencia: coordinar cada pieza hasta entregar la obra completa." }
 ];
 
 // Para cursos nuevos sin contenido propio: rotación de juegos generales.
 const GENERALES: GameConfig[] = [
   { tipo: "sopa", palabras: ["OBRA", "CALIDAD", "SEGURIDAD", "PROGRAMA", "COSTO", "BITACORA", "PLANO"] },
   { tipo: "rompecabezas", lado: 3, mensaje: "¡Pieza por pieza se construye una gran obra!" },
+  {
+    tipo: "crucigrama",
+    entradas: [
+      { palabra: "RESIDENTE", pista: "Responsable técnico de la obra en el sitio" },
+      { palabra: "BITACORA", pista: "Registro oficial de los hechos de la obra" },
+      { palabra: "PLANO", pista: "Dibujo técnico con lo que se va a construir" },
+      { palabra: "CONCRETO", pista: "Mezcla de cemento, agua, arena y grava" },
+      { palabra: "SEGURIDAD", pista: "Prevenir accidentes del personal en campo" },
+      { palabra: "PROGRAMA", pista: "Plan de tiempos de la obra" }
+    ]
+  },
   {
     tipo: "memorama",
     pares: [
@@ -346,8 +370,21 @@ function grupoCurso(tituloCurso: string): GameConfig[] {
   return GENERALES;
 }
 
+/** Foto real de obra acorde al tema del curso (para juegos sin imagen propia). */
+export function fotoDeCurso(tituloCurso: string): string {
+  const t = String(tituloCurso || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (/hidro|agua|pozo|acuifer|drenaje|sanitari/.test(t)) return FOTO.hidrogeologia;
+  if (/public|vial|paviment|carreter|camino|urbaniz|municip/.test(t)) return FOTO.pavimentacion;
+  if (/maquinaria|equipo pesado|excavac|terracer|movimiento de tierra/.test(t)) return FOTO.maquinaria;
+  if (/calidad|9001|supervis|auditor/.test(t)) return FOTO.supervision;
+  if (/residente|generador|estimacion|presupuest|costo/.test(t)) return FOTO.residente;
+  return FOTO.superintendencia;
+}
+
 export function juegoDeClase(tituloCurso: string, indiceClase: number): GameConfig {
   const lista = grupoCurso(tituloCurso);
   const i = Math.max(0, Number(indiceClase) || 0);
-  return lista[i] || lista[i % lista.length];
+  const cfg = lista[i] || lista[i % lista.length];
+  if ((cfg.tipo === "crucigrama" || cfg.tipo === "rompecabezas") && !cfg.imagen) return { ...cfg, imagen: fotoDeCurso(tituloCurso) };
+  return cfg;
 }

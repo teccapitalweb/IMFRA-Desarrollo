@@ -6765,11 +6765,9 @@ const Sections = (function(){
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'No se pudieron acreditar los créditos');
       if (data.awarded) {
-        // Cofre animado al centro; si el módulo no cargó, basta con un aviso.
-        setTimeout(() => {
-          if (window.IMFRACoinChest) window.IMFRACoinChest.show({ amount: data.credits, total: data.balance, title: '¡Reto superado!' });
-          else Toast.success(`+${data.credits} Créditos IMFRA`, 'Por ganar el mini juego de la clase');
-        }, 650);
+        // El cofre con monedas ya se mostró dentro del mini juego al ganarlo;
+        // aquí solo se actualiza el saldo (o se avisa si el cofre no cargó).
+        if (!window.IMFRACoinChest) Toast.success(`+${data.credits} Créditos IMFRA`, 'Por ganar el mini juego de la clase');
         window.IMFRACredits?.hydrate?.(true);
       }
     } catch (error) {

@@ -59,7 +59,7 @@ const RULES: Record<string, string[]> = {
   ahorcado: ["Adivina 3 términos técnicos letra por letra.", "Cada error derriba un bloque de la estructura.", "Si caen los 6 bloques, pasas al siguiente término."],
   clasificar: ["Lleva cada tarjeta a su categoría.", "Toca la categoría o arrastra la tarjeta hasta ella.", "Aciertos seguidos hacen racha."],
   inspeccion: ["Observa una evidencia real de obra.", "Elige la actuación que protege calidad y trazabilidad.", "Si fallas, la guía resalta la opción segura para continuar."],
-  simulador: ["Explora una escena isométrica de obra.", "Evalúa el riesgo y toma el mando de la maniobra.", "Nunca quedas bloqueado: cada error se convierte en una pista."]
+  simulador: ["Observa una escena real de obra.", "Evalúa el riesgo y toma el mando de la maniobra.", "Nunca quedas bloqueado: cada error se convierte en una pista."]
 };
 
 const ICONS = {
@@ -260,6 +260,7 @@ function runCrucigrama(engine: Engine, cfg: GameConfig) {
       <div class="ar-cw__current"><span data-cur-tag></span><p data-cur-text></p></div>
       <button type="button" class="ar-icon-btn" data-step="1" aria-label="Siguiente pista">›</button>
     </div>
+    ${cfg.imagen ? `<figure class="ar-cw__photo"><img src="${esc(cfg.imagen)}" alt="" decoding="async"></figure>` : ""}
     <div class="ar-cw__main">
       <div class="ar-cw__board"><div class="ar-cw__grid" style="--cols:${cols};--rows:${rows}">${grid}</div></div>
       <aside class="ar-cw__list">

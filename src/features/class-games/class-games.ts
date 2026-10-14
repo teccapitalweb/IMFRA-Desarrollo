@@ -302,7 +302,8 @@ function gameCrucigrama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "cr
   }
   const clueList = (dir: "h" | "v") => words.filter((w) => w.dir === dir).sort((a, b) => a.num - b.num)
     .map((w) => `<li data-clue="${words.indexOf(w)}"><b>${w.num}</b><span>${esc(w.clue)}</span><em>${w.word.length}</em></li>`).join("");
-  stage.innerHTML = `<div class="cg-cross">
+  stage.innerHTML = `<div class="cg-cross${cfg.imagen ? " has-photo" : ""}">
+    ${cfg.imagen ? `<figure class="cg-cross__photo"><img src="${esc(cfg.imagen)}" alt="" decoding="async"></figure>` : ""}
     <div class="cg-cross__board"><div class="cg-cross__grid" style="--cols:${cols}">${html}</div></div>
     <div class="cg-cross__clues">
       ${words.some((w) => w.dir === "h") ? `<span class="cg-label">Horizontales</span><ol>${clueList("h")}</ol>` : ""}
@@ -396,7 +397,8 @@ function gameRompecabezas(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "
   let order = shuffleUnsolved(solved);
   let selected: number | null = null;
   let done = false;
-  const image = ctx.cover ? `url('${ctx.cover.replace(/'/g, "%27")}')` : "linear-gradient(135deg,#f59d1a,#5c3a0e)";
+  const source = cfg.imagen || ctx.cover;
+  const image = source ? `url('${source.replace(/'/g, "%27")}')` : "linear-gradient(135deg,#f59d1a,#5c3a0e)";
   stage.innerHTML = `<div class="cg-puzzle">
     <div class="cg-puzzle__board" style="--side:${side}"></div>
     <div class="cg-puzzle__side"><span class="cg-label">Imagen de referencia</span><div class="cg-puzzle__preview" style="background-image:${image}"></div>
@@ -447,21 +449,21 @@ function gameRompecabezas(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "
 
 // ─────────────────────────── Señala en el plano ───────────────────────────
 function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" }>, ctx: GameContext) {
-  const rounds = cfg.rondas.slice(0, 2);
+  const rounds = cfg.rondas.slice(0, 3);
   let round = 0;
   let locked = false;
   let mistakes = 0;
   stage.innerHTML = `<div class="cg-planogame">
     <p class="cg-planogame__q" data-question></p>
-    <div class="cg-planogame__map">${planSvg(cfg.plano)}</div>
+    <div class="cg-planogame__map${cfg.plano === "obra" ? " is-photo" : ""}">${planSvg(cfg.plano)}</div>
   </div>`;
   const question = stage.querySelector<HTMLElement>("[data-question]")!;
-  const svg = stage.querySelector<SVGSVGElement>("svg")!;
+  const svg = stage.querySelector<HTMLElement>(".cg-planogame__map")!;
   const showHelp = () => {
     const current = rounds[round];
     if (!current) return;
     svg.querySelectorAll(".is-hint").forEach((el) => el.classList.remove("is-hint"));
-    const zone = svg.querySelector<SVGElement>(`[data-zone="${current.zona}"]`);
+    const zone = svg.querySelector<HTMLElement>(`[data-zone="${current.zona}"]`);
     zone?.classList.add("is-hint");
     if (zone?.dataset.idx) svg.querySelector(`[data-label-idx="${zone.dataset.idx}"]`)?.classList.add("is-visible");
     ctx.feedback("La zona correcta está brillando. Tócala para continuar.", "info");
@@ -472,7 +474,7 @@ function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" 
     question.innerHTML = `<span>Situación ${round + 1} de ${rounds.length}</span>${esc(rounds[round].pregunta)}`;
     ctx.progress(round, rounds.length);
   };
-  const completeRound = (zone: SVGElement, assisted = false) => {
+  const completeRound = (zone: HTMLElement | SVGElement, assisted = false) => {
     if (locked) return;
     const current = rounds[round];
     locked = true;
@@ -489,12 +491,12 @@ function gamePlano(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "plano" 
     const current = rounds[round];
     if (!current || locked) return;
     showHelp();
-    const zone = svg.querySelector<SVGElement>(`[data-zone="${current.zona}"]`);
+    const zone = svg.querySelector<HTMLElement>(`[data-zone="${current.zona}"]`);
     if (zone) completeRound(zone, true);
   });
   svg.addEventListener("click", (event) => {
     if (locked) return;
-    const zone = (event.target as Element).closest<SVGElement>("[data-zone]");
+    const zone = (event.target as Element).closest<HTMLElement>("[data-zone]");
     if (!zone) return;
     const current = rounds[round];
     if (zone.dataset.zone !== current.zona) {
@@ -798,7 +800,22 @@ function gameCompletar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "com
 }
 
 // ─────────────────────────── Experiencias inmersivas ───────────────────────────
+// Fotografías reales para el simulador (clases y Retos).
+const SITE_PHOTOS: Record<"izaje" | "excavacion" | "colado" | "andamio", { src: string; alt: string }> = {
+  izaje: { src: "./assets/juegos/imfra-sim-izaje.webp", alt: "Grúa elevando un paquete de varilla en la obra" },
+  excavacion: { src: "./assets/juegos/imfra-sim-excavacion.webp", alt: "Excavación profunda con escalera de acceso" },
+  colado: { src: "./assets/juegos/imfra-sim-colado.webp", alt: "Cimbra y armado de cimentación listos para colar" },
+  andamio: { src: "./assets/juegos/imfra-sim-andamio.webp", alt: "Trabajadores en andamio sobre la estructura en construcción" }
+};
+
+/** Escena del simulador: fotografía real de obra. */
 export function worksiteSceneSvg(kind: "izaje" | "excavacion" | "colado" | "andamio") {
+  const photo = SITE_PHOTOS[kind];
+  if (photo) return `<img class="site-scene site-photo" src="${photo.src}" alt="${esc(photo.alt)}" decoding="async">`;
+  return worksiteSceneDrawing(kind);
+}
+
+function worksiteSceneDrawing(kind: "izaje" | "excavacion" | "colado" | "andamio") {
   const accent = kind === "excavacion" ? "#ff8a34" : kind === "colado" ? "#45c6ef" : kind === "andamio" ? "#8b7cff" : "#ffc24b";
   const subject = kind === "izaje"
     ? `<g class="site-scene__crane"><path d="M86 202V45h14v157M93 55h184M158 55l-58 42M228 55l49 40"/><path d="M225 55v68"/><path class="site-scene__cable" d="M225 55v99"/><rect x="192" y="153" width="66" height="24" rx="4"/><path d="M198 177v18M252 177v18"/></g><path class="site-scene__danger" d="M164 197h124l-18 27h-88z"/><g class="site-scene__worker"><circle cx="132" cy="185" r="7"/><path d="M132 192v24M132 200l-12 10M132 200l13 9M132 216l-10 19M132 216l12 19"/></g>`
@@ -994,6 +1011,12 @@ function play(options: PlayOptions): Promise<boolean> {
         continueBtn.disabled = false;
         continueBtn.focus({ preventScroll: true });
         celebrate("big");
+        // Cofre con monedas y créditos ganados, al momento de superar el reto.
+        if (options.creditos && options.creditos > 0) {
+          const amount = options.creditos;
+          const balance = window.IMFRACredits?.getBalance?.();
+          window.setTimeout(() => window.IMFRACoinChest?.show({ amount, total: typeof balance === "number" ? balance + amount : undefined, title: "¡Mini juego superado!" }), 700);
+        }
         options.onWin?.();
       }
     };

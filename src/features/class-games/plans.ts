@@ -1,8 +1,8 @@
 import type { PlanKind } from "./content";
 
-// Planos dibujados en SVG para el juego "Señala en el plano". Cada zona
-// tocable lleva data-zone y data-label; la etiqueta solo aparece al acertar,
-// para que el juego no se resuelva leyendo el dibujo.
+// Planos para el juego "Señala en el plano". Cada zona tocable lleva data-zone
+// y data-idx; la etiqueta solo aparece al acertar, para que el juego no se
+// resuelva leyendo la imagen.
 
 interface Zone { id: string; label: string; shape: string; labelX: number; labelY: number }
 
@@ -17,54 +17,27 @@ function render(viewBox: string, art: string, zones: Zone[]) {
   </svg>`;
 }
 
-// Plano de conjunto de una obra en proceso.
+// Plano de conjunto de una obra en proceso: fotografía aérea real con zonas
+// tocables en porcentaje (se adaptan solas a cualquier ancho de pantalla).
+interface PhotoZone { id: string; label: string; x: number; y: number; w: number; h: number }
+
 function planoObra() {
-  const art = `
-    <rect x="0" y="0" width="640" height="400" rx="14" class="cg-plan__ground"/>
-    <rect x="14" y="14" width="612" height="372" rx="8" class="cg-plan__fence"/>
-    <!-- acceso -->
-    <rect x="270" y="378" width="100" height="16" class="cg-plan__gate"/>
-    <path d="M300 392v-10m40 10v-10" class="cg-plan__ink"/>
-    <!-- excavación -->
-    <rect x="34" y="40" width="140" height="150" class="cg-plan__pit"/>
-    <path d="M34 60l20-20M34 100l60-60M34 140l100-100M34 180l140-140M64 190l110-110M104 190l70-70M144 190l30-30" class="cg-plan__hatch"/>
-    <path d="M104 70v90m-8-82 8-8 8 8m-16 74 8 8 8-8" class="cg-plan__ink"/>
-    <!-- estructura en colado -->
-    <rect x="210" y="40" width="230" height="160" class="cg-plan__slab"/>
-    ${[0, 1, 2, 3].map((i) => [0, 1, 2].map((j) => `<rect x="${222 + i * 66}" y="${52 + j * 62}" width="14" height="14" class="cg-plan__col"/>`).join("")).join("")}
-    <g transform="translate(300 150)"><rect x="0" y="0" width="58" height="26" rx="5" class="cg-plan__truck"/><ellipse cx="36" cy="13" rx="17" ry="10" class="cg-plan__drum"/><path d="M-10 8l12 5-12 5" class="cg-plan__ink"/></g>
-    <!-- grúa torre -->
-    <circle cx="530" cy="110" r="78" class="cg-plan__radius"/>
-    <rect x="519" y="99" width="22" height="22" class="cg-plan__crane"/>
-    <path d="M530 110H606M530 110H470M600 104l6 6-6 6" class="cg-plan__jib"/>
-    <!-- patio de acero -->
-    <rect x="34" y="226" width="150" height="92" rx="4" class="cg-plan__yard"/>
-    ${[0, 1, 2, 3, 4, 5, 6].map((i) => `<path d="M46 ${240 + i * 11}h126" class="cg-plan__rebar"/>`).join("")}
-    <!-- agregados -->
-    <path d="M470 300c18-46 54-46 72 0zM540 300c14-34 44-34 58 0z" class="cg-plan__pile"/>
-    ${[0, 1, 2, 3, 4, 5, 6, 7].map((i) => `<circle cx="${486 + (i % 4) * 14}" cy="${284 - Math.floor(i / 4) * 9}" r="2.2" class="cg-plan__grain"/>`).join("")}
-    <!-- oficina de obra -->
-    <rect x="390" y="320" width="96" height="48" rx="4" class="cg-plan__office"/>
-    <path d="M400 332h20v12h-20zM432 332h20v12h-20zM464 344v24" class="cg-plan__ink"/>
-    <!-- sanitarios -->
-    <rect x="214" y="322" width="22" height="30" rx="3" class="cg-plan__wc"/><rect x="240" y="322" width="22" height="30" rx="3" class="cg-plan__wc"/>
-    <!-- residuos -->
-    <path d="M214 250h56l-6 34h-44z" class="cg-plan__bin"/>
-    <!-- punto de reunión -->
-    <rect x="34" y="332" width="74" height="44" rx="6" class="cg-plan__meet"/>
-    <path d="M71 342v24M59 354h24M71 342l-5 5m5-5 5 5M71 366l-5-5m5 5 5-5M59 354l5-5m-5 5 5 5M83 354l-5-5m5 5-5 5" class="cg-plan__meet-ink"/>`;
-  const zones: Zone[] = [
-    { id: "excavacion", label: "Excavación", shape: `<rect x="30" y="36" width="148" height="158"/>`, labelX: 104, labelY: 210 },
-    { id: "colado", label: "Frente de colado", shape: `<rect x="206" y="36" width="238" height="168"/>`, labelX: 325, labelY: 222 },
-    { id: "grua", label: "Grúa torre", shape: `<circle cx="530" cy="110" r="80"/>`, labelX: 530, labelY: 206 },
-    { id: "acero", label: "Patio de acero", shape: `<rect x="30" y="222" width="158" height="100"/>`, labelX: 109, labelY: 216 },
-    { id: "agregados", label: "Arena y grava", shape: `<rect x="462" y="244" width="144" height="62"/>`, labelX: 534, labelY: 240 },
-    { id: "caseta", label: "Oficina de obra", shape: `<rect x="386" y="316" width="104" height="56"/>`, labelX: 438, labelY: 310 },
-    { id: "sanitarios", label: "Sanitarios", shape: `<rect x="210" y="318" width="56" height="38"/>`, labelX: 238, labelY: 312 },
-    { id: "residuos", label: "Residuos", shape: `<rect x="208" y="244" width="68" height="46"/>`, labelX: 242, labelY: 238 },
-    { id: "reunion", label: "Punto de reunión", shape: `<rect x="30" y="328" width="82" height="52"/>`, labelX: 130, labelY: 324 }
+  const zones: PhotoZone[] = [
+    { id: "agregados", label: "Arena y grava", x: 9, y: 7, w: 26, h: 18 },
+    { id: "mezclado", label: "Zona de mezclado", x: 5, y: 30, w: 24, h: 20 },
+    { id: "estructura", label: "Frente de obra", x: 36, y: 21, w: 24, h: 41 },
+    { id: "grua", label: "Grúa torre", x: 60, y: 19, w: 11, h: 19 },
+    { id: "almacen", label: "Almacén de materiales", x: 72, y: 7, w: 19, h: 27 },
+    { id: "acero", label: "Patio de acero", x: 74, y: 37, w: 17, h: 28 },
+    { id: "oficina", label: "Oficina de obra", x: 9, y: 66, w: 19, h: 12 },
+    { id: "sanitarios", label: "Sanitarios", x: 85, y: 64, w: 10, h: 8 },
+    { id: "acceso", label: "Caseta de acceso", x: 40, y: 73, w: 21, h: 13 }
   ];
-  return render("0 0 640 400", art, zones);
+  return `<div class="cg-photoplan" role="img" aria-label="Vista aérea de la obra para señalar">
+    <img src="./assets/juegos/imfra-plano-obra.webp" alt="" draggable="false" decoding="async">
+    ${zones.map((z, i) => `<button type="button" class="cg-photoplan__hit" data-zone="${z.id}" data-idx="${i}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%" aria-label="Zona ${i + 1}"></button>`).join("")}
+    ${zones.map((z, i) => `<span class="cg-photoplan__label" data-label-idx="${i}" style="left:${z.x + z.w / 2}%;top:${z.y}%">${z.label}</span>`).join("")}
+  </div>`;
 }
 
 // Planta arquitectónica con ejes, cotas, muros y carpintería.
