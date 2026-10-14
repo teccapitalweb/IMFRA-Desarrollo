@@ -5547,7 +5547,7 @@ function dirAdminCargar(){
     const cards=[]; snap.forEach(d=>{ const x=d.data(); x.id=d.id; cards.push(x); });
     const conFoto = cards.filter(x=>x.foto).length;
     const vis = cards.filter(x=>x.visible!==false).length;
-    const conCont = cards.filter(x=>x.whatsapp||x.email||x.linkedin||x.web).length;
+    const conCont = cards.filter(x=>x.whatsapp||x.email||x.linkedin||x.instagram||x.web).length;
     const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
     set('ds-total',cards.length); set('ds-foto',conFoto); set('ds-vis',vis); set('ds-cont',conCont);
     const badge=document.getElementById('badge-dir'); if(badge) badge.textContent=cards.length;
@@ -5561,6 +5561,7 @@ function dirAdminCargar(){
       if(x.whatsapp) contactos.push('WhatsApp');
       if(x.email) contactos.push('Correo');
       if(x.linkedin) contactos.push('LinkedIn');
+      if(x.instagram) contactos.push('Instagram');
       if(x.web) contactos.push('Web');
       return `
       <div class="dir-adm-card">

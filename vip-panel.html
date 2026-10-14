@@ -2179,6 +2179,7 @@ body::after{
 .dir-cta .ic{width:17px;height:17px}
 .dir-cta--wa:hover{color:#25D366;border-color:#25D366}
 .dir-cta--li:hover{color:#0A66C2;border-color:#0A66C2}
+.dir-cta--ig:hover{color:#C13584;border-color:#C13584}
 .dir-card__sincontacto{font-size:11px;color:var(--text-3);margin-top:auto;padding-top:6px;font-style:italic}
 /* ═══ Directorio · tarjeta profesional VIP, secciones y contacto exclusivo ═══ */
 .dir-chip--vip{display:inline-flex;align-items:center;gap:6px;border-color:color-mix(in srgb,#e0a83a 55%,transparent);color:#b07a12}
@@ -2319,6 +2320,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .dir-det__row-ic .ic{width:18px;height:18px}
 .dir-det__row--wa:hover .dir-det__row-ic{color:#25D366}
 .dir-det__row--li:hover .dir-det__row-ic{color:#0A66C2}
+.dir-det__row--ig:hover .dir-det__row-ic{color:#C13584}
 .dir-det__row-tx{display:flex;flex-direction:column;min-width:0;flex:1}
 .dir-det__row-lbl{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .dir-det__row-val{font-size:13.5px;color:var(--text);font-weight:600;word-break:break-word}
@@ -8588,6 +8590,27 @@ const Sections = (function(){
     const url = /^https?:\/\//i.test(raw) ? raw : 'https://' + raw;
     try { const u = new URL(url); return /^https?:$/.test(u.protocol) ? u.href : ''; } catch(e){ return ''; }
   }
+  function dirInstagramPerfil(value){
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    let usuario = raw.replace(/^@/, '');
+    const pareceUrl = /^(?:https?:\/\/)?(?:www\.|m\.)?instagram\.com\//i.test(raw);
+    if (/^https?:\/\//i.test(raw) || pareceUrl) {
+      try {
+        const u = new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw);
+        if (!['instagram.com','www.instagram.com','m.instagram.com'].includes(u.hostname.toLowerCase())) return '';
+        const partes = u.pathname.split('/').filter(Boolean);
+        if (partes.length !== 1) return '';
+        [usuario] = partes;
+      } catch(e) { return ''; }
+    }
+    if (!/^[A-Za-z0-9._]{1,30}$/.test(usuario) || ['accounts','direct','directory','explore','p','reel','reels','stories'].includes(usuario.toLowerCase())) return '';
+    return `https://www.instagram.com/${usuario}/`;
+  }
+  function dirInstagramUsuario(value){
+    const url = dirInstagramPerfil(value);
+    return url ? '@' + new URL(url).pathname.split('/').filter(Boolean)[0] : '';
+  }
   function dirSectorDesde(texto){
     const t = String(texto || '').trim().toLowerCase();
     return SECTORES.find(s => s.toLowerCase() === t) || '';
@@ -8603,6 +8626,7 @@ const Sections = (function(){
       email: String(S.email || md.email || '').trim().toLowerCase().slice(0, 80),
       whatsapp: String(md.whatsapp || local.whatsapp || '').trim().slice(0, 20),
       linkedin: '',
+      instagram: '',
       web: ''
     };
   }
@@ -8640,8 +8664,8 @@ const Sections = (function(){
     return _dirMeta.cargado ? _dirMeta.viewerVip : (window.UserState?.modo === 'vip' || esAdminReal());
   }
   function dirEsVip(id){ return _dirMeta.vip.has(id); }
-  function dirTieneContacto(c){ return !!(c && (c.email || c.whatsapp || c.linkedin || c.web)); }
-  function dirSoloContacto(c){ return { email: c?.email || '', whatsapp: c?.whatsapp || '', linkedin: c?.linkedin || '', web: c?.web || '' }; }
+  function dirTieneContacto(c){ return !!(c && (c.email || c.whatsapp || c.linkedin || c.instagram || c.web)); }
+  function dirSoloContacto(c){ return { email: c?.email || '', whatsapp: c?.whatsapp || '', linkedin: c?.linkedin || '', instagram: c?.instagram || '', web: c?.web || '' }; }
 
   async function dirApi(path, opts){
     const user = window.__currentUser;
@@ -8726,7 +8750,7 @@ const Sections = (function(){
           empresa: String(md.empresa || '').trim().slice(0, 60),
           sector,
           bio: '',
-          whatsapp: '', email: '', linkedin: '', web: '',
+          whatsapp: '', email: '', linkedin: '', instagram: '', web: '',
           visible: true,
           color: dirColorFor(S.uid),
           autoCreada: true,
@@ -8741,7 +8765,7 @@ const Sections = (function(){
         const enTarjeta = dirSoloContacto(data);
         if (dirTieneContacto(enTarjeta)) {
           await dirGuardarContacto(enTarjeta);
-          await fs.setDoc(ref, { uid: S.uid, email: '', whatsapp: '', linkedin: '', web: '' }, { merge: true });
+          await fs.setDoc(ref, { uid: S.uid, email: '', whatsapp: '', linkedin: '', instagram: '', web: '' }, { merge: true });
         } else if (data.editadaPorUsuario !== true) {
           const propio = await dirApi('/contact');
           if (!propio.stored && !dirTieneContacto(propio.contact) && dirTieneContacto(cuenta)) await dirGuardarContacto(cuenta);
@@ -8961,6 +8985,7 @@ const Sections = (function(){
     if (wa) out.push(`<a class="dir-cta dir-cta--wa" href="https://wa.me/${wa}" target="_blank" rel="noopener" title="WhatsApp"><svg class="ic"><use href="#i-whatsapp"/></svg></a>`);
     if (contacto.email) out.push(`<button class="dir-cta dir-cta--mail" data-email="${escapeHtml(contacto.email)}" title="Correo: ${escapeHtml(contacto.email)}"><svg class="ic"><use href="#i-mail"/></svg></button>`);
     if (dirEnlaceSeguro(contacto.linkedin)) out.push(`<a class="dir-cta dir-cta--li" href="${escapeHtml(dirEnlaceSeguro(contacto.linkedin))}" target="_blank" rel="noopener" title="LinkedIn"><svg class="ic"><use href="#i-linkedin"/></svg></a>`);
+    if (dirInstagramPerfil(contacto.instagram)) out.push(`<a class="dir-cta dir-cta--ig" href="${escapeHtml(dirInstagramPerfil(contacto.instagram))}" target="_blank" rel="noopener" title="Instagram" aria-label="Abrir perfil de Instagram"><svg class="ic"><use href="#i-instagram"/></svg></a>`);
     if (dirEnlaceSeguro(contacto.web)) out.push(`<a class="dir-cta" href="${escapeHtml(dirEnlaceSeguro(contacto.web))}" target="_blank" rel="noopener" title="Sitio web"><svg class="ic"><use href="#i-link"/></svg></a>`);
     return out.length ? `<div class="dir-card__ctas">${out.join('')}</div>` : '<div class="dir-card__sincontacto">Sin datos de contacto</div>';
   }
@@ -9054,7 +9079,7 @@ const Sections = (function(){
          </a>` : '';
     const waNum = String(contacto?.whatsapp||'').replace(/[^0-9]/g,'');
     const contactoHtml = contacto === null
-      ? `<div class="dir-det__lock"><svg class="ic"><use href="#i-lock"/></svg><div><strong>Contacto exclusivo para miembros VIP</strong><p>Hazte VIP para ver su WhatsApp, correo y LinkedIn.</p></div><button type="button" class="btn btn--accent btn--sm" data-dirdet-vip>Hazte VIP</button></div>`
+      ? `<div class="dir-det__lock"><svg class="ic"><use href="#i-lock"/></svg><div><strong>Contacto exclusivo para miembros VIP</strong><p>Hazte VIP para ver su WhatsApp, correo, LinkedIn e Instagram.</p></div><button type="button" class="btn btn--accent btn--sm" data-dirdet-vip>Hazte VIP</button></div>`
       : `<div class="dir-det__rows">
           ${row('i-whatsapp','WhatsApp',contacto.whatsapp, waNum?`https://wa.me/${waNum}`:'', 'dir-det__row--wa')}
           ${contacto.email?`<button class="dir-det__row dir-det__row--mail" data-detmail="${escapeHtml(contacto.email)}">
@@ -9062,6 +9087,7 @@ const Sections = (function(){
              <span class="dir-det__row-tx"><span class="dir-det__row-lbl">Correo · toca para escribir</span><span class="dir-det__row-val">${escapeHtml(contacto.email)}</span></span>
            </button>`:''}
           ${row('i-linkedin','LinkedIn',contacto.linkedin, dirEnlaceSeguro(contacto.linkedin), 'dir-det__row--li')}
+          ${row('i-instagram','Instagram',dirInstagramUsuario(contacto.instagram), dirInstagramPerfil(contacto.instagram), 'dir-det__row--ig')}
           ${row('i-link','Sitio web',contacto.web, dirEnlaceSeguro(contacto.web))}
         </div>
         ${!dirTieneContacto(contacto)?'<div class="dir-det__sincontacto">Este miembro no agregó datos de contacto.</div>':''}`;
@@ -9176,6 +9202,8 @@ const Sections = (function(){
         <input class="dir-form__in" id="dirf-email" maxlength="80" value="${v(contacto.email)}" placeholder="correo@ejemplo.com">
         <label class="dir-form__lbl">LinkedIn</label>
         <input class="dir-form__in" id="dirf-linkedin" maxlength="120" value="${v(contacto.linkedin)}" placeholder="linkedin.com/in/tu-perfil">
+        <label class="dir-form__lbl">Instagram</label>
+        <input class="dir-form__in" id="dirf-instagram" maxlength="180" autocomplete="url" value="${v(contacto.instagram)}" placeholder="@usuario o instagram.com/usuario">
         <label class="dir-form__lbl">Sitio web</label>
         <input class="dir-form__in" id="dirf-web" maxlength="120" value="${v(contacto.web)}" placeholder="tusitio.com">
         <label class="dir-form__check"><input type="checkbox" id="dirf-visible" ${data.visible!==false?'checked':''}> Mostrar mi tarjeta en el directorio</label>
@@ -9219,11 +9247,15 @@ const Sections = (function(){
     footer.querySelector('#dirf-guardar').addEventListener('click', async ()=>{
       const nombre = document.getElementById('dirf-nombre').value.trim();
       if (nombre.length<3){ Toast.error('Falta tu nombre','Escribe tu nombre completo'); return; }
+      const instagramRaw = document.getElementById('dirf-instagram').value.trim();
+      const instagram = dirInstagramPerfil(instagramRaw);
+      if (instagramRaw && !instagram){ Toast.error('Instagram inválido','Escribe @usuario o la URL de un perfil de Instagram.'); return; }
       const btn = footer.querySelector('#dirf-guardar'); btn.disabled=true; btn.textContent='Guardando…';
       const nuevoContacto = {
         whatsapp: document.getElementById('dirf-wa').value.trim(),
         email: document.getElementById('dirf-email').value.trim(),
         linkedin: document.getElementById('dirf-linkedin').value.trim(),
+        instagram,
         web: document.getElementById('dirf-web').value.trim()
       };
       // El contacto se guarda aparte y la tarjeta pública no lo lleva.
@@ -9234,7 +9266,7 @@ const Sections = (function(){
         empresa: document.getElementById('dirf-empresa').value.trim(),
         sector: document.getElementById('dirf-sector').value,
         bio: document.getElementById('dirf-bio').value.trim(),
-        whatsapp: '', email: '', linkedin: '', web: '',
+        whatsapp: '', email: '', linkedin: '', instagram: '', web: '',
         visible: document.getElementById('dirf-visible').checked,
         editadaPorUsuario: true,
         color: dirColorFor(uid),

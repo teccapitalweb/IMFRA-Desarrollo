@@ -796,7 +796,16 @@ function destinoInternoSeguro(){
     return 'vip-panel.html';
   }
 }
-const MEMBER_DESTINATION = destinoInternoSeguro();
+function destinoInicioMiembro(){
+  try {
+    const target = new URL(destinoInternoSeguro(), location.href);
+    target.searchParams.delete('seccion');
+    return `vip-panel.html${target.search}#inicio`;
+  } catch(e) {
+    return 'vip-panel.html#inicio';
+  }
+}
+const MEMBER_DESTINATION = destinoInicioMiembro();
 function destinoDespuesDeAuth(email){
   return ADMINS.includes(String(email || '').toLowerCase()) ? 'vip-admin.html' : MEMBER_DESTINATION;
 }
