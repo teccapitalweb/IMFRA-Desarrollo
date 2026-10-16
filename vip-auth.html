@@ -759,6 +759,10 @@ document.querySelector('[data-cta-registro]')?.addEventListener('click', () => {
   document.querySelector('[data-tab="register"]')?.click();
   document.querySelector(".card")?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
+/* Enlaces con ?tab=register (encuesta y guía del landing) abren directo en Crear cuenta. */
+if (new URLSearchParams(location.search).get('tab') === 'register') {
+  setTimeout(() => document.querySelector('[data-tab="register"]')?.click(), 0);
+}
 
 /* =========================================================
    CONFIG · Firebase IMFRA
@@ -1204,5 +1208,6 @@ document.getElementById('forgot-link').addEventListener('click', async (e) => {
 <link rel="stylesheet" href="./src/styles/v3-auth-premium.css">
 <link rel="stylesheet" href="./src/styles/v4-auth-layout.css">
 <script type="module" src="./src/features/analytics/tracker.ts"></script>
+<script src="assets/imfra-visitas.js?v=1" data-pagina="acceso" defer></script>
 </body>
 </html>

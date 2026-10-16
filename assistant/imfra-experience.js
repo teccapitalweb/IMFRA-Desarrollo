@@ -480,6 +480,7 @@
   function resultMarkup() {
     const recommendation = recommendCourse();
     const courseItem = recommendation.courseItem;
+    if (ruta.intento && !ruta.completada) { ruta.completada = true; ruta.recomendado = String(courseItem.title || '').slice(0, 160); enviarRuta('completada', { recomendados: [ruta.recomendado] }); }
     const learning = learningProfiles[answers.format] || learningProfiles.mix;
     const growth = growthText[answers.need] || growthText.start;
     return `<div class="imx-survey__pane imx-survey__pane--result">
@@ -488,6 +489,51 @@
       <article class="imx-result-course"><div class="imx-result-course__image" style="background-image:url('${escapeHtml(courseItem.image)}')"></div><div class="imx-result-course__copy"><span>Tu mejor siguiente paso</span><h3>${escapeHtml(courseItem.title)}</h3><p>${escapeHtml(courseItem.summary)}</p><div class="imx-result-meta"><b>${escapeHtml(courseItem.price)}</b><b>${escapeHtml(courseItem.modality)}</b><b>${escapeHtml(courseItem.certificate)}</b></div><div class="imx-result-course__buttons"><button class="imx-button imx-button--primary" type="button" data-imx-result-course="${recommendation.index}">Ver capacitación</button><button class="imx-button imx-button--secondary" type="button" data-imx-restart>Repetir ruta</button></div></div></article>
     </div>`;
   }
+
+  // ── Guardado de la ruta (aparece en el admin: Marketing → Encuestas → Ruta de la guía) ──
+  // Un registro por intento, sin nombre ni teléfono: descartada, parcial o completada.
+  const RUTA_API = 'https://imfra-backend-production.up.railway.app/api/encuesta/ruta';
+  const RUTA_SID_KEY = 'imfra:guide:sid';
+  const RUTA_PEND_KEY = 'imfra:guide:ruta-pend';
+  const nuevoId = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10));
+  let ruta = { intento: null, empezo: false, completada: false, recomendado: '', ultimoEnvio: '' };
+  function rutaSid() {
+    try { let v = localStorage.getItem(RUTA_SID_KEY); if (!v) { v = nuevoId(); localStorage.setItem(RUTA_SID_KEY, v); } return v; } catch { return nuevoId(); }
+  }
+  function leerPendRuta() { try { const l = JSON.parse(localStorage.getItem(RUTA_PEND_KEY) || '[]'); return Array.isArray(l) ? l : []; } catch { return []; } }
+  function escribirPendRuta(l) { try { if (l.length) localStorage.setItem(RUTA_PEND_KEY, JSON.stringify(l.slice(-10))); else localStorage.removeItem(RUTA_PEND_KEY); } catch {} }
+  function postRuta(cuerpo) {
+    return fetch(RUTA_API, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(cuerpo), keepalive: true })
+      .then((r) => { if (!r.ok && r.status >= 500) throw new Error('HTTP ' + r.status); return true; });
+  }
+  function nuevoIntentoRuta(empezo) { ruta = { intento: nuevoId(), empezo, completada: false, recomendado: '', ultimoEnvio: '' }; }
+  function enviarRuta(estado, extra) {
+    if (!ruta.intento) return;
+    const respuestas = {};
+    data.questions.forEach((question) => {
+      const label = optionOf(question, answers[question.id])?.title;
+      if (label) respuestas[question.id] = String(label).slice(0, 80);
+    });
+    const cuerpo = { intentoId: ruta.intento, sessionId: rutaSid(), estado, respuestas, pagina: (location.pathname.split('/').pop() || 'index.html'), ...(extra || {}) };
+    const firma = JSON.stringify(cuerpo);
+    if (ruta.ultimoEnvio === firma) return;
+    ruta.ultimoEnvio = firma;
+    postRuta(cuerpo).catch(() => {
+      escribirPendRuta([...leerPendRuta().filter((x) => !(x.intentoId === cuerpo.intentoId && x.estado === cuerpo.estado)), cuerpo]);
+    });
+  }
+  function reintentarRutas() {
+    const pend = leerPendRuta();
+    if (!pend.length) return;
+    escribirPendRuta([]);
+    pend.forEach((c) => postRuta(c).catch(() => escribirPendRuta([...leerPendRuta(), c])));
+  }
+  function guardarAvanceRuta() {
+    if (!ruta.intento || ruta.completada) return;
+    enviarRuta(ruta.empezo && Object.keys(answers).length ? 'parcial' : 'descartada');
+  }
+  window.setTimeout(reintentarRutas, 2500);
+  window.addEventListener('pagehide', () => { if (!survey.hidden) guardarAvanceRuta(); });
 
   function renderSurvey() {
     surveyView.innerHTML = surveyScreen === 'intro' ? initialSurveyMarkup() : surveyScreen === 'result' ? resultMarkup() : questionMarkup(data.questions[surveyStep]);
@@ -498,6 +544,7 @@
     closeChat();
     clearTimeout(advanceTimer);
     cookie.hidden = true;
+    if (survey.hidden) nuevoIntentoRuta(surveyScreen === 'question');
     survey.hidden = false;
     document.body.classList.add('imx-scroll-lock');
     renderSurvey();
@@ -505,6 +552,7 @@
 
   function closeSurvey() {
     clearTimeout(advanceTimer);
+    guardarAvanceRuta();
     survey.hidden = true;
     document.body.classList.remove('imx-scroll-lock');
     window.setTimeout(showCookieIfNeeded, 180);
@@ -521,10 +569,10 @@
 
   survey.addEventListener('click', (event) => {
     if (event.target.closest('[data-imx-survey-close]') || event.target.classList.contains('imx-survey__backdrop')) { closeSurvey(); return; }
-    if (event.target.closest('[data-imx-start]')) { surveyScreen = 'question'; surveyStep = 0; renderSurvey(); return; }
-    if (event.target.closest('[data-imx-restart]')) { Object.keys(answers).forEach((key) => delete answers[key]); surveyScreen = 'question'; surveyStep = 0; renderSurvey(); return; }
+    if (event.target.closest('[data-imx-start]')) { ruta.empezo = true; surveyScreen = 'question'; surveyStep = 0; renderSurvey(); return; }
+    if (event.target.closest('[data-imx-restart]')) { Object.keys(answers).forEach((key) => delete answers[key]); nuevoIntentoRuta(true); surveyScreen = 'question'; surveyStep = 0; renderSurvey(); return; }
     const resultCourse = event.target.closest('[data-imx-result-course]');
-    if (resultCourse) { openCourse(Number(resultCourse.dataset.imxResultCourse)); return; }
+    if (resultCourse) { if (ruta.recomendado) enviarRuta('completada', { recomendados: [ruta.recomendado], cursoElegido: ruta.recomendado }); openCourse(Number(resultCourse.dataset.imxResultCourse)); return; }
     if (event.target.closest('[data-imx-back]')) { if (surveyStep === 0) surveyScreen = 'intro'; else surveyStep -= 1; renderSurvey(); return; }
     const option = event.target.closest('[data-imx-option]');
     if (!option || surveyScreen !== 'question') return;
@@ -635,6 +683,7 @@
   root.querySelector('[data-imx-cookie-accept]').addEventListener('click', () => {
     try { localStorage.setItem(cookieKey, 'accepted'); } catch {}
     cookie.hidden = true;
+    try { window.dispatchEvent(new CustomEvent('imfra:privacy-consent', { detail: { accepted: true } })); } catch {}
   });
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
@@ -651,6 +700,7 @@
   if (messages.children.length) setQuick(homeActions());
   restoreLauncherPosition();
   scheduleBlink();
-  window.setTimeout(openSurvey, 720);
+  // Si la encuesta del landing está en la página, no se abre otra encuesta encima (la ruta sigue disponible desde la guía)
+  window.setTimeout(() => { if (!document.getElementById('encuentra')) openSurvey(); }, 720);
   window.setTimeout(showCookieIfNeeded, 1100);
 })();
