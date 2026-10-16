@@ -3602,6 +3602,7 @@ window.__fs = { collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, li
 setPersistence(auth, browserLocalPersistence);
 
 // ⚠️ CAMBIA esta URL por la de tu Railway cuando esté deployado
+const TRIAL_OFERTA_ACTIVA = false; // Prueba VIP de 3 días retirada por dirección (oct 2026)
 const WEBHOOK_URL = 'https://imfra-backend-production.up.railway.app';
 window.WEBHOOK_URL = WEBHOOK_URL;
 const __refFromUrl = String(new URLSearchParams(location.search).get('ref') || '').trim().toUpperCase();
@@ -3675,7 +3676,7 @@ function aplicarEstadoMembresia(data){
         ? Date.now() + Math.max(0, secondsRemaining) * 1000
         : (Number.isFinite(expiresAtMs) ? expiresAtMs : null))
     : null;
-  S.trialAvailable = !isTrial && (
+  S.trialAvailable = TRIAL_OFERTA_ACTIVA && !isTrial && (
     membership.trialAvailable === true || trial.available === true ||
     trial.canActivate === true || trial.invited === true ||
     trialStatus === 'available' || trialStatus === 'eligible' || trialStatus === 'invited'
@@ -3713,7 +3714,8 @@ window.__refreshMembership = function(){
 
 async function activarPruebaSolicitada(user){
   const solicitada = new URLSearchParams(window.location.search).get('trial') === 'activate';
-  if (!solicitada) return null;
+  /* Prueba VIP de 3 días retirada (oct 2026): ya no se activa desde enlaces viejos. */
+  if (!solicitada || !TRIAL_OFERTA_ACTIVA) return null;
   try {
     const token = await user.getIdToken();
     const response = await fetch(`${WEBHOOK_URL}/trial/activate`, {
