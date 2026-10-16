@@ -10119,7 +10119,7 @@ const Sections = (function(){
           <div class="trial-offer-card__copy"><h2 id="trial-offer-title">Prueba IMFRA VIP durante 3 días</h2><p>Abre todos los cursos y herramientas profesionales. No necesitas tarjeta y no habrá ningún cobro automático.</p><div><span>Acceso completo</span><span>72 horas</span><span>Una vez por cuenta</span></div></div>
           <button class="btn btn--primary btn--lg" id="btn-activate-trial" type="button">Activar mis 3 días <svg class="ic"><use href="#i-arrow-right"/></svg></button>
         </section>
-        ` : `
+        ` : !isInvitado ? '' : `
         <div class="sub-empty">
           <div class="sub-empty__ic">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
