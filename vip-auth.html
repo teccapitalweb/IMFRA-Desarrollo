@@ -804,7 +804,11 @@ function destinoInicioMiembro(){
   try {
     const target = new URL(destinoInternoSeguro(), location.href);
     target.searchParams.delete('seccion');
-    return `vip-panel.html${target.search}#inicio`;
+    // Los correos de conversión abren directamente la suscripción y llevan
+    // un código personal en la query. Conservamos únicamente ese destino
+    // explícito; el resto de accesos continúa entrando por Inicio.
+    const hash = target.hash === '#suscripcion' ? '#suscripcion' : '#inicio';
+    return `vip-panel.html${target.search}${hash}`;
   } catch(e) {
     return 'vip-panel.html#inicio';
   }

@@ -10238,7 +10238,8 @@ const Sections = (function(){
             plan: selectedPlan,
             uid: S.uid,
             email: S.email,
-            referralCode: localStorage.getItem('imfra_pending_referral') || ''
+            referralCode: localStorage.getItem('imfra_pending_referral') || '',
+            promotionCode: String(new URLSearchParams(location.search).get('offer') || '').trim().toUpperCase()
           })
         });
         if (!res.ok) {

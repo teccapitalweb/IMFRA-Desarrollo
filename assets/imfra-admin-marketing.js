@@ -17,11 +17,13 @@ const MK = {
     const u = window._fb && window._fb.auth && window._fb.auth.currentUser;
     return u ? u.getIdToken() : null;
   },
-  async _api(ruta){
+  async _api(ruta, init = {}){
     const token = await MK._getAuthToken();
-    const r = await fetch(MK._webhookUrl + ruta, { headers: { 'Authorization': 'Bearer ' + token }, cache: 'no-store' });
+    const config = { ...init, cache: 'no-store' };
+    config.headers = { 'Authorization': 'Bearer ' + token, ...(init.headers || {}) };
+    const r = await fetch(MK._webhookUrl + ruta, config);
     const j = await r.json().catch(() => ({}));
-    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    if (!r.ok || j.ok === false) throw new Error(j.error || ('HTTP ' + r.status));
     return j;
   },
   _encuestasLanding(p){
@@ -1242,6 +1244,104 @@ MK._rutasGuia = async function(p, tabs){
   }
 };
 
+// ─────────── CORREOS DE CONVERSIÓN · 12 h → 12 h → 24 h ───────────
+MK.correos = function(p){
+  const num = value => Number(value || 0).toLocaleString('es-MX');
+  const when = value => {
+    if (!value) return '—';
+    const date = new Date(Number(value) || value);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('es-MX', {
+      dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Mexico_City'
+    });
+  };
+  const members = () => (window.AdminStore?.miembros || []).slice().sort((a, b) =>
+    String(a.email || '').localeCompare(String(b.email || '')));
+
+  if (!document.getElementById('ce-estilos')) {
+    const style = document.createElement('style');
+    style.id = 'ce-estilos';
+    style.textContent = `
+.ce{max-width:1240px}.ce *{box-sizing:border-box}.ce-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}.ce-card,.ce-panel,.ce-status{border:1px solid var(--border);border-radius:20px;background:var(--surface);padding:20px}.ce-card{position:relative;overflow:hidden}.ce-card:before{content:'';position:absolute;inset:0 auto 0 0;width:4px;background:var(--ce-color,#F59D1A)}.ce-card small,.ce-kicker{display:block;font:700 10px 'JetBrains Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3)}.ce-card strong{display:block;margin:8px 0 5px;font:800 32px/1 'Plus Jakarta Sans',sans-serif;color:var(--text)}.ce-card span{font-size:12px;color:var(--text-3)}.ce-status{display:flex;align-items:center;justify-content:space-between;gap:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 8%,var(--surface)),var(--surface))}.ce-status.is-active{border-color:color-mix(in srgb,#22c55e 45%,var(--border))}.ce-status h2,.ce-panel h3{margin:6px 0;font:800 19px 'Plus Jakarta Sans',sans-serif;color:var(--text)}.ce-status p,.ce-muted{margin:0;font-size:12.5px;line-height:1.6;color:var(--text-3)}.ce-two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.ce-panel{min-width:0}.ce-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.ce-timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.ce-timeline article{display:flex;gap:12px;padding:14px;border-radius:15px;background:var(--surface-2)}.ce-timeline b{display:grid;place-items:center;width:34px;height:34px;flex:none;border-radius:10px;background:#F59D1A;color:#17110B;font:800 12px 'JetBrains Mono',monospace}.ce-timeline strong,.ce-person strong{display:block;font-size:13px;color:var(--text)}.ce-timeline span,.ce-person small{display:block;margin-top:3px;font-size:11px;line-height:1.45;color:var(--text-3)}.ce-test{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) auto;align-items:end;gap:12px;margin-top:15px}.ce-test label{display:grid;gap:6px;font-size:11px;font-weight:700;color:var(--text-2)}.ce-test select{width:100%;min-height:42px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);color:var(--text);padding:0 11px}.ce-people{list-style:none;margin:0;padding:0}.ce-person{display:grid;grid-template-columns:38px minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.ce-person:last-child{border:0}.ce-avatar{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#F59D1A,#B86A05);color:#fff;font-size:11px;font-weight:800}.ce-person time{font:600 10px 'JetBrains Mono',monospace;color:var(--text-3);text-align:right}.ce-empty,.ce-loading{padding:38px 18px;text-align:center;color:var(--text-3);font-size:13px}.ce-loading:before{content:'';display:block;width:22px;height:22px;margin:0 auto 10px;border:2px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:ce-spin .8s linear infinite}@keyframes ce-spin{to{transform:rotate(360deg)}}
+@media(max-width:920px){.ce-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ce-two{grid-template-columns:1fr}.ce-timeline{grid-template-columns:1fr}.ce-test{grid-template-columns:1fr 1fr}.ce-test .btn{grid-column:1/-1;justify-content:center}}
+@media(max-width:520px){.ce-grid{grid-template-columns:1fr 1fr;gap:9px}.ce-card,.ce-panel,.ce-status{padding:16px;border-radius:16px}.ce-card strong{font-size:26px}.ce-status{align-items:stretch;flex-direction:column}.ce-status .btn{width:100%;justify-content:center}.ce-test{grid-template-columns:1fr}.ce-person{grid-template-columns:34px minmax(0,1fr)}.ce-person time{grid-column:2;text-align:left}.ce-avatar{width:34px;height:34px}.ce-timeline article{padding:12px}}
+`;
+    document.head.appendChild(style);
+  }
+
+  p.innerHTML = `<div class="ce fade-up">
+    <div class="sec-hero"><span class="sec-hero__eyebrow">Marketing · conversión</span><h1 class="sec-hero__title">Correos automáticos</h1><p class="sec-hero__sub">Tres mensajes para cuentas registradas que todavía no son VIP. Puedes probar cada correo antes de activar la automatización.</p></div>
+    <div id="ce-body" class="ce-loading">Cargando campaña…</div>
+  </div>`;
+  const body = p.querySelector('#ce-body');
+
+  const memberOptions = () => '<option value="">Mi correo de administrador</option>' + members().map(member => {
+    const id = member.id || member.uid || '';
+    const label = member.nombre || member.displayName || member.email || id;
+    return `<option value="${AdminEsc(id)}">${AdminEsc(label)}${member.email ? ' · ' + AdminEsc(member.email) : ''}</option>`;
+  }).join('');
+  const list = (rows, timeKey) => {
+    if (!rows.length) return '<div class="ce-empty">Sin movimientos todavía.</div>';
+    return '<ul class="ce-people">' + rows.map(row => `<li class="ce-person"><span class="ce-avatar">${AdminEsc((row.name || row.email || '?').slice(0, 2).toUpperCase())}</span><div><strong>${AdminEsc(row.name || row.email || 'Cuenta')}</strong><small>${AdminEsc(row.email || '')} · correo ${num(row.step)}</small></div><time>${when(row[timeKey])}</time></li>`).join('') + '</ul>';
+  };
+
+  const load = async () => {
+    body.className = 'ce-loading'; body.textContent = 'Cargando campaña…';
+    try {
+      const data = await MK._api('/admin/conversion-emails');
+      const active = data.mode === 'active';
+      const counts = data.counts || {};
+      body.className = '';
+      body.innerHTML = `
+        <section class="ce-status ${active ? 'is-active' : ''}"><div><span class="ce-kicker">Estado de la automatización</span><h2>${active ? 'Campaña activa' : 'Campaña apagada'}</h2><p>${active ? 'Solo incluye cuentas creadas desde ' + when(data.startedAtMs) + '. El servidor revisa la cola cada 15 minutos.' : 'Las pruebas están disponibles. No se enviará nada automáticamente hasta que actives la campaña.'}</p></div><button type="button" class="btn ${active ? 'btn--ghost' : 'btn--primary'}" data-ce-mode="${active ? 'off' : 'active'}">${active ? 'Pausar campaña' : 'Activar campaña'}</button></section>
+        <div class="ce-grid"><article class="ce-card" style="--ce-color:#F59D1A"><small>En seguimiento</small><strong>${num(counts.receiving)}</strong><span>cuentas elegibles</span></article><article class="ce-card" style="--ce-color:#3a3a3a"><small>Contactadas</small><strong>${num(counts.sent)}</strong><span>al menos un correo</span></article><article class="ce-card" style="--ce-color:#22c55e"><small>Se volvieron VIP</small><strong>${num(counts.converted)}</strong><span>después de la serie</span></article><article class="ce-card" style="--ce-color:#ef4444"><small>Bajas</small><strong>${num(counts.unsubscribed)}</strong><span>no reciben más mensajes</span></article></div>
+        <section class="ce-panel"><div class="ce-head"><div><span class="ce-kicker">Secuencia</span><h3>12 h → 12 h → 24 h</h3></div></div><div class="ce-timeline"><article><b>01</b><div><strong>Beneficios VIP</strong><span>12 horas después del registro · sin cupón</span></div></article><article><b>02</b><div><strong>Precio especial</strong><span>12 horas después · código personal de un uso</span></div></article><article><b>03</b><div><strong>Último llamado</strong><span>24 horas después · mejor condición de la serie</span></div></article></div></section>
+        <section class="ce-panel" style="margin-top:16px"><div class="ce-head"><div><span class="ce-kicker">Demostración</span><h3>Enviar un correo de prueba ahora</h3><p class="ce-muted">La prueba no altera la cuenta. Los mensajes 2 y 3 crean un cupón real de Stripe, de un uso y válido por 24 horas.</p></div></div><div class="ce-test"><label>Cuenta<select data-ce-member>${memberOptions()}</select></label><label>Mensaje<select data-ce-step><option value="1">1 · Beneficios</option><option value="2">2 · Precio especial</option><option value="3">3 · Último llamado</option></select></label><button type="button" class="btn btn--primary" data-ce-test>Enviar prueba</button></div></section>
+        <div class="ce-two"><section class="ce-panel"><div class="ce-head"><div><span class="ce-kicker">Cola</span><h3>Próximos envíos</h3></div><button type="button" class="btn btn--ghost" data-ce-run>Revisar ahora</button></div>${list(data.upcoming || [], 'dueMs')}</section><section class="ce-panel"><div class="ce-head"><div><span class="ce-kicker">Historial</span><h3>Últimos envíos</h3></div></div>${list(data.latest || [], 'sentMs')}</section></div>`;
+
+      body.querySelector('[data-ce-mode]')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        const next = button.dataset.ceMode;
+        const message = next === 'active'
+          ? 'Solo se incluirán registros nuevos desde este momento. ¿Activar la campaña?'
+          : 'Los correos automáticos quedarán pausados. ¿Continuar?';
+        if (!window.confirm(message)) return;
+        button.disabled = true;
+        try {
+          await MK._api('/admin/conversion-emails/mode', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: next }) });
+          Toast.success(next === 'active' ? 'Campaña activada' : 'Campaña pausada');
+          load();
+        } catch (error) { Toast.error('No se pudo cambiar', error.message); button.disabled = false; }
+      });
+      body.querySelector('[data-ce-test]')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        const uid = body.querySelector('[data-ce-member]').value;
+        const step = Number(body.querySelector('[data-ce-step]').value);
+        if (!window.confirm('Se enviará un correo real de PRUEBA. ¿Continuar?')) return;
+        button.disabled = true; button.textContent = 'Enviando…';
+        try {
+          const result = await MK._api('/admin/conversion-emails/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid, step }) });
+          Toast.success('Correo de prueba enviado', result.code ? 'Código: ' + result.code : 'Mensaje 1 sin cupón');
+        } catch (error) { Toast.error('No se pudo enviar', error.message); }
+        finally { button.disabled = false; button.textContent = 'Enviar prueba'; }
+      });
+      body.querySelector('[data-ce-run]')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        button.disabled = true;
+        try {
+          const result = await MK._api('/admin/conversion-emails/run', { method: 'POST' });
+          Toast.info('Revisión terminada', result.skipped === 'off' ? 'La campaña está apagada.' : `${num(result.sent)} enviados · ${num(result.failed)} fallidos`);
+          load();
+        } catch (error) { Toast.error('No se pudo revisar', error.message); button.disabled = false; }
+      });
+    } catch (error) {
+      body.className = 'ce-empty';
+      body.innerHTML = `<strong>No pudimos cargar la campaña</strong><br>${AdminEsc(error.message)}<br><button type="button" class="btn btn--primary" id="ce-retry" style="margin-top:14px">Reintentar</button>`;
+      body.querySelector('#ce-retry')?.addEventListener('click', load);
+    }
+  };
+  load();
+};
+
 MK._esperarAdmin = function(){
   if (window.__currentAdmin) return Promise.resolve();
   return new Promise(resolver => { window.addEventListener('adminready', () => resolver(), { once: true }); setTimeout(resolver, 10000); });
@@ -1252,6 +1352,7 @@ if (typeof Pages !== 'undefined') {
   Pages.encuestas = p => MK.encuestas(p);
   Pages.metricas = p => MK.metricas(p);
   Pages.pruebas = p => MK.pruebas(p);
+  Pages.correos = p => MK.correos(p);
 }
 window.IMFRAMarketingAdmin = MK;
 })();
