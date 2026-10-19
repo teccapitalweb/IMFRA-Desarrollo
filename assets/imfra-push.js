@@ -201,7 +201,8 @@
     if (!host) return;
     injectStyles();
     var blockedMessage = '';
-    if (window.__isDemoMode || !uid()) blockedMessage = 'Inicia sesión con tu cuenta IMFRA para activar avisos en este dispositivo.';
+    var demoMode = window.__isDemoMode || window.UserState?.modo === 'invitado' || new URLSearchParams(location.search).get('modo') === 'demo';
+    if (demoMode || !uid()) blockedMessage = 'Inicia sesión con tu cuenta IMFRA para activar avisos en este dispositivo.';
     else if (isIOS && !standalone) blockedMessage = 'En iPhone/iPad: Compartir → Agregar a inicio; abre IMFRA desde el ícono y vuelve aquí.';
     else if (!supported) blockedMessage = 'Este navegador no admite notificaciones. Usa Chrome, Edge o Safari actualizado.';
     else if (Notification.permission === 'denied') blockedMessage = 'Los avisos están bloqueados en el navegador. Permítelos en los ajustes de este sitio.';
