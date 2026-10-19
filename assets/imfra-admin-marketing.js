@@ -1269,7 +1269,7 @@ MK.correos = function(p){
   }
 
   p.innerHTML = `<div class="ce fade-up">
-    <div class="sec-hero"><span class="sec-hero__eyebrow">Marketing · conversión</span><h1 class="sec-hero__title">Correos automáticos</h1><p class="sec-hero__sub">Tres mensajes para cuentas registradas que todavía no son VIP. Puedes probar cada correo antes de activar la automatización.</p></div>
+    <div class="sec-hero"><span class="sec-hero__eyebrow">Marketing · conversión</span><h1 class="sec-hero__title">Correos automáticos</h1><p class="sec-hero__sub">Tres mensajes breves para cuentas registradas que todavía no son VIP. También puedes enviar cualquiera manualmente sin adelantar la secuencia automática.</p></div>
     <div id="ce-body" class="ce-loading">Cargando campaña…</div>
   </div>`;
   const body = p.querySelector('#ce-body');
@@ -1292,10 +1292,10 @@ MK.correos = function(p){
       const counts = data.counts || {};
       body.className = '';
       body.innerHTML = `
-        <section class="ce-status ${active ? 'is-active' : ''}"><div><span class="ce-kicker">Estado de la automatización</span><h2>${active ? 'Campaña activa' : 'Campaña apagada'}</h2><p>${active ? 'Solo incluye cuentas creadas desde ' + when(data.startedAtMs) + '. El servidor revisa la cola cada 15 minutos.' : 'Las pruebas están disponibles. No se enviará nada automáticamente hasta que actives la campaña.'}</p></div><button type="button" class="btn ${active ? 'btn--ghost' : 'btn--primary'}" data-ce-mode="${active ? 'off' : 'active'}">${active ? 'Pausar campaña' : 'Activar campaña'}</button></section>
+        <section class="ce-status ${active ? 'is-active' : ''}"><div><span class="ce-kicker">Estado de la automatización</span><h2>${active ? 'Campaña activa' : 'Campaña apagada'}</h2><p>${active ? 'Solo incluye cuentas creadas desde ' + when(data.startedAtMs) + '. El servidor revisa la cola cada 15 minutos.' : 'Puedes enviar cualquier mensaje manualmente. No se enviará nada automáticamente hasta que actives la campaña.'}</p></div><button type="button" class="btn ${active ? 'btn--ghost' : 'btn--primary'}" data-ce-mode="${active ? 'off' : 'active'}">${active ? 'Pausar campaña' : 'Activar campaña'}</button></section>
         <div class="ce-grid"><article class="ce-card" style="--ce-color:#F59D1A"><small>En seguimiento</small><strong>${num(counts.receiving)}</strong><span>cuentas elegibles</span></article><article class="ce-card" style="--ce-color:#3a3a3a"><small>Contactadas</small><strong>${num(counts.sent)}</strong><span>al menos un correo</span></article><article class="ce-card" style="--ce-color:#22c55e"><small>Se volvieron VIP</small><strong>${num(counts.converted)}</strong><span>después de la serie</span></article><article class="ce-card" style="--ce-color:#ef4444"><small>Bajas</small><strong>${num(counts.unsubscribed)}</strong><span>no reciben más mensajes</span></article></div>
-        <section class="ce-panel"><div class="ce-head"><div><span class="ce-kicker">Secuencia</span><h3>12 h → 12 h → 24 h</h3></div></div><div class="ce-timeline"><article><b>01</b><div><strong>Beneficios VIP</strong><span>12 horas después del registro · sin cupón</span></div></article><article><b>02</b><div><strong>Precio especial</strong><span>12 horas después · código personal de un uso</span></div></article><article><b>03</b><div><strong>Último llamado</strong><span>24 horas después · mejor condición de la serie</span></div></article></div></section>
-        <section class="ce-panel" style="margin-top:16px"><div class="ce-head"><div><span class="ce-kicker">Demostración</span><h3>Enviar un correo de prueba ahora</h3><p class="ce-muted">La prueba no altera la cuenta. Los mensajes 2 y 3 crean un cupón real de Stripe, de un uso y válido por 24 horas.</p></div></div><div class="ce-test"><label>Cuenta<select data-ce-member>${memberOptions()}</select></label><label>Mensaje<select data-ce-step><option value="1">1 · Beneficios</option><option value="2">2 · Precio especial</option><option value="3">3 · Último llamado</option></select></label><button type="button" class="btn btn--primary" data-ce-test>Enviar prueba</button></div></section>
+        <section class="ce-panel"><div class="ce-head"><div><span class="ce-kicker">Secuencia</span><h3>12 h → 12 h → 24 h</h3></div></div><div class="ce-timeline"><article><b>01</b><div><strong>Beneficios VIP 🏗️</strong><span>12 horas después del registro · sin cupón</span></div></article><article><b>02</b><div><strong>Ahorra $50 MXN 🎁</strong><span>12 horas después · plan mensual o anual</span></div></article><article><b>03</b><div><strong>Ahorra $100 MXN ⏳</strong><span>24 horas después · última oportunidad</span></div></article></div></section>
+        <section class="ce-panel" style="margin-top:16px"><div class="ce-head"><div><span class="ce-kicker">Envío manual</span><h3>Enviar un mensaje ahora</h3><p class="ce-muted">Es un correo real y no adelanta la secuencia automática. Los mensajes 2 y 3 crean un código personal de un uso, válido por 24 horas en el plan mensual o anual.</p></div></div><div class="ce-test"><label>Cuenta<select data-ce-member>${memberOptions()}</select></label><label>Mensaje<select data-ce-step><option value="1">1 · Beneficios</option><option value="2">2 · $50 MXN menos</option><option value="3">3 · $100 MXN menos</option></select></label><button type="button" class="btn btn--primary" data-ce-test>Enviar ahora</button></div><div data-ce-result></div></section>
         <div class="ce-two"><section class="ce-panel"><div class="ce-head"><div><span class="ce-kicker">Cola</span><h3>Próximos envíos</h3></div><button type="button" class="btn btn--ghost" data-ce-run>Revisar ahora</button></div>${list(data.upcoming || [], 'dueMs')}</section><section class="ce-panel"><div class="ce-head"><div><span class="ce-kicker">Historial</span><h3>Últimos envíos</h3></div></div>${list(data.latest || [], 'sentMs')}</section></div>`;
 
       body.querySelector('[data-ce-mode]')?.addEventListener('click', async event => {
@@ -1316,13 +1316,19 @@ MK.correos = function(p){
         const button = event.currentTarget;
         const uid = body.querySelector('[data-ce-member]').value;
         const step = Number(body.querySelector('[data-ce-step]').value);
-        if (!window.confirm('Se enviará un correo real de PRUEBA. ¿Continuar?')) return;
+        if (!window.confirm('Se enviará el mensaje real a la cuenta seleccionada. ¿Continuar?')) return;
         button.disabled = true; button.textContent = 'Enviando…';
         try {
-          const result = await MK._api('/admin/conversion-emails/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid, step }) });
-          Toast.success('Correo de prueba enviado', result.code ? 'Código: ' + result.code : 'Mensaje 1 sin cupón');
-        } catch (error) { Toast.error('No se pudo enviar', error.message); }
-        finally { button.disabled = false; button.textContent = 'Enviar prueba'; }
+          const result = await MK._api('/admin/conversion-emails/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid, step }) });
+          Toast.success('Mensaje enviado', result.code ? 'Código: ' + result.code : 'Mensaje 1 sin cupón');
+          const box = body.querySelector('[data-ce-result]');
+          if (box) box.innerHTML = `<div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);font-size:12.5px;line-height:1.6;color:var(--text-2)"><b style="color:var(--text)">✓ Correo enviado</b> a ${AdminEsc(result.to || 'la cuenta elegida')}${result.code ? ' · código <b>' + AdminEsc(result.code) + '</b>' : ''}<br>${AdminEsc(result.subject || '')}</div>`;
+        } catch (error) {
+          Toast.error('No se pudo enviar', error.message);
+          const box = body.querySelector('[data-ce-result]');
+          if (box) box.innerHTML = `<div style="margin-top:12px;padding:12px 14px;border:1px solid color-mix(in srgb,#ef4444 45%,var(--border));border-radius:12px;background:color-mix(in srgb,#ef4444 8%,var(--surface));font-size:12.5px;line-height:1.6;color:var(--text-2)"><b style="color:#ef4444">✕ El correo no se envió.</b><br>${AdminEsc(error.message)}</div>`;
+        }
+        finally { button.disabled = false; button.textContent = 'Enviar ahora'; }
       });
       body.querySelector('[data-ce-run]')?.addEventListener('click', async event => {
         const button = event.currentTarget;
