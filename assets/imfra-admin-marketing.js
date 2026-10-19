@@ -1348,6 +1348,98 @@ MK.correos = function(p){
   load();
 };
 
+// ─────────── NOTIFICACIONES PUSH · 9 eventos + campañas manuales ───────────
+MK.push = function(p){
+  const members = () => (window.AdminStore?.miembros || []).slice().sort((a,b) => String(a.email || '').localeCompare(String(b.email || '')));
+  const num = value => Number(value || 0).toLocaleString('es-MX');
+  const when = value => {
+    const date = new Date(Number(value) || value || 0);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString('es-MX', { dateStyle:'medium', timeStyle:'short', timeZone:'America/Mexico_City' });
+  };
+  if (!document.getElementById('push-admin-styles')) {
+    const style = document.createElement('style');
+    style.id = 'push-admin-styles';
+    style.textContent = `
+.pa{max-width:1240px}.pa *{box-sizing:border-box}.pa-status,.pa-panel,.pa-card{border:1px solid var(--border);border-radius:20px;background:var(--surface);padding:20px}.pa-status{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:18px 0}.pa-status.is-ready{border-color:color-mix(in srgb,#22c55e 45%,var(--border));background:linear-gradient(135deg,color-mix(in srgb,#22c55e 7%,var(--surface)),var(--surface))}.pa-kicker{display:block;font:700 10px 'JetBrains Mono',monospace;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3)}.pa-status h2,.pa-panel h3{margin:6px 0;font:800 19px 'Plus Jakarta Sans',sans-serif;color:var(--text)}.pa-muted{margin:0;color:var(--text-3);font-size:12px;line-height:1.55}.pa-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}.pa-card{position:relative;overflow:hidden;padding:17px}.pa-card:before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--pc,#F59D1A)}.pa-card small{display:block;font:700 9px 'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;color:var(--text-3)}.pa-card strong{display:block;margin:8px 0 4px;font:800 29px/1 'Plus Jakarta Sans',sans-serif;color:var(--text)}.pa-card span{font-size:10.5px;color:var(--text-3)}.pa-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr);gap:16px;margin-top:16px}.pa-panel{min-width:0}.pa-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.pa-templates{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.pa-template{padding:13px;border:1px solid var(--border);border-radius:14px;background:var(--surface-2);cursor:pointer;text-align:left;color:var(--text)}.pa-template:hover,.pa-template.is-active{border-color:#F59D1A;box-shadow:inset 0 0 0 1px #F59D1A}.pa-template small{display:block;color:var(--text-3);font:700 8px 'JetBrains Mono',monospace;text-transform:uppercase}.pa-template strong{display:block;margin:7px 0 4px;font-size:12px}.pa-template span{display:block;color:var(--text-3);font-size:10px;line-height:1.4}.pa-preview{position:sticky;top:20px}.pa-phone{padding:14px;border-radius:18px;background:#eceff3;border:7px solid #1d1d1f;box-shadow:0 14px 36px rgba(0,0,0,.18)}.pa-phone__top{height:13px;text-align:center;color:#111;font-size:8px}.pa-notification{margin-top:8px;padding:12px;border-radius:14px;background:rgba(255,255,255,.94);color:#111;box-shadow:0 4px 12px rgba(0,0,0,.11)}.pa-notification small{display:flex;justify-content:space-between;font-size:8px;color:#555}.pa-notification strong{display:block;margin:7px 0 4px;font-size:12px}.pa-notification p{margin:0;font-size:10.5px;line-height:1.4;color:#333}.pa-form{display:grid;gap:10px}.pa-form label{display:grid;gap:6px;color:var(--text-2);font-size:10.5px;font-weight:700}.pa-form input,.pa-form textarea,.pa-form select{width:100%;min-height:42px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);color:var(--text);padding:9px 11px;font:500 12px Inter,sans-serif}.pa-form textarea{min-height:78px;resize:vertical}.pa-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pa-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}.pa-history{list-style:none;margin:0;padding:0}.pa-history li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.pa-history li:last-child{border:0}.pa-history strong{display:block;color:var(--text);font-size:11.5px}.pa-history small{display:block;margin-top:3px;color:var(--text-3);font-size:10px}.pa-history time{font:600 9px 'JetBrains Mono',monospace;color:var(--text-3)}.pa-empty,.pa-loading{padding:34px;text-align:center;color:var(--text-3);font-size:12px}.pa-loading:before{content:'';display:block;width:22px;height:22px;margin:0 auto 10px;border:2px solid var(--border);border-top-color:#F59D1A;border-radius:50%;animation:pa-spin .8s linear infinite}@keyframes pa-spin{to{transform:rotate(360deg)}}
+@media(max-width:1050px){.pa-kpis{grid-template-columns:repeat(3,1fr)}.pa-templates{grid-template-columns:repeat(2,1fr)}}@media(max-width:780px){.pa-layout{grid-template-columns:1fr}.pa-preview{position:static}.pa-kpis{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.pa-status{align-items:stretch;flex-direction:column}.pa-status .btn{width:100%;justify-content:center}.pa-kpis{grid-template-columns:1fr 1fr;gap:8px}.pa-card,.pa-panel,.pa-status{padding:15px;border-radius:16px}.pa-card strong{font-size:24px}.pa-templates{grid-template-columns:1fr}.pa-form-row{grid-template-columns:1fr}.pa-actions .btn{width:100%;justify-content:center}}
+`;
+    document.head.appendChild(style);
+  }
+  p.innerHTML = `<div class="pa fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Comunicación · web push</span><h1 class="sec-hero__title">Notificaciones push</h1><p class="sec-hero__sub">Nueve mensajes útiles que pueden aparecer en el teléfono o la computadora aunque el panel esté cerrado. Cada persona conserva el control de sus categorías.</p></div><div id="pa-body" class="pa-loading">Cargando centro de notificaciones…</div></div>`;
+  const body = p.querySelector('#pa-body');
+  let selectedId = 'welcome';
+  let cached = null;
+  const memberOptions = () => '<option value="">Mi dispositivo de administrador</option>' + members().map(member => {
+    const id = member.id || member.uid || '';
+    const label = member.nombre || member.displayName || member.email || id;
+    return `<option value="${AdminEsc(id)}">${AdminEsc(label)}${member.email ? ' · ' + AdminEsc(member.email) : ''}</option>`;
+  }).join('');
+  const templateOptions = rows => rows.map(row => `<option value="${AdminEsc(row.id)}">${AdminEsc(row.title.replace(/[🎁⭐⏳📚🔴🏆🎓📢👋]/g,''))}</option>`).join('');
+  const preview = row => {
+    const selected = row || cached?.templates?.[0] || {};
+    const title = document.querySelector('[data-pa-edit-title]')?.value || selected.title || 'IMFRA';
+    const message = document.querySelector('[data-pa-edit-body]')?.value || selected.body || '';
+    const phoneTitle = document.querySelector('[data-pa-preview-title]');
+    const phoneBody = document.querySelector('[data-pa-preview-body]');
+    if (phoneTitle) phoneTitle.textContent = title;
+    if (phoneBody) phoneBody.textContent = message.replace(/\{\{creditos\}\}/g,'25').replace(/\{\{saldo\}\}/g,'350');
+  };
+  const selectTemplate = id => {
+    selectedId = id;
+    const row = cached.templates.find(item => item.id === id) || cached.templates[0];
+    body.querySelectorAll('[data-pa-template]').forEach(button => button.classList.toggle('is-active', button.dataset.paTemplate === id));
+    const fields = { title:'title', body:'body', action:'action', url:'url' };
+    Object.keys(fields).forEach(key => { const input = body.querySelector(`[data-pa-edit-${key}]`); if (input) input.value = row[fields[key]] || ''; });
+    const category = body.querySelector('[data-pa-edit-category]'); if (category) category.textContent = (cached.categories || {})[row.category] || row.category;
+    preview(row);
+  };
+  const render = data => {
+    cached = data;
+    const counts = data.counts || {};
+    body.className = '';
+    body.innerHTML = `
+      <section class="pa-status ${data.configured ? 'is-ready' : ''}"><div><span class="pa-kicker">Estado del canal</span><h2>${data.configured ? 'Push configurado y listo' : 'Faltan las claves del servidor'}</h2><p class="pa-muted">${data.configured ? 'Los dispositivos pueden registrarse y los envíos quedan auditados e idempotentes.' : 'Configura WEB_PUSH_VAPID_PUBLIC_KEY y WEB_PUSH_VAPID_PRIVATE_KEY en Railway antes de activar envíos.'}</p></div><button type="button" class="btn btn--ghost" data-pa-run ${data.configured ? '' : 'disabled'}>Revisar automatizaciones</button></section>
+      <div class="pa-kpis"><article class="pa-card" style="--pc:#F59D1A"><small>Personas</small><strong>${num(counts.users)}</strong><span>con push activo</span></article><article class="pa-card" style="--pc:#3a3a3a"><small>Dispositivos</small><strong>${num(counts.devices)}</strong><span>registrados</span></article><article class="pa-card" style="--pc:#22c55e"><small>Entregas</small><strong>${num(counts.sent)}</strong><span>en el historial</span></article><article class="pa-card" style="--pc:#ef4444"><small>Fallidos</small><strong>${num(counts.failed)}</strong><span>intentos no entregados</span></article><article class="pa-card" style="--pc:#8b5cf6"><small>Programados</small><strong>${num(counts.scheduled)}</strong><span>avisos pendientes</span></article></div>
+      <div class="pa-layout"><section class="pa-panel"><div class="pa-head"><div><span class="pa-kicker">Biblioteca aprobada</span><h3>Las 9 notificaciones</h3><p class="pa-muted">Los disparadores no cambian al editar el texto.</p></div></div><div class="pa-templates">${data.templates.map(row => `<button type="button" class="pa-template ${row.id===selectedId?'is-active':''}" data-pa-template="${AdminEsc(row.id)}"><small>${AdminEsc((data.categories||{})[row.category]||row.category)}</small><strong>${AdminEsc(row.title)}</strong><span>${AdminEsc(row.body)}</span></button>`).join('')}</div></section>
+      <aside class="pa-panel pa-preview"><span class="pa-kicker">Vista previa móvil</span><h3>Así se verá</h3><div class="pa-phone"><div class="pa-phone__top">9:41</div><div class="pa-notification"><small><b>IMFRA</b><span>ahora</span></small><strong data-pa-preview-title></strong><p data-pa-preview-body></p></div></div><p class="pa-muted" style="margin-top:12px">iPhone y Android deciden la tipografía final; el título y mensaje se mantienen.</p></aside></div>
+      <div class="pa-layout"><section class="pa-panel"><div class="pa-head"><div><span class="pa-kicker">Editor</span><h3>Texto de la plantilla</h3><p class="pa-muted" data-pa-edit-category></p></div></div><div class="pa-form"><label>Título<input maxlength="90" data-pa-edit-title></label><label>Mensaje<textarea maxlength="180" data-pa-edit-body></textarea></label><div class="pa-form-row"><label>Acción<input maxlength="32" data-pa-edit-action></label><label>Destino interno<input maxlength="1000" data-pa-edit-url></label></div><div class="pa-actions"><button type="button" class="btn btn--primary" data-pa-save>Guardar plantilla</button></div></div></section>
+      <section class="pa-panel"><span class="pa-kicker">Envío real</span><h3>Enviar ahora</h3><p class="pa-muted">Respeta la categoría elegida por el destinatario y el horario tranquilo.</p><div class="pa-form" style="margin-top:13px"><label>Notificación<select data-pa-send-template>${templateOptions(data.templates)}</select></label><label>Destinatario<select data-pa-send-member>${memberOptions()}</select></label><label><span><input type="checkbox" data-pa-send-all style="width:auto;min-height:0"> Enviar a todos los dispositivos suscritos</span></label><div class="pa-actions"><button type="button" class="btn btn--primary" data-pa-send ${data.configured?'':'disabled'}>Enviar notificación</button></div></div></section></div>
+      <div class="pa-layout"><section class="pa-panel"><span class="pa-kicker">Aviso administrativo</span><h3>Programar un mensaje</h3><div class="pa-form"><label>Título<input maxlength="90" data-pa-schedule-title value="¡Novedades en IMFRA! 📢"></label><label>Mensaje<textarea maxlength="180" data-pa-schedule-body>Hay información importante para ti. Consulta las últimas novedades.</textarea></label><div class="pa-form-row"><label>Fecha y hora<input type="datetime-local" data-pa-schedule-at></label><label>Destino<input data-pa-schedule-url value="/vip-panel.html#inicio"></label></div><label>Destinatario<select data-pa-schedule-member><option value="all">Todos los suscritos</option>${memberOptions().replace('<option value="">Mi dispositivo de administrador</option>','')}</select></label><div class="pa-actions"><button type="button" class="btn btn--primary" data-pa-schedule ${data.configured?'':'disabled'}>Programar aviso</button></div></div></section>
+      <section class="pa-panel"><div class="pa-head"><div><span class="pa-kicker">Auditoría</span><h3>Últimas entregas</h3></div></div>${(data.latest||[]).length ? `<ul class="pa-history">${data.latest.slice(0,12).map(row => `<li><div><strong>${AdminEsc(row.title || row.templateId || 'Notificación')}</strong><small>${AdminEsc(row.status || '')} · ${num(row.sent)} entregada(s)${row.failed ? ' · '+num(row.failed)+' fallida(s)' : ''}</small></div><time>${when(row.sentAtMs)}</time></li>`).join('')}</ul>` : '<div class="pa-empty">Todavía no hay entregas.</div>'}</section></div>`;
+    selectTemplate(selectedId);
+    body.querySelectorAll('[data-pa-template]').forEach(button => button.addEventListener('click', () => selectTemplate(button.dataset.paTemplate)));
+    ['title','body'].forEach(key => body.querySelector(`[data-pa-edit-${key}]`)?.addEventListener('input', () => preview()));
+    body.querySelector('[data-pa-save]')?.addEventListener('click', async event => {
+      const button = event.currentTarget; button.disabled = true;
+      try {
+        await MK._api('/admin/push/templates/' + encodeURIComponent(selectedId), { method:'PATCH', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ title:body.querySelector('[data-pa-edit-title]').value, body:body.querySelector('[data-pa-edit-body]').value, action:body.querySelector('[data-pa-edit-action]').value, url:body.querySelector('[data-pa-edit-url]').value }) });
+        Toast.success('Plantilla guardada', 'Los próximos envíos usarán este texto.'); await load();
+      } catch(error){ Toast.error('No se pudo guardar', error.message); button.disabled=false; }
+    });
+    body.querySelector('[data-pa-send]')?.addEventListener('click', async event => {
+      const button=event.currentTarget, all=body.querySelector('[data-pa-send-all]').checked, uid=body.querySelector('[data-pa-send-member]').value, templateId=body.querySelector('[data-pa-send-template]').value;
+      if (all && !confirm('La notificación se enviará a todos los dispositivos suscritos. ¿Continuar?')) return;
+      button.disabled=true; button.textContent='Enviando…';
+      try { const result=await MK._api('/admin/push/send',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({templateId,uid,audience:all?'all':'user'})}); Toast.success('Notificación procesada', `${num(result.sent)} entregada(s) · ${num(result.queued)} en horario tranquilo`); await load(); }
+      catch(error){ Toast.error('No se pudo enviar',error.message); button.disabled=false; button.textContent='Enviar notificación'; }
+    });
+    body.querySelector('[data-pa-schedule]')?.addEventListener('click', async event => {
+      const at=body.querySelector('[data-pa-schedule-at]').value, target=body.querySelector('[data-pa-schedule-member]').value;
+      if(!at){Toast.info('Falta la fecha','Elige cuándo debe enviarse.');return;}
+      const button=event.currentTarget; button.disabled=true;
+      try { await MK._api('/admin/push/schedule',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:body.querySelector('[data-pa-schedule-title]').value,body:body.querySelector('[data-pa-schedule-body]').value,url:body.querySelector('[data-pa-schedule-url]').value,sendAtMs:new Date(at).getTime(),audience:target==='all'?'all':'user',uid:target==='all'?'':target})}); Toast.success('Aviso programado',when(new Date(at).getTime())); await load(); }
+      catch(error){Toast.error('No se pudo programar',error.message);button.disabled=false;}
+    });
+    body.querySelector('[data-pa-run]')?.addEventListener('click', async event => { const button=event.currentTarget;button.disabled=true;try{await MK._api('/admin/push/run',{method:'POST'});Toast.success('Revisión terminada');await load();}catch(error){Toast.error('No se pudo revisar',error.message);button.disabled=false;} });
+  };
+  const load = async () => {
+    body.className='pa-loading';body.textContent='Cargando centro de notificaciones…';
+    try { render(await MK._api('/admin/push')); }
+    catch(error){ body.className='pa-empty';body.innerHTML=`<strong>No pudimos cargar las notificaciones</strong><br>${AdminEsc(error.message)}<br><button class="btn btn--primary" data-pa-retry style="margin-top:12px">Reintentar</button>`;body.querySelector('[data-pa-retry]')?.addEventListener('click',load); }
+  };
+  load();
+};
+
 MK._esperarAdmin = function(){
   if (window.__currentAdmin) return Promise.resolve();
   return new Promise(resolver => { window.addEventListener('adminready', () => resolver(), { once: true }); setTimeout(resolver, 10000); });
@@ -1359,6 +1451,7 @@ if (typeof Pages !== 'undefined') {
   Pages.metricas = p => MK.metricas(p);
   Pages.pruebas = p => MK.pruebas(p);
   Pages.correos = p => MK.correos(p);
+  Pages.push = p => MK.push(p);
 }
 window.IMFRAMarketingAdmin = MK;
 })();

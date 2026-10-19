@@ -3871,6 +3871,10 @@ if (window.__isDemoMode) {
     // ─── Primera entrada: bienvenida → recorrido → ficha → curso gratis ───
     setTimeout(() => { try { window.__runInitialExperienceFlow && window.__runInitialExperienceFlow(); } catch(e){} }, 500);
 
+    // Las funciones opcionales (como notificaciones push) esperan esta señal
+    // para no pedir permisos antes de que Firebase haya validado la cuenta.
+    window.dispatchEvent(new CustomEvent('imfra:user-ready', { detail: { uid: user.uid } }));
+
     // Arrancar listener de notificaciones de Firestore (tiempo real)
     setTimeout(() => { if (typeof setupNotificacionesListener === 'function') setupNotificacionesListener(); }, 100);
   });
@@ -9890,10 +9894,18 @@ const Sections = (function(){
               <button class="btn btn--ghost perfil-security-actions__danger" id="btn-close-all-sessions"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesiones</button>
             </div>` : ''}
           </div>
+
+          <div class="perfil-card" style="grid-column:1/-1">
+            <div class="perfil-card__title">Notificaciones</div>
+            <div data-imfra-push-settings>
+              <div class="perfil-field"><span class="perfil-field__lbl">Cargando preferencias…</span></div>
+            </div>
+          </div>
         </div>
       </div>
     `;
     if (typeof loadProfileFromLS==='function') loadProfileFromLS();
+    setTimeout(()=>{ try { window.IMFRAPush && window.IMFRAPush.mountSettings(container); } catch(e){} }, 0);
   }
 
   /* ============================ SUSCRIPCIÓN ============================ */
@@ -13708,5 +13720,6 @@ body{letter-spacing:-.05px}
 <script type="module" src="./src/features/class-games/class-games.ts"></script>
 <script type="module" src="./src/features/analytics/tracker.ts"></script>
 <script src="assets/imfra-visitas.js?v=1" data-pagina="panel" defer></script>
+<script src="assets/imfra-push.js?v=1" defer></script>
 </body>
 </html>
