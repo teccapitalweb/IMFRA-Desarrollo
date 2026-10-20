@@ -403,8 +403,7 @@ export async function redeemCreditReward(rewardId: string): Promise<CreditSnapsh
   if (isDemo()) {
     const cost = DEMO_COSTS[rewardId];
     if (cost === undefined) throw new Error("Este recurso todavía no está disponible para canje.");
-    const anniversaryBenefit = rewardId === "imdac-control-obra-30d";
-    if (!anniversaryBenefit && current.balance < cost) throw new Error(`Te faltan ${cost - current.balance} créditos.`);
+    if (current.balance < cost) throw new Error(`Te faltan ${cost - current.balance} créditos.`);
     const firstToolRedemption = rewardId.startsWith("tool-") && !current.redemptions.some((item) => item.type === "tool");
     const next = {
       ...current,

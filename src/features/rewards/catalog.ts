@@ -416,12 +416,10 @@ export const rewardCatalog: RewardItem[] = [
     description: "Acceso profesional para centralizar el avance físico, financiero y documental de tus proyectos.",
     category: "Software",
     points: 200,
-    availability: "30 días al cumplir 1 año",
+    availability: "30 días de acceso",
     accent: "#ee8d16",
     brand: "IMDAC · TEC Capital",
     durationDays: 30,
-    unlockMode: "membership_anniversary",
-    membershipMonths: 12,
     accessUrl: "https://imdac-control-obra-web-nxav.vercel.app/login",
     featured: true,
     features: [
