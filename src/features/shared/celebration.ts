@@ -21,9 +21,10 @@ const redemptionCelebrations: Record<string, RedemptionCelebration> = {
   "tool-checklist": { mark: "✓", title: "Checklist desbloqueado", message: "Tu control de supervisión está listo para usarse.", accent: "#159a6e" },
   "tool-bitacora": { mark: "BT", title: "Bitácora habilitada", message: "Ya puedes documentar el seguimiento diario de obra.", accent: "#d68b18" },
   "tool-generadores": { mark: "NG", title: "Generadores desbloqueados", message: "El módulo de cantidades ya está disponible.", accent: "#e55d4f" },
-  "book-advanced-mechanics": { mark: "AM", title: "Libro agregado", message: "Advanced Mechanics ya está en tu biblioteca IMFRA.", accent: "#6c73d9" },
-  "book-advanced-strength": { mark: "AS", title: "Libro agregado", message: "Advanced Strength ya está listo para lectura.", accent: "#4f77bd" },
-  "book-resistencia-materiales": { mark: "RM", title: "Libro agregado", message: "Resistencia de Materiales ya está en tu biblioteca.", accent: "#a46b46" }
+  "book-advanced-mechanics": { mark: "MA", title: "Libro agregado", message: "Mecánica Avanzada de Materiales ya está en tu biblioteca IMFRA.", accent: "#6c73d9" },
+  "book-advanced-strength": { mark: "RA", title: "Libro agregado", message: "Resistencia Avanzada y Elasticidad Aplicada ya está lista para lectura.", accent: "#4f77bd" },
+  "book-resistencia-materiales": { mark: "RM", title: "Libro agregado", message: "Resistencia de Materiales ya está en tu biblioteca.", accent: "#a46b46" },
+  "book-analisis-estructural": { mark: "AE", title: "Libro agregado", message: "Análisis Estructural ya está en tu biblioteca IMFRA.", accent: "#d17a2d" }
 };
 
 let lastCelebration = 0;

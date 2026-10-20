@@ -9,8 +9,8 @@
     url: CDN + encodeURIComponent(archivo),
     ...(opciones || {})
   });
-  // El primero cuesta lo mismo que el bono de bienvenida (120) · cualquier cuenta puede canjearlo.
-  const COSTOS_RECOMPENSA = [120, 175, 190, 205, 220, 240, 260];
+  // Precio único de canje para todos los materiales y premios.
+  const COSTOS_RECOMPENSA = [200, 200, 200, 200, 200, 200, 200];
   const recompensa = (archivo, titulo, rewardOrder) => material(
     archivo,
     titulo,

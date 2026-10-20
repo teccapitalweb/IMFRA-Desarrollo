@@ -3497,7 +3497,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="assets/imfra-bunny-catalog.js?v=20260817-real"></script>
-<script src="assets/imfra-materials-catalog.js?v=20260923-2"></script>
+<script src="assets/imfra-materials-catalog.js?v=20261020-1"></script>
 
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
 <div class="fomo-banner" id="fomo-banner" style="display:none">
@@ -8350,10 +8350,11 @@ const Sections = (function(){
 
   // ═══ BIBLIOTECA DE LIBROS ═══
   const IMFRA_LIBROS = [
-    {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:148,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://imfrabooks.b-cdn.net/Gu%C3%ADa%20De%20Hidrolog%C3%ADa%20B%C3%A1sica.pdf',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:false,rewardId:'book-hidrologia-basica',creditCost:800},
-    {id:'advanced-mechanics',titulo:'Advanced Mechanics of Materials',autor:'Boresi · Schmidt',area:'Estructuras',paginas:611,portada:'assets/libros/advanced_mechanics.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20Mechanics%20of%20Materials%20-%20Boresi.%20Schmidt.pdf',descripcion:'Referencia avanzada en mecánica de materiales: esfuerzos combinados, fatiga, concentración de esfuerzos, placas, cáscaras y elementos finitos.',gratis:false,rewardId:'book-advanced-mechanics',creditCost:800},
-    {id:'advanced-strength',titulo:'Advanced Strength and Applied Elasticity',autor:'Ugural · Fenster',area:'Estructuras',paginas:559,portada:'assets/libros/advanced_strength.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20strength%20and%20applied%20elasticity%20-%20Ugural.%20Fenster.pdf',descripcion:'Elasticidad aplicada y resistencia avanzada: análisis de esfuerzos y deformaciones, teorías de falla, vigas curvas y recipientes a presión.',gratis:false,rewardId:'book-advanced-strength',creditCost:800},
-    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'S. Timoshenko',area:'Estructuras',paginas:180,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://imfrabooks.b-cdn.net/Resistencia%20de%20materiales%20-%20S.%20Timoshenko.pdf',descripcion:'El clásico de Timoshenko: flexión, torsión, columnas, vigas hiperestáticas, deformación por energía y métodos de análisis estructural.',gratis:false,rewardId:'book-resistencia-materiales',creditCost:800}
+    {id:'hidrologia-basica',titulo:'Guía de Hidrología Básica',autor:'Equipo IMFRA',area:'Hidráulica',paginas:148,portada:'assets/libros/gu-a_de_hidrolog-a_b-sica_libro.jpg',url:'https://imfrabooks.b-cdn.net/Gu%C3%ADa%20De%20Hidrolog%C3%ADa%20B%C3%A1sica.pdf',descripcion:'Fundamentos de hidrología aplicada a la ingeniería civil: ciclo del agua, cuencas, precipitación, escorrentía, hidrogramas y diseño de obras hidráulicas.',gratis:false,rewardId:'book-hidrologia-basica',creditCost:200},
+    {id:'advanced-mechanics',titulo:'Mecánica Avanzada de Materiales',autor:'Equipo IMFRA',area:'Estructuras',paginas:160,portada:'assets/libros/advanced_mechanics.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20Mechanics%20of%20Materials%20-%20Boresi.%20Schmidt.pdf',descripcion:'Análisis avanzado del comportamiento de materiales: estados de esfuerzo y deformación, flexión, torsión, energía de deformación y criterios de falla.',gratis:false,rewardId:'book-advanced-mechanics',creditCost:200},
+    {id:'advanced-strength',titulo:'Resistencia Avanzada y Elasticidad Aplicada',autor:'Equipo IMFRA',area:'Estructuras',paginas:168,portada:'assets/libros/advanced_strength.jpg',url:'https://imfrabooks.b-cdn.net/Advanced%20strength%20and%20applied%20elasticity%20-%20Ugural.%20Fenster.pdf',descripcion:'Elasticidad aplicada y resistencia avanzada: tensiones tridimensionales, relaciones constitutivas, métodos energéticos y aplicaciones estructurales.',gratis:false,rewardId:'book-advanced-strength',creditCost:200},
+    {id:'resistencia-materiales',titulo:'Resistencia de Materiales',autor:'Equipo IMFRA',area:'Estructuras',paginas:176,portada:'assets/libros/resistencia_de_materiales_libro.jpg',url:'https://imfrabooks.b-cdn.net/Resistencia%20de%20materiales%20-%20S.%20Timoshenko.pdf',descripcion:'Curso integral de esfuerzos, deformaciones, flexión, torsión, columnas, energía de deformación y diseño seguro de elementos estructurales.',gratis:false,rewardId:'book-resistencia-materiales',creditCost:200},
+    {id:'analisis-estructural',titulo:'Análisis Estructural: Métodos Clásicos y Matriciales',autor:'Equipo IMFRA',area:'Estructuras',paginas:180,portada:'assets/libros/analisis_estructural_imfra.jpg',url:'https://imfrabooks.b-cdn.net/Analisis%20Estructural%20-%20Metodos%20Clasicos%20y%20Matriciales%20-%20IMFRA.pdf',descripcion:'Métodos de análisis para estructuras isostáticas e hiperestáticas, rigidez matricial, desplazamientos, cargas móviles y modelación estructural.',gratis:false,rewardId:'book-analisis-estructural',creditCost:200}
   ];
   var _libroDetalle = null;
 
@@ -10642,14 +10643,14 @@ const Sections = (function(){
 
   /* ============================ CENTRO DE HERRAMIENTAS ============================ */
   const HERRAMIENTAS_PRO = [
-    {id:'concreto',rewardId:'tool-concreto',cost:120,starter:true,icon:'i-cube',image:'assets/tool-icons/concrete-volume.png',tag:'Volumetría',titulo:'Volumen de concreto',desc:'Calcula volúmenes por elemento, materiales y viajes de revolvedora.'},
-    {id:'acero',rewardId:'tool-acero',cost:180,icon:'i-rebar',image:'assets/tool-icons/steel-quantity.png',tag:'Estructuras',titulo:'Cuantificación de acero',desc:'Obtén kilos, metros lineales y piezas de varilla por calibre y elemento.'},
+    {id:'concreto',rewardId:'tool-concreto',cost:200,starter:true,icon:'i-cube',image:'assets/tool-icons/concrete-volume.png',tag:'Volumetría',titulo:'Volumen de concreto',desc:'Calcula volúmenes por elemento, materiales y viajes de revolvedora.'},
+    {id:'acero',rewardId:'tool-acero',cost:200,icon:'i-rebar',image:'assets/tool-icons/steel-quantity.png',tag:'Estructuras',titulo:'Cuantificación de acero',desc:'Obtén kilos, metros lineales y piezas de varilla por calibre y elemento.'},
     {id:'muros',rewardId:'tool-muros',cost:200,icon:'i-wall',image:'assets/tool-icons/masonry.png',tag:'Albañilería',titulo:'Muros y albañilería',desc:'Estima piezas, mortero, cemento, arena y jornales para tus muros.'},
-    {id:'retenciones',rewardId:'tool-retenciones',cost:220,icon:'i-percent',image:'assets/tool-icons/retentions.png',tag:'Estimaciones',titulo:'Retenciones en estimaciones',desc:'Controla amortizaciones, retenciones, garantías, IVA y neto a cobrar.'},
-    {id:'curvas',rewardId:'tool-curvas',cost:240,icon:'i-trend',image:'assets/tool-icons/s-curve.png',tag:'Control de obra',titulo:'Curva S',desc:'Compara avance programado contra real y detecta desviaciones a tiempo.'},
-    {id:'checklist',rewardId:'tool-checklist',cost:260,icon:'i-clipboard-check',image:'assets/tool-icons/supervision-checklist.png',tag:'Supervisión',titulo:'Checklist de supervisión',desc:'Documenta inspecciones, hallazgos, acciones correctivas y responsables.'},
-    {id:'bitacora',rewardId:'tool-bitacora',cost:280,icon:'i-notebook',image:'assets/tool-icons/site-log.png',tag:'Seguimiento',titulo:'Bitácora de obra',desc:'Registra personal, clima, maquinaria, actividades e incidencias por día.'},
-    {id:'generadores',rewardId:'tool-generadores',cost:300,icon:'i-ruler',image:'assets/tool-icons/quantity-generators.png',tag:'Cuantificación',titulo:'Números generadores',desc:'Genera cantidades por concepto y prepara el soporte de tus estimaciones.'}
+    {id:'retenciones',rewardId:'tool-retenciones',cost:200,icon:'i-percent',image:'assets/tool-icons/retentions.png',tag:'Estimaciones',titulo:'Retenciones en estimaciones',desc:'Controla amortizaciones, retenciones, garantías, IVA y neto a cobrar.'},
+    {id:'curvas',rewardId:'tool-curvas',cost:200,icon:'i-trend',image:'assets/tool-icons/s-curve.png',tag:'Control de obra',titulo:'Curva S',desc:'Compara avance programado contra real y detecta desviaciones a tiempo.'},
+    {id:'checklist',rewardId:'tool-checklist',cost:200,icon:'i-clipboard-check',image:'assets/tool-icons/supervision-checklist.png',tag:'Supervisión',titulo:'Checklist de supervisión',desc:'Documenta inspecciones, hallazgos, acciones correctivas y responsables.'},
+    {id:'bitacora',rewardId:'tool-bitacora',cost:200,icon:'i-notebook',image:'assets/tool-icons/site-log.png',tag:'Seguimiento',titulo:'Bitácora de obra',desc:'Registra personal, clima, maquinaria, actividades e incidencias por día.'},
+    {id:'generadores',rewardId:'tool-generadores',cost:200,icon:'i-ruler',image:'assets/tool-icons/quantity-generators.png',tag:'Cuantificación',titulo:'Números generadores',desc:'Genera cantidades por concepto y prepara el soporte de tus estimaciones.'}
   ];
   window.IMFRA_TOOL_CATALOG=HERRAMIENTAS_PRO;
 
