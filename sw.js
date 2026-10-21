@@ -8,7 +8,7 @@
    Sube este archivo a la raíz del repositorio, junto a index.html.
    ============================================================ */
 
-var CACHE = 'imfra-vip-v58-books';
+var CACHE = 'imfra-vip-v59-resilience';
 
 // Al instalar, activarse de inmediato (sin esperar a que se cierren pestañas viejas)
 self.addEventListener('install', function (e) {

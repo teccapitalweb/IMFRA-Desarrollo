@@ -8742,6 +8742,35 @@ const Sections = (function(){
   let _dirPortadaTmp = undefined; // undefined=sin cambio, null=quitar, string=nueva
   let _dirMeta = { cargado: false, viewerVip: false, vip: new Set(), certificados: {}, contactos: {}, miContacto: null };
   let _dirSoloVip = false;
+  const DIR_SAFE_CACHE_KEY = 'imfra:directory-public-cache:v1';
+  const DIR_SAFE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+  function dirTarjetaCacheSegura(card){
+    const safeAsset = value => /^(?:https:\/\/|assets\/|\.\/|\/)/i.test(String(value || '')) ? String(value) : '';
+    return {
+      id:String(card?.id || card?.uid || ''), uid:String(card?.id || card?.uid || ''),
+      nombre:card?.nombre || 'Miembro IMFRA', puesto:card?.puesto || '',
+      empresa:card?.empresa || '', sector:card?.sector || '', bio:card?.bio || '',
+      estado:card?.estado || '', visible:card?.visible !== false,
+      foto:safeAsset(card?.foto), color:card?.color || '#2f6fa3',
+      portadaColor:DIR_PORTADAS[card?.portadaColor] ? card.portadaColor : 'dorado',
+      portadaImg:safeAsset(card?.portadaImg),
+      email:'', whatsapp:'', linkedin:'', instagram:'', web:''
+    };
+  }
+  function dirGuardarCacheSeguro(items){
+    try {
+      const cards = (items || []).slice(0,300).map(dirTarjetaCacheSegura).filter(card => card.id && card.visible !== false);
+      localStorage.setItem(DIR_SAFE_CACHE_KEY, JSON.stringify({ at:Date.now(), items:cards }));
+    } catch(e) { console.warn('[directorio cache]', e.message); }
+  }
+  function dirLeerCacheSeguro(){
+    try {
+      const cached = JSON.parse(localStorage.getItem(DIR_SAFE_CACHE_KEY) || 'null');
+      if (!cached?.at || Date.now() - cached.at > DIR_SAFE_CACHE_TTL_MS || !Array.isArray(cached.items)) return [];
+      return cached.items.map(dirTarjetaCacheSegura).filter(card => card.id && card.visible !== false);
+    } catch(e) { return []; }
+  }
 
   function dirViewerEsVip(){
     return _dirMeta.cargado ? _dirMeta.viewerVip : (window.UserState?.modo === 'vip' || esAdminReal());
@@ -9041,14 +9070,34 @@ const Sections = (function(){
 
   function dirSuscribir(){
     const fs = window.__fs;
-    if (!fs || !fs.onSnapshot){ const g=document.getElementById('dir-grid'); if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio.</div>'; return; }
+    if (!fs || !fs.onSnapshot){
+      const cached = dirLeerCacheSeguro();
+      if (cached.length) { _dirCards = cached; dirPintar(); return; }
+      const g=document.getElementById('dir-grid');
+      if(g) g.innerHTML='<div class="foro-empty">El directorio está temporalmente limitado; ninguna tarjeta fue eliminada.</div>';
+      return;
+    }
     if (_dirUnsub){ _dirUnsub(); _dirUnsub=null; }
     const q = fs.query(fs.collection(fs.db,'directorio'), fs.orderBy('updatedAt','desc'), fs.limit(300));
     _dirUnsub = fs.onSnapshot(q, (snap)=>{
       _dirCards = [];
       snap.forEach(d=>{ const x=d.data(); x.id=d.id; if(x.visible!==false) _dirCards.push(x); });
+      dirGuardarCacheSeguro(_dirCards);
       dirPintar();
-    }, (err)=>{ console.error('dir snap',err); const g=document.getElementById('dir-grid'); if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio.</div>'; });
+    }, (err)=>{
+      console.error('dir snap',err);
+      const cached = dirLeerCacheSeguro();
+      if (cached.length) {
+        _dirCards = cached;
+        dirPintar();
+        const grid=document.getElementById('dir-grid');
+        if(grid) grid.insertAdjacentHTML('afterbegin','<div class="foro-empty" style="grid-column:1/-1;padding:10px 14px;">Mostrando la última copia segura del directorio. Los contactos permanecen protegidos.</div>');
+        return;
+      }
+      const g=document.getElementById('dir-grid');
+      if(g) g.innerHTML='<div class="foro-empty">El directorio está temporalmente limitado; ninguna tarjeta fue eliminada.<br><button type="button" class="btn btn--ghost" id="dir-retry" style="margin-top:12px">Reintentar</button></div>';
+      document.getElementById('dir-retry')?.addEventListener('click',()=>{ g.innerHTML='<div class="foro-empty">Cargando directorio…</div>'; dirSuscribir(); });
+    });
   }
 
   function dirFotoHtml(c, clase){
