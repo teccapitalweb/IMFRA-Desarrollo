@@ -1198,6 +1198,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Comunidad</div>
       <a class="nav-item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros VIP<span class="nav-item__badge">486</span></a>
+      <a class="nav-item" data-section="estado-pagos" data-control-hub="1"><svg class="ic"><use href="#i-shield-check"/></svg>Control de cuentas<span class="nav-item__badge">NUEVO</span></a>
       <a class="nav-item" data-section="noticias"><svg class="ic"><use href="#i-news"/></svg>Noticias</a>
       <a class="nav-item" data-section="foro"><svg class="ic"><use href="#i-users"/></svg>Foro<span class="nav-item__badge" id="badge-foro">0</span></a>
       <a class="nav-item" data-section="directorio"><svg class="ic"><use href="#i-user"/></svg>Directorio<span class="nav-item__badge" id="badge-dir">0</span></a>
@@ -1235,7 +1236,7 @@ window.__signOut = async () => {
     <a class="mobile-nav__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos</a>
     <a class="mobile-nav__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</a>
     <a class="mobile-nav__item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros</a>
-    <a class="mobile-nav__item" data-section="config"><svg class="ic"><use href="#i-settings"/></svg>Config</a>
+    <a class="mobile-nav__item" data-section="estado-pagos" data-control-hub="1"><svg class="ic"><use href="#i-shield-check"/></svg>Cuentas</a>
   </nav>
 
 </div>
@@ -5716,6 +5717,10 @@ function dirAdminCargar(){
   }, (err)=>{ console.error('dir admin',err); const c=document.getElementById('dir-admin-list'); if(c) c.innerHTML='<div class="empty-state">Error al cargar el directorio.</div>'; });
 }
 
+window.Pages = Pages;
+window.Toast = Toast;
+window.Modal = Modal;
+
 /* ═══════════════════════════════════════════════════════════════
    MODIFICADO · RUTAS: recordar la pestaña abierta
    La pestaña activa vive en la URL (ej. vip-admin.html#miembros):
@@ -5729,9 +5734,12 @@ const SECCION_DEFAULT = 'dashboard';
 let __seccionActual = null;
 
 function __seccionesValidas(){
-  return new Set(Array.from(
+  const secciones = new Set(Array.from(
     document.querySelectorAll('.nav-item[data-section], .mobile-nav__item[data-section]')
   ).map(n => n.dataset.section));
+  secciones.add('auditoria');
+  secciones.add('creditos-masivos');
+  return secciones;
 }
 function __leerSeccionURL(){
   let s = '';
@@ -5753,7 +5761,11 @@ function navigate(section, opciones){
   if(section!=='directorio' && typeof _dirAdminUnsub==='function'){ _dirAdminUnsub(); _dirAdminUnsub=null; }
   document.querySelectorAll('.nav-item, .mobile-nav__item').forEach(n=>n.classList.remove('is-active'));
   document.querySelectorAll(`[data-section="${section}"]`).forEach(n=>n.classList.add('is-active'));
+  if(['estado-pagos','auditoria','creditos-masivos'].includes(section)){
+    document.querySelectorAll('[data-control-hub]').forEach(n=>n.classList.add('is-active'));
+  }
   const p=document.getElementById('page');
+  p.dataset.live=section;
   const fn=Pages[section]||Pages.dashboard;
   fn(p);
   window.scrollTo({top:0,behavior:'instant'});
@@ -5767,6 +5779,7 @@ function navigate(section, opciones){
     else history.pushState(null, '', destino);
   }
 }
+window.navigateTo = navigate;
 
 /* =========================================================
    ADMIN STORE · estado reactivo conectado a Firestore
@@ -6057,6 +6070,7 @@ if (window.__currentAdmin) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="assets/imfra-admin-marketing.js?v=3"></script>
+<script src="assets/imfra-account-control.js?v=1"></script>
 <link rel="stylesheet" href="./src/styles/v2-admin.css">
 <link rel="stylesheet" href="./src/styles/v3-admin-premium.css">
 <link rel="stylesheet" href="./src/styles/v4-admin-editorial.css">
