@@ -6904,10 +6904,10 @@ const Sections = (function(){
       </button>`;
     }).join('');
     const panelEstudioHtml=(variante='')=>`<aside class="lesson-side ${variante}">
-      <div class="lesson-side__tabs" role="tablist"><button class="is-active" type="button" data-lesson-tab="temario">Temario</button><button type="button" data-lesson-tab="notas">Notas</button><button type="button" data-lesson-tab="juego">Juego</button></div>
+      <div class="lesson-side__tabs" role="tablist"><button class="is-active" type="button" data-lesson-tab="temario">Temario</button><button type="button" data-lesson-tab="notas">Notas</button><button type="button" data-lesson-tab="evaluacion">Evaluación</button></div>
       <div class="lesson-side__panel is-active" data-lesson-panel="temario"><div class="lesson-outline">${temarioHtml}</div></div>
       <div class="lesson-side__panel" data-lesson-panel="notas"><label class="lesson-notes"><span>Tus notas de la clase</span><textarea data-lesson-notes placeholder="Escribe ideas, criterios o pendientes para tu obra…">${escapeHtml(notas)}</textarea><small data-notes-state>Se guardan automáticamente en este dispositivo.</small></label></div>
-      <div class="lesson-side__panel" data-lesson-panel="juego"><div class="lesson-side-game"><span class="lesson-side-game__icon" aria-hidden="true">${juegoInfo.icono}</span><h3>${escapeHtml(juegoInfo.nombre)}</h3><p>${escapeHtml(juegoInfo.instruccion)}</p><div class="lesson-side-game__state ${juegoGanado?'is-won':''}">${juegoGanado?'✓ Ganado':(yaVista?'Clase completada':'Pendiente')}</div><button type="button" data-lesson-game-start>${yaVista?'Jugar de nuevo':'Jugar y completar'}</button></div></div>
+      <div class="lesson-side__panel" data-lesson-panel="evaluacion"><div class="lesson-side-game"><span class="lesson-side-game__icon" aria-hidden="true">${juegoInfo.icono}</span><h3>${yaVista?'Evaluación aprobada':'Evaluación de la clase'}</h3><p>${escapeHtml(juegoInfo.instruccion)}</p><div class="lesson-side-game__state ${juegoGanado?'is-won':''}">${juegoGanado?'✓ Aprobada':(yaVista?'Clase completada':'Pendiente')}</div><button type="button" data-lesson-game-start>${yaVista?'Practicar de nuevo':'Comenzar evaluación'}</button></div></div>
     </aside>`;
 
     container.innerHTML=`<div class="fade-up lesson-page">
@@ -6920,7 +6920,7 @@ const Sections = (function(){
           </section>
           <section class="lesson-heading">
             <div><span>Clase ${num} de ${sesiones.length} · ${minutos} min</span><h1>${escapeHtml(contenido.titulo)}</h1><div class="lesson-heading__progress"><i style="width:${((sesionIdx+(yaVista?1:0))/sesiones.length)*100}%"></i><small>${progreso.clasesVistas.length} de ${sesiones.length} vistas · ${progresoCursoPct(cursoId,sesiones.length)}%</small></div></div>
-            <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete>${yaVista?(siguiente?'Continuar a la siguiente':'Volver al curso'):'Marcar vista y seguir'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete>${yaVista?(siguiente?'Continuar a la siguiente':'Volver al curso'):'Completar evaluación'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </section>
           ${panelEstudioHtml('lesson-side--mobile')}
           ${siguiente?`<button type="button" class="lesson-next ${siguienteAbierta?'is-ready':''}" data-lesson-next ${!siguienteAbierta?'disabled':''}><span class="lesson-next__thumb" style="background-image:linear-gradient(90deg,rgba(9,9,8,.24),rgba(9,9,8,.58)),url('${curso.portada||PORTADA_DEFAULT}')"></span><span><small>A continuación · clase ${siguienteNum}</small><strong>${escapeHtml(tituloClaseEditorial(curso,siguiente,sesionIdx+1))}</strong><em>${siguienteAbierta?'Lista para continuar':'Se desbloquea al marcar esta clase como vista'}</em></span><svg class="ic"><use href="#${siguienteAbierta?'i-arrow-right':'i-shield-check'}"/></svg></button>`:''}
@@ -6933,9 +6933,9 @@ const Sections = (function(){
 
           <section class="lesson-game-card" data-lesson-game>
             <span class="lesson-game-card__art" aria-hidden="true">${juegoInfo.icono}</span>
-            <div class="lesson-game-card__copy"><span class="lesson-section-kicker">Mini juego de la clase</span><h2>${escapeHtml(juegoInfo.nombre)}</h2><p>${escapeHtml(juegoInfo.instruccion)} ${juegoNota}</p></div>
-            <span class="lesson-game-card__state ${juegoGanado?'is-won':''}">${juegoGanado?'✓ Ganado':(yaVista?'Completada':'Pendiente')}</span>
-            <button type="button" class="lesson-game-card__start" data-lesson-game-start>${yaVista?'Jugar de nuevo':'Jugar y completar la clase'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            <div class="lesson-game-card__copy"><span class="lesson-section-kicker">Evaluación de la clase</span><h2>${escapeHtml(juegoInfo.nombre)}</h2><p>${escapeHtml(juegoInfo.instruccion)} ${juegoNota}</p></div>
+            <span class="lesson-game-card__state ${juegoGanado?'is-won':''}">${juegoGanado?'✓ Aprobada':(yaVista?'Completada':'Pendiente')}</span>
+            <button type="button" class="lesson-game-card__start" data-lesson-game-start>${yaVista?'Practicar de nuevo':'Comenzar evaluación'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </section>
         </main>
 
@@ -6964,7 +6964,7 @@ const Sections = (function(){
     const jugarClase=async()=>{
       if(jugando)return;
       const juegos=window.IMFRAClassGames;
-      if(!juegos){if(!yaVista)completarClase();return;}
+      if(!juegos){Toast.error('La evaluación aún no está lista','Recarga la página e inténtalo nuevamente. Tu avance no fue modificado.');return;}
       jugando=true;
       try{
         const ganado=await juegos.play({cursoId:String(cursoId),cursoTitulo:curso.titulo,claseIndex:sesionIdx,claseNumero:num,claseTitulo:contenido.titulo,portada:curso.portada||PORTADA_DEFAULT,practica:yaVista,creditos:!yaVista&&conCreditosJuego?CREDITOS_JUEGO_CLASE:0});
