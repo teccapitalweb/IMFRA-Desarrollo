@@ -7084,7 +7084,8 @@ const Sections = (function(){
           <div class="course-detail-progress__bar"><i style="width:${pct}%"></i></div>
           <ul><li><svg class="ic"><use href="#i-shield-check"/></svg>Certificado verificable al concluir</li><li><svg class="ic"><use href="#i-book"/></svg>${materialesCurso.length} materiales dentro del curso</li><li><svg class="ic"><use href="#i-clock"/></svg>Avanza a tu propio ritmo</li></ul>
         </aside>
-      </div>`}
+      </div>
+      <div id="course-rating-host"></div>`}
     </div>`;
 
     container.innerHTML=`<div class="fade-up course-page">
@@ -7093,6 +7094,21 @@ const Sections = (function(){
       </button>
       ${bodyContent}
     </div>`;
+    if(desbloqueado){
+      const ratingHost=container.querySelector('#course-rating-host');
+      if(ratingHost){
+        let attempts=0;
+        const mountRating=()=>{
+          if(!ratingHost.isConnected)return;
+          if(window.IMFRACourseRatings){
+            window.IMFRACourseRatings.mount({container:ratingHost,courseId:String(cursoId),courseTitle:c.titulo});
+            return;
+          }
+          if(attempts++<20)setTimeout(mountRating,100);
+        };
+        mountRating();
+      }
+    }
   }
 
   // Refresca la página de detalle para que la siguiente clase se desbloquee al
@@ -13874,6 +13890,7 @@ body{letter-spacing:-.05px}
 <script type="module" src="./src/features/budgets/budgets.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>
 <script type="module" src="./src/features/class-games/class-games.ts"></script>
+<script src="assets/imfra-course-ratings.js?v=1"></script>
 <script type="module" src="./src/features/analytics/tracker.ts"></script>
 <script src="assets/imfra-visitas.js?v=1" data-pagina="panel" defer></script>
 <script src="assets/imfra-push.js?v=2" defer></script>

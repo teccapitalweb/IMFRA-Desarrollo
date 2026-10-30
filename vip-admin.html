@@ -1184,6 +1184,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Contenido</div>
       <a class="nav-item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos<span class="nav-item__badge">12</span></a>
+      <a class="nav-item" data-section="calificaciones"><svg class="ic"><use href="#i-certificate"/></svg>Calificaciones</a>
       <a class="nav-item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo<span class="nav-item__badge">3</span></a>
       <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material<span class="nav-item__badge">9</span></a>
       <a class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados<span class="nav-item__badge">2</span></a>
@@ -1235,6 +1236,7 @@ window.__signOut = async () => {
   <nav class="mobile-nav">
     <a class="mobile-nav__item is-active" data-section="dashboard"><svg class="ic"><use href="#i-home"/></svg>Inicio</a>
     <a class="mobile-nav__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos</a>
+    <a class="mobile-nav__item" data-section="calificaciones"><svg class="ic"><use href="#i-certificate"/></svg>Opiniones</a>
     <a class="mobile-nav__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</a>
     <a class="mobile-nav__item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros</a>
     <a class="mobile-nav__item" data-section="estado-pagos" data-control-hub="1"><svg class="ic"><use href="#i-shield-check"/></svg>Cuentas</a>
@@ -6110,6 +6112,7 @@ if (window.__currentAdmin) {
   if(window.__currentAdmin)loadList(true);
 })();
 </script>
+<script src="assets/imfra-course-ratings-admin.js?v=1"></script>
 <script type="module" src="./src/features/training/admin.ts"></script>
 <script type="module" src="./src/features/analytics/admin-metrics.ts"></script>
 
