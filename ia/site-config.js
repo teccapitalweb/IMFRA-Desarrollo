@@ -1,167 +1,194 @@
 window.SITE_CONFIG = {
   status: {
-    label: "Vista preliminar para revisión",
-    note: "Temario y semblanza sujetos a validación. Cobros no activados."
+    label: "Información oficial actualizada",
+    note: "Inscripción en preparación · Stripe permanece desactivado."
   },
   brand: {
-    name: "IMFRA DESARROLLO",
-    logo: "./assets/imfra-logo.png",
-    website: "https://imfradesarrollo.com/"
+    name: "IMDIIL",
+    fullName: "Instituto Mexicano de Ingeniería Industrial y Logística",
+    eventUrl: "https://imfradesarrollo.com/ia/"
   },
   course: {
-    title: "IA PARA EMPRESARIOS",
-    eyebrow: "IMFRA DESARROLLO · CAPACITACIÓN EJECUTIVA",
-    tagline: "De las herramientas a la implementación en tu negocio.",
-    description: "Aprende a aplicar inteligencia artificial, automatizar procesos, desarrollar soluciones asistidas y diseñar agentes de IA para tu empresa.",
-    dateLong: "Viernes 27 de noviembre de 2026",
-    dateShort: "27 NOV 2026",
-    schedule: "10:00 a. m. — 2:00 p. m.",
-    timezone: "Hora de Ciudad de México",
-    duration: "4 horas",
-    modality: "Online en vivo",
-    platform: "Google Meet",
-    price: 899,
+    title: "INTELIGENCIA ARTIFICIAL PARA EMPRESARIOS",
+    eyebrow: "IMDIIL · CAPACITACIÓN EMPRESARIAL",
+    tagline: "Cómo aumentar ventas, reducir costos y automatizar tu negocio con IA.",
+    description: "Una experiencia presencial para aplicar inteligencia artificial en ventas, operaciones, control, dirección y automatización empresarial.",
+    dateLong: "Jueves 26 de noviembre de 2026",
+    dateShort: "26 NOV 2026",
+    startDate: "2026-11-26T09:00:00-06:00",
+    endDate: "2026-11-26T16:00:00-06:00",
+    schedule: "9:00 a. m. — 4:00 p. m.",
+    scheduleShort: "09:00 — 16:00",
+    duration: "6 horas efectivas",
+    modality: "100 % presencial",
+    city: "Tehuacán, Puebla",
+    venueNote: "La ubicación exacta del recinto se proporcionará después de confirmar la adquisición del pase.",
+    capacity: "Cupo limitado",
+    requirement: "Laptop personal",
+    price: 1199,
     currency: "MXN",
-    audience: ["Gerentes", "Directores", "Líderes", "Dueños de negocios"]
+    audience: ["Empresarios", "Emprendedores", "Gerentes", "Directivos"],
+    ticketBenefits: [
+      "Cupo limitado",
+      "6 horas efectivas de formación presencial",
+      "Seis módulos con ejercicios prácticos",
+      "Plan empresarial de implementación a 30 días",
+      "Laptop personal requerida"
+    ]
   },
   video: {
     provider: null,
     source: null,
-    title: "IA aplicada, decisiones con criterio",
+    title: "IA aplicada a decisiones empresariales",
     status: "Video promocional en preparación",
-    description: "Este espacio está preparado para integrar la pieza oficial en YouTube, Vimeo o alojamiento propio cuando sea autorizada."
+    description: "Este espacio está preparado para integrar la pieza oficial cuando sea autorizada."
   },
   valuePillars: [
     {
       number: "01",
-      label: "Detectar",
-      title: "Oportunidades que sí mueven el negocio",
-      body: "Analiza procesos reales y prioriza por impacto, complejidad, costo y retorno esperado."
+      label: "Vender",
+      title: "Convierte información en oportunidades comerciales",
+      body: "Conoce mejor a tus clientes, fortalece propuestas y diseña estrategias para generar recompras."
     },
     {
       number: "02",
-      label: "Diseñar",
-      title: "Flujos inteligentes, no tareas aisladas",
-      body: "Convierte una actividad manual en un proceso estructurado, medible y asistido por IA."
+      label: "Optimizar",
+      title: "Recupera tiempo y controla mejor tus números",
+      body: "Automatiza tareas repetitivas y analiza ventas, costos, gastos y márgenes con mayor claridad."
     },
     {
       number: "03",
       label: "Implementar",
-      title: "Una ruta con supervisión y límites claros",
-      body: "Comprende prototipos, agentes, permisos y validaciones antes de poner una solución en marcha."
+      title: "Lleva la IA a un proceso concreto de tu empresa",
+      body: "Configura asistentes y construye una ruta de implementación por etapas, responsables e indicadores."
     }
   ],
   modules: [
     {
       number: "01",
-      time: "10:00 — 10:50",
-      title: "IA estratégica: del potencial a la rentabilidad",
-      objective: "Identificar dónde implementar inteligencia artificial para generar valor empresarial.",
+      duration: "60 MIN",
+      title: "Haz que tu empresa venda más con IA",
       topics: [
-        "Inteligencia artificial generativa, automatización y agentes.",
-        "Cómo identificar procesos empresariales que pueden beneficiarse de IA.",
-        "Aplicaciones en ventas, administración, operaciones y dirección.",
-        "Evaluación de impacto, complejidad, costos y retorno esperado.",
-        "Diagnóstico de oportunidades dentro del negocio."
-      ]
+        "Detecta oportunidades de venta y conoce mejor a tus clientes.",
+        "Crea ofertas y propuestas comerciales con apoyo de IA.",
+        "Identifica objeciones y fortalece tus argumentos de venta.",
+        "Analiza clientes y diseña estrategias para generar recompras."
+      ],
+      exercise: "Diseña una estrategia comercial para tu propio negocio."
     },
     {
       number: "02",
-      time: "10:50 — 11:45",
-      title: "Implementación práctica de IA en los procesos empresariales",
-      objective: "Comprender cómo integrar herramientas inteligentes en procesos operativos existentes.",
+      duration: "60 MIN",
+      title: "Automatiza tareas y recupera tu tiempo",
       topics: [
-        "Diseño de instrucciones efectivas y reutilizables.",
-        "Análisis de documentos, propuestas comerciales y datos.",
-        "Automatización de reportes y tareas repetitivas.",
-        "Integración de herramientas de IA en procesos de trabajo.",
-        "Ejercicio: transformar una tarea manual en un flujo asistido por IA."
-      ]
+        "Identifica actividades repetitivas que consumen recursos.",
+        "Agiliza cotizaciones, correos, reportes y documentos.",
+        "Crea asistentes virtuales para tareas administrativas.",
+        "Conecta herramientas para diseñar flujos sencillos de trabajo."
+      ],
+      exercise: "Diseña una automatización básica para ahorrar tiempo."
     },
     {
       number: "03",
-      time: "11:55 — 12:55",
-      title: "Programación con IA y desarrollo de soluciones para negocios",
-      objective: "Conocer cómo utilizar IA para acelerar el desarrollo de soluciones digitales.",
+      duration: "60 MIN",
+      title: "Controla tus números y detecta fugas",
       topics: [
-        "Convertir una necesidad empresarial en requisitos de software.",
-        "Programación asistida por inteligencia artificial.",
-        "Construcción guiada de un prototipo funcional sencillo.",
-        "Integración conceptual de formularios, datos y APIs.",
-        "Validación, pruebas y seguridad de soluciones desarrolladas con IA.",
-        "Demostración práctica de desarrollo de una herramienta empresarial."
-      ]
+        "Analiza ventas, costos, gastos y márgenes de tu negocio.",
+        "Detecta productos o servicios con menor rentabilidad.",
+        "Prepara presupuestos y escenarios comerciales con IA.",
+        "Genera reportes claros para tomar mejores decisiones."
+      ],
+      exercise: "Analiza un conjunto de datos de ejemplo para detectar mejoras."
     },
     {
       number: "04",
-      time: "12:55 — 14:00",
-      title: "Agentes de IA: automatización inteligente y plan de implementación",
-      objective: "Diseñar una ruta realista para comenzar a utilizar agentes de inteligencia artificial en un negocio.",
+      duration: "60 MIN",
+      title: "Dirige y supervisa tu equipo con IA",
       topics: [
-        "Qué es un agente de IA y cómo funciona.",
-        "Diferencias entre chatbot, automatización y agente autónomo.",
-        "Agentes empresariales para ventas, atención y operaciones.",
-        "Herramientas, instrucciones, permisos y conexiones.",
-        "Demostración de un flujo de trabajo con agentes de IA.",
-        "Supervisión humana, manejo de errores y protección de información.",
-        "Plan inicial de implementación empresarial a 30 días."
-      ]
+        "Define indicadores de productividad por área o responsable.",
+        "Desarrolla manuales, procesos y responsabilidades claras.",
+        "Automatiza reportes de actividades y seguimiento.",
+        "Usa IA para preparar reuniones y evaluar procesos."
+      ],
+      exercise: "Crea un tablero básico de control para tu equipo."
+    },
+    {
+      number: "05",
+      duration: "60 MIN",
+      title: "Crea asistentes de IA para tu empresa",
+      topics: [
+        "Diseña asistentes especializados sin necesidad de programar.",
+        "Aplica asistentes a ventas, operaciones y administración.",
+        "Configura instrucciones y conocimiento del negocio.",
+        "Aprende a validar respuestas y proteger información sensible."
+      ],
+      exercise: "Configura un asistente para una necesidad específica."
+    },
+    {
+      number: "06",
+      duration: "60 MIN",
+      title: "Implementa IA en los próximos 30 días",
+      topics: [
+        "Identifica tres procesos que conviene mejorar primero.",
+        "Elige herramientas según recursos y complejidad.",
+        "Organiza un plan de acción por etapas y responsables.",
+        "Define indicadores para medir tiempo, costos y resultados."
+      ],
+      exercise: "Construye tu plan empresarial de implementación a 30 días."
     }
   ],
-  break: {
-    time: "11:45 — 11:55",
-    label: "Descanso · 10 minutos"
-  },
   outcomes: [
-    ["Identificar oportunidades", "Detectar procesos donde aplicar IA."],
-    ["Automatizar operaciones", "Diseñar flujos más eficientes."],
-    ["Desarrollar soluciones", "Comprender la programación asistida."],
-    ["Crear estrategias con agentes", "Diseñar asistentes para tareas empresariales."],
-    ["Evaluar impacto", "Priorizar proyectos según su valor."],
-    ["Planificar la implementación", "Establecer próximos pasos para adoptar IA."]
+    ["Estrategia comercial", "Diseña una ruta para vender más y generar recompras."],
+    ["Automatización básica", "Define un flujo sencillo para ahorrar tiempo."],
+    ["Control financiero", "Detecta fugas y oportunidades en datos de negocio."],
+    ["Supervisión de equipos", "Crea un tablero básico de productividad."],
+    ["Asistente especializado", "Configura instrucciones para una necesidad concreta."],
+    ["Plan a 30 días", "Prioriza procesos, responsables e indicadores de implementación."]
   ],
   speaker: {
     name: "Ing. Ricardo Olmos Rivera",
-    role: "Ponente · cargo sujeto a validación",
-    photo: null,
+    role: "Empresario y CEO de Teccapital Web",
+    photo: "./assets/ricardo-olmos-rivera.png",
     bio: [
-      "Fundador de TEC CAPITAL Group y director de Software a la Medida, con experiencia en el desarrollo de plataformas digitales, automatización de procesos y soluciones tecnológicas para empresas.",
-      "Su trayectoria incluye proyectos de digitalización, sistemas de gestión y aplicación de herramientas tecnológicas para optimizar operaciones y apoyar la toma de decisiones empresariales."
+      "Especializado en tecnología, inteligencia artificial, automatización empresarial y desarrollo de software, cuenta con más de cinco años de experiencia en el sector tecnológico.",
+      "Ha liderado el desarrollo de más de 15 soluciones de software para diferentes industrias y participado en la capacitación de más de 100 empresas a nivel nacional.",
+      "Actualmente dirige un equipo especializado en desarrollo de software e implementación de soluciones tecnológicas para empresas. Su trabajo busca mejorar la productividad, reducir costos, optimizar recursos y apoyar la toma de decisiones mediante tecnología."
     ],
-    disclaimer: "Semblanza preliminar para revisión. Fotografía profesional pendiente de autorización."
+    disclaimer: ""
   },
   checkout: {
     enabled: false,
     mode: "test",
     url: null,
-    notice: "Checkout de Stripe aún no configurado. Esta vista no realiza cobros ni registra datos."
+    notice: "Stripe permanece desactivado. Antes de cobrar se validarán el producto, el importe de $1,199 MXN, la institución receptora, las condiciones fiscales y las políticas del evento."
   },
   faq: [
-    ["¿Cuándo se realizará el curso?", "El viernes 27 de noviembre de 2026."],
-    ["¿En qué horario?", "De 10:00 a. m. a 2:00 p. m., hora de Ciudad de México."],
-    ["¿Cuál es la modalidad?", "Online en vivo mediante Google Meet."],
-    ["¿Cuánto cuesta la inscripción?", "$899 MXN. Antes de activar el cobro se confirmará el tratamiento de impuestos aplicable."],
-    ["¿A quién está dirigido?", "A gerentes, directores, líderes y dueños de negocios."],
-    ["¿Quién imparte el curso?", "Ing. Ricardo Olmos Rivera."]
+    ["¿Cuándo se realizará el curso?", "El jueves 26 de noviembre de 2026."],
+    ["¿En qué horario?", "De 9:00 a. m. a 4:00 p. m., con seis horas efectivas de formación."],
+    ["¿Cuál es la modalidad?", "100 % presencial en Tehuacán, Puebla."],
+    ["¿Dónde será el evento?", "La ubicación exacta del recinto se proporcionará después de confirmar la adquisición del pase."],
+    ["¿Cuánto cuesta la inscripción?", "$1,199 MXN. El cupo es limitado."],
+    ["¿A quién está dirigido?", "A empresarios, emprendedores, gerentes y directivos."],
+    ["¿Qué debo llevar?", "Laptop personal."],
+    ["¿Quién imparte el curso?", "Ing. Ricardo Olmos Rivera, empresario y CEO de Teccapital Web."]
   ],
   pending: [
-    "Aprobación final del temario",
-    "CV, cargo y semblanza oficial del ponente",
-    "Fotografía autorizada",
-    "Video promocional",
-    "Certificado, grabación y materiales",
-    "Políticas de cancelación y reembolso",
-    "Enlace oficial de Google Meet",
-    "Stripe de prueba, webhook y confirmaciones por correo"
+    "Ubicación exacta del recinto",
+    "Canal oficial de atención e inscripción de IMDIIL",
+    "Video promocional autorizado",
+    "Producto y cuenta receptora de Stripe",
+    "Condiciones fiscales y políticas aplicables",
+    "Páginas y correos de confirmación de compra"
   ],
   contact: {
-    phone: "+52 1 238 222 0811",
-    email: "teccapitalweb@gmail.com",
-    location: "Tehuacán, Puebla, México"
+    phone: null,
+    email: null,
+    location: "Tehuacán, Puebla",
+    venueNote: "Recinto exacto después de confirmar el pase"
   },
   seo: {
-    title: "IA para Empresarios | IMFRA Desarrollo",
-    description: "Capacitación ejecutiva online para aplicar inteligencia artificial, automatización y agentes en procesos empresariales. 27 de noviembre de 2026.",
-    image: "https://imfradesarrollo.com/ia/assets/og-imfra-ia.svg"
+    title: "Inteligencia Artificial para Empresarios | IMDIIL",
+    description: "Curso presencial en Tehuacán para aumentar ventas, reducir costos y automatizar tu negocio con IA. 26 de noviembre de 2026.",
+    image: "https://imfradesarrollo.com/ia/assets/og-imdiil-ia.png"
   }
 };

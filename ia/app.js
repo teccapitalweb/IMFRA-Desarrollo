@@ -4,7 +4,7 @@
   const $ = (selector, scope = document) => scope.querySelector(selector);
   const $$ = (selector, scope = document) => [...scope.querySelectorAll(selector)];
 
-  const money = (amount) => new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 }).format(amount);
+  const money = amount => new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 }).format(amount);
 
   function applyContent() {
     document.title = config.seo.title;
@@ -12,32 +12,44 @@
     $("meta[property='og:title']").content = config.seo.title;
     $("meta[property='og:description']").content = config.seo.description;
     $("meta[property='og:image']").content = config.seo.image;
+
     $("#reviewLabel").textContent = config.status.label;
     $("#reviewNote").textContent = config.status.note;
-    $("#brandLogo").src = config.brand.logo;
+    $("#brandName").textContent = config.brand.name;
     $("#heroEyebrow").textContent = config.course.eyebrow;
     $("#heroTagline").textContent = config.course.tagline;
     $("#heroDescription").textContent = config.course.description;
+    $(".editorial-topline span:first-child").textContent = `CURSO PRESENCIAL · ${config.course.capacity.toUpperCase()}`;
+    $(".editorial-topline span:last-child").textContent = `${config.course.city.toUpperCase()} · 2026`;
+    $(".editorial-byline strong").textContent = config.speaker.name.toUpperCase();
     $("#metaDate").textContent = config.course.dateShort;
-    $("#metaSchedule").textContent = config.course.schedule.replaceAll("a. m.", "").replaceAll("p. m.", "");
+    $("#metaSchedule").textContent = config.course.scheduleShort;
     $("#metaModality").textContent = config.course.modality;
     $("#metaPrice").textContent = `$${money(config.course.price)} ${config.course.currency}`;
+
     $("#videoState").textContent = config.video.status;
     $("#videoDescription").textContent = config.video.description;
-    $("#speakerName").innerHTML = `${config.speaker.name.replace("Ing. ", "").split(" ").slice(0,2).join(" ").toUpperCase()}<br><em>${config.speaker.name.replace("Ing. ", "").split(" ").slice(2).join(" ").toUpperCase()}</em>`;
+    $("#speakerName").innerHTML = `${config.speaker.name.replace("Ing. ", "").split(" ").slice(0, 2).join(" ").toUpperCase()}<br><em>${config.speaker.name.replace("Ing. ", "").split(" ").slice(2).join(" ").toUpperCase()}</em>`;
     $("#speakerRole").textContent = config.speaker.role;
-    $("#speakerBio").innerHTML = config.speaker.bio.map(p => `<p>${p}</p>`).join("");
-    $("#speakerDisclaimer").textContent = config.speaker.disclaimer;
+    $("#speakerBio").innerHTML = config.speaker.bio.map(paragraph => `<p>${paragraph}</p>`).join("");
+    $("#speakerPhoto").src = config.speaker.photo;
+    $("#speakerPhoto").alt = config.speaker.name;
+    const disclaimer = $("#speakerDisclaimer");
+    disclaimer.textContent = config.speaker.disclaimer;
+    disclaimer.hidden = !config.speaker.disclaimer;
+
     $("#enrollDate").textContent = config.course.dateShort;
     $("#enrollTime").textContent = config.course.schedule;
+    $("#enrollLocation").textContent = config.course.city.toUpperCase();
     $("#ticketPrice").textContent = money(config.course.price);
+    $("#ticketBenefits").innerHTML = config.course.ticketBenefits.map(item => `<li>${item}</li>`).join("");
     $("#checkoutNotice").textContent = config.checkout.notice;
-    $("#contactPhone").textContent = config.contact.phone;
-    $("#contactEmail").textContent = config.contact.email;
+    $("#mobilePrice").textContent = `$${money(config.course.price)}`;
     $("#contactLocation").textContent = config.contact.location;
+    $("#venueNote").textContent = config.contact.venueNote;
 
-    $("#valueRows").innerHTML = config.valuePillars.map((item, i) => `
-      <article class="value-row reveal" data-delay="${Math.min(i, 3)}">
+    $("#valueRows").innerHTML = config.valuePillars.map((item, index) => `
+      <article class="value-row reveal" data-delay="${Math.min(index, 3)}">
         <span class="number">${item.number}</span>
         <span class="label">${item.label}</span>
         <h3>${item.title}</h3>
@@ -45,43 +57,42 @@
         <span class="arrow" aria-hidden="true">→</span>
       </article>`).join("");
 
-    $("#programList").innerHTML = config.modules.map((item, index) => {
-      const breakMarkup = index === 2 ? `<div class="program-break"><i></i><strong>${config.break.time}</strong><span>${config.break.label}</span></div>` : "";
-      return `${breakMarkup}<article class="program-item reveal" data-delay="${Math.min(index, 3)}">
+    $("#programList").innerHTML = config.modules.map((item, index) => `
+      <article class="program-item reveal" data-delay="${Math.min(index, 3)}">
         <button class="program-trigger" type="button" aria-expanded="${index === 0}" aria-controls="module-${index}">
           <span class="program-number">${item.number}</span>
-          <span class="program-time">${item.time}</span>
+          <span class="program-time">${item.duration}</span>
           <span class="program-title">${item.title}</span>
           <span class="program-plus" aria-hidden="true">+</span>
         </button>
         <div class="program-panel" id="module-${index}" aria-hidden="${index !== 0}">
           <div><div class="program-panel-content">
             <ol>${item.topics.map(topic => `<li>${topic}</li>`).join("")}</ol>
-            <p class="program-objective"><strong>OBJETIVO DEL MÓDULO</strong>${item.objective}</p>
+            <p class="program-objective"><strong>EJERCICIO PRÁCTICO</strong>${item.exercise}</p>
           </div></div>
         </div>
-      </article>`;
-    }).join("");
-    $(".program-item").classList.add("open");
+      </article>`).join("");
+    const firstModule = $(".program-item");
+    if (firstModule) firstModule.classList.add("open");
 
-    $("#outcomeTrack").innerHTML = config.outcomes.map((item, i) => `
-      <article class="outcome-card reveal" data-delay="${i % 3}">
-        <span class="index">0${i + 1}</span>
+    $("#outcomeTrack").innerHTML = config.outcomes.map((item, index) => `
+      <article class="outcome-card reveal" data-delay="${index % 3}">
+        <span class="index">0${index + 1}</span>
         <div><h3>${item[0]}</h3><p>${item[1]}</p></div>
       </article>`).join("");
 
-    $("#audienceGrid").innerHTML = config.course.audience.map((item, i) => `
-      <article class="audience-card reveal" data-delay="${i}">
-        <span>0${i + 1}</span>
+    $("#audienceGrid").innerHTML = config.course.audience.map((item, index) => `
+      <article class="audience-card reveal" data-delay="${index}">
+        <span>0${index + 1}</span>
         <div><h3>${item}</h3><p>${audienceCopy(item)}</p></div>
       </article>`).join("");
 
-    $("#faqList").innerHTML = config.faq.map((item, i) => `
+    $("#faqList").innerHTML = config.faq.map((item, index) => `
       <article class="faq-item reveal">
-        <button class="faq-trigger" type="button" aria-expanded="false" aria-controls="faq-${i}">
-          <span class="index">0${i + 1}</span><span class="question">${item[0]}</span><span class="plus" aria-hidden="true">+</span>
+        <button class="faq-trigger" type="button" aria-expanded="false" aria-controls="faq-${index}">
+          <span class="index">0${index + 1}</span><span class="question">${item[0]}</span><span class="plus" aria-hidden="true">+</span>
         </button>
-        <div class="faq-answer" id="faq-${i}" aria-hidden="true"><div><p>${item[1]}</p></div></div>
+        <div class="faq-answer" id="faq-${index}" aria-hidden="true"><div><p>${item[1]}</p></div></div>
       </article>`).join("");
     $("#pendingList").innerHTML = config.pending.map(item => `<li>${item}</li>`).join("");
 
@@ -90,23 +101,40 @@
       "@type": "EducationEvent",
       name: config.course.title,
       description: config.course.description,
-      startDate: "2026-11-27T10:00:00-06:00",
-      endDate: "2026-11-27T14:00:00-06:00",
-      eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+      startDate: config.course.startDate,
+      endDate: config.course.endDate,
+      eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
       eventStatus: "https://schema.org/EventScheduled",
-      location: { "@type": "VirtualLocation", url: config.brand.website },
-      organizer: { "@type": "Organization", name: config.brand.name, url: config.brand.website },
-      performer: { "@type": "Person", name: config.speaker.name },
-      offers: { "@type": "Offer", price: config.course.price, priceCurrency: config.course.currency, availability: "https://schema.org/PreOrder", url: config.brand.website }
+      location: {
+        "@type": "Place",
+        name: "Recinto por confirmar",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Tehuacán",
+          addressRegion: "Puebla",
+          addressCountry: "MX"
+        }
+      },
+      organizer: { "@type": "Organization", name: config.brand.fullName },
+      performer: { "@type": "Person", name: config.speaker.name, jobTitle: config.speaker.role },
+      offers: {
+        "@type": "Offer",
+        price: config.course.price,
+        priceCurrency: config.course.currency,
+        availability: "https://schema.org/LimitedAvailability",
+        url: config.brand.eventUrl
+      },
+      image: config.seo.image,
+      url: config.brand.eventUrl
     });
   }
 
   function audienceCopy(label) {
     const copy = {
-      "Gerentes": "Procesos, equipos y métricas con una nueva lectura.",
-      "Directores": "Criterio para priorizar inversión e impacto.",
-      "Líderes": "Herramientas para convertir ideas en iniciativas.",
-      "Dueños de negocios": "Una ruta práctica para adoptar IA con control."
+      Empresarios: "Decisiones, costos y crecimiento con una nueva lectura.",
+      Emprendedores: "Procesos claros para convertir ideas en acciones.",
+      Gerentes: "Herramientas para mejorar operación, equipos y métricas.",
+      Directivos: "Criterio para priorizar recursos, riesgos e impacto."
     };
     return copy[label] || "Aplicación empresarial con criterio.";
   }
@@ -137,7 +165,11 @@
   function setupNavigation() {
     const toggle = $("#menuToggle");
     const nav = $("#siteNav");
-    const close = () => { toggle.setAttribute("aria-expanded", "false"); nav.classList.remove("open"); document.body.classList.remove("menu-open"); };
+    const close = () => {
+      toggle.setAttribute("aria-expanded", "false");
+      nav.classList.remove("open");
+      document.body.classList.remove("menu-open");
+    };
     toggle.addEventListener("click", () => {
       const open = toggle.getAttribute("aria-expanded") !== "true";
       toggle.setAttribute("aria-expanded", String(open));
@@ -145,28 +177,21 @@
       document.body.classList.toggle("menu-open", open);
     });
     $$("a", nav).forEach(link => link.addEventListener("click", close));
-    document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+    document.addEventListener("keydown", event => { if (event.key === "Escape") close(); });
   }
 
   function setupMotion() {
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const reveals = $$(".reveal");
-    if (reduced || !("IntersectionObserver" in window)) reveals.forEach(el => el.classList.add("visible"));
+    if (reduced || !("IntersectionObserver" in window)) reveals.forEach(element => element.classList.add("visible"));
     else {
       const observer = new IntersectionObserver(entries => entries.forEach(entry => {
-        if (entry.isIntersecting) { entry.target.classList.add("visible"); observer.unobserve(entry.target); }
-      }), { threshold: .12, rootMargin: "0px 0px -7%" });
-      reveals.forEach(el => observer.observe(el));
-    }
-    if (!reduced && matchMedia("(pointer: fine)").matches) {
-      const stage = $("#systemStage");
-      stage.closest(".decision-system").addEventListener("pointermove", e => {
-        const box = stage.getBoundingClientRect();
-        const x = (e.clientX - box.left) / box.width - .5;
-        const y = (e.clientY - box.top) / box.height - .5;
-        stage.style.transform = `perspective(900px) rotateX(${y * -5}deg) rotateY(${x * 6}deg)`;
-      });
-      stage.closest(".decision-system").addEventListener("pointerleave", () => stage.style.transform = "");
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      }), { threshold: 0.12, rootMargin: "0px 0px -7%" });
+      reveals.forEach(element => observer.observe(element));
     }
   }
 
