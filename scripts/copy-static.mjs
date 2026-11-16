@@ -6,6 +6,7 @@ const output = resolve(root, "dist");
 const entries = [
   "assets",
   "assistant",
+  "ia",
   "CNAME",
   "firma-director-imfra.png",
   "firma-ipci.png",

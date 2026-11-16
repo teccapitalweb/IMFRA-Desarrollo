@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <pattern id="g" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#ffffff" stroke-opacity=".07"/></pattern>
+    <radialGradient id="r"><stop stop-color="#f59d1a" stop-opacity=".34"/><stop offset="1" stop-color="#f59d1a" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#111111"/>
+  <rect width="1200" height="630" fill="url(#g)"/>
+  <circle cx="940" cy="300" r="280" fill="url(#r)"/>
+  <g fill="none" stroke="#f59d1a" stroke-opacity=".48"><circle cx="920" cy="315" r="190"/><circle cx="920" cy="315" r="108" stroke-dasharray="5 10"/><path d="M920 125v380M730 315h380M786 181l268 268M1054 181L786 449"/></g>
+  <rect x="864" y="259" width="112" height="112" transform="rotate(45 920 315)" fill="#f59d1a"/>
+  <text x="56" y="73" fill="#f59d1a" font-family="Arial,sans-serif" font-size="20" font-weight="700" letter-spacing="4">IMFRA DESARROLLO · CAPACITACIÓN EJECUTIVA</text>
+  <text x="56" y="250" fill="#ffffff" font-family="Arial,sans-serif" font-size="142" font-weight="800" letter-spacing="-10">IA</text>
+  <text x="56" y="370" fill="none" stroke="#ffffff" stroke-opacity=".75" font-family="Arial,sans-serif" font-size="128" font-weight="800" letter-spacing="-9">PARA</text>
+  <text x="56" y="470" fill="#f59d1a" font-family="Arial,sans-serif" font-size="84" font-weight="800" letter-spacing="-4">EMPRESARIOS</text>
+  <text x="60" y="548" fill="#b8b2aa" font-family="Arial,sans-serif" font-size="24">27 NOV 2026 · ONLINE EN VIVO · $899 MXN</text>
+  <text x="920" y="332" text-anchor="middle" fill="#111111" font-family="Arial,sans-serif" font-size="50" font-weight="800">IA</text>
+</svg>
