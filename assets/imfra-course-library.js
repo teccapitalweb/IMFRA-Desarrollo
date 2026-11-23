@@ -117,24 +117,25 @@
         <div class="curso-card__cover"><img src="${esc(course.portada || fallbackCover)}" alt="" width="1200" height="675" decoding="async" loading="${index < 4 ? 'eager' : 'lazy'}"></div>
         <div class="curso-card__body">
           <div class="curso-card__tags"><span class="tag">${esc(course.area)}</span><span class="tag">${esc(course.nivel)}</span></div>
-          <div class="curso-card__copy"><h3 class="curso-card__title">${esc(course.titulo)}</h3><p class="curso-card__desc">${esc(course.desc || course.descripcion)}</p></div>
+          <h3 class="curso-card__title" title="${esc(course.titulo)}">${esc(course.titulo)}</h3>
           <div class="curso-card__meta">
             ${course.instructor ? `<span>${icon('user')}${esc(course.instructor.replace(/Equipo IMFRA/i, 'IMFRA'))}</span>` : ''}
             ${course.horas ? `<span>${icon('clock')}${esc(course.horas)} h</span>` : ''}
             <span>${icon('book')}${course.sesiones.length} ${course.sesiones.length === 1 ? 'clase' : 'clases'}</span>
             ${resources ? `<span>${icon('news')}${resources} ${resources === 1 ? 'recurso' : 'recursos'}</span>` : ''}
           </div>
-          <div class="curso-card__rating" data-course-rating="${esc(course.id)}"></div>
+          <div class="curso-card__rating" data-course-rating="${esc(course.id)}" hidden></div>
           ${progress ? `<div class="curso-card__progress" aria-label="${progress}% completado"><div class="curso-card__progress-bar"><div class="curso-card__progress-fill" style="width:${progress}%"></div></div><span class="curso-card__progress-pct">${progress}%</span></div>` : ''}
           <div class="curso-card__footer">
-            <span class="curso-card__state${open ? ' is-open' : ''}">${icon(open ? 'check' : 'shield-check')}${esc(label)}</span>
-            <button type="button" class="curso-card__action" data-course-details aria-label="${action}: ${esc(course.titulo)}">${action} ${icon('arrow-right')}</button>
+            <div class="curso-card__footer-line">
+              <span class="curso-card__state${open ? ' is-open' : ''}">${icon(open ? 'check' : 'shield-check')}${esc(label)}</span>
+              ${ready ? `<button type="button" class="curso-card__priority" data-course-prioritize>${rank ? 'Prioridad #' + rank : 'Priorizar'}</button>` : ''}
+            </div>
+            ${free ? '<button type="button" class="curso-card__action is-primary" data-course-free>Elegir gratis</button>'
+              : ready && state.available ? '<button type="button" class="curso-card__action is-primary" data-course-choose>Elegir curso</button>'
+              : `<button type="button" class="curso-card__action${open ? ' is-primary' : ''}" data-course-details aria-label="${action}: ${esc(course.titulo)}">${action} ${icon('arrow-right')}</button>`}
+            ${free || (ready && state.available) ? `<button type="button" class="curso-card__more" data-course-details aria-label="Ver detalles: ${esc(course.titulo)}">Ver detalles ${icon('arrow-right')}</button>` : ''}
           </div>
-          ${free || ready ? `<div class="curso-card__choice">
-            ${free ? '<button type="button" class="course-route-button" data-course-free>Elegir gratis</button>' : ''}
-            ${ready && state.available ? '<button type="button" class="course-route-button" data-course-choose>Elegir curso</button>' : ''}
-            ${ready ? `<button type="button" class="course-route-button is-quiet" data-course-prioritize>${rank ? 'Prioridad #' + rank : 'Priorizar'}</button>` : ''}
-          </div>` : ''}
         </div>
       </article>`;
     }).join('')}</div>`;

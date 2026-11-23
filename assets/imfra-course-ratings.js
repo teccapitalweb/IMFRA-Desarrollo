@@ -53,16 +53,17 @@
     });
   }
 
-  function paintCatalog(root, unavailable) {
+  function paintCatalog(root) {
     root.querySelectorAll('[data-course-rating]').forEach(function (host) {
       var item = catalogRatings.get(host.dataset.courseRating);
       var count = Number(item?.ratingCount) || 0;
       var average = Math.max(0, Math.min(5, Number(item?.average) || 0));
       if (!count) {
-        var label = unavailable && !item ? 'Valoraciones no disponibles' : 'Sin valoraciones';
-        host.innerHTML = '<span class="curso-card__stars" aria-hidden="true">☆☆☆☆☆</span><span>' + label + '</span>';
+        host.hidden = true;
+        host.replaceChildren();
         return;
       }
+      host.hidden = false;
       host.innerHTML = `<span class="curso-card__stars" aria-hidden="true">★★★★★<span style="width:${average * 20}%">★★★★★</span></span>
         <span><strong>${average.toFixed(1)}</strong> / 5 · ${count} ${plural(count, 'valoración', 'valoraciones')}</span>
         ${item.myRating ? '<span class="curso-card__mine">Tu valoración: ' + Number(item.myRating) + '/5</span>' : ''}`;
@@ -71,15 +72,13 @@
 
   function mountCatalog(root, courseIds) {
     var uid = catalogAccount();
-    if (!uid) { paintCatalog(root, false); return; }
+    if (!uid) { paintCatalog(root); return; }
     var ids = [...new Set(courseIds)].sort();
     if (!ids.length) return;
     var missing = ids.filter(id => !catalogRatings.has(id));
-    if (!missing.length) { paintCatalog(root, false); return; }
+    paintCatalog(root);
+    if (!missing.length) return;
     var key = missing.join(',');
-    root.querySelectorAll('[data-course-rating]').forEach(host => {
-      if (!catalogRatings.has(host.dataset.courseRating)) host.textContent = 'Cargando valoraciones…';
-    });
     var operation = catalogRequests.get(key);
     if (!operation) {
       operation = request('/api/course-ratings/catalog?courseIds=' + encodeURIComponent(key))
@@ -91,8 +90,8 @@
         .finally(() => { if (catalogRequests.get(key) === operation) catalogRequests.delete(key); });
       catalogRequests.set(key, operation);
     }
-    operation.then(() => { if (root.isConnected && catalogAccount() === uid) paintCatalog(root, false); })
-      .catch(() => { if (root.isConnected && catalogAccount() === uid) paintCatalog(root, true); });
+    operation.then(() => { if (root.isConnected && catalogAccount() === uid) paintCatalog(root); })
+      .catch(() => {});
   }
 
   window.IMFRACourseRatings={mount:mount,mountCatalog:mountCatalog};
