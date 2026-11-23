@@ -18,6 +18,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="onboarding-tour.css?v=3">
+<link rel="stylesheet" href="assets/imfra-course-library.css?v=1">
 <link rel="stylesheet" href="assets/imfra-tools.css?v=2">
 
 <style>
@@ -4213,7 +4214,7 @@ window.__setDisplayName = async (nombre) => {
     <div class="nav-section">
       <div class="nav-label">Principal</div>
       <a class="nav-item is-active" data-section="inicio"><svg class="ic"><use href="#i-home"/></svg>Inicio</a>
-      <a class="nav-item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos<span class="nav-item__badge">12</span></a>
+      <a class="nav-item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos<span class="nav-item__badge" id="courses-nav-count" hidden></span></a>
       <a class="nav-item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo<span class="nav-item__dot"></span></a>
       <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>Materiales y premios</a>
       <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
@@ -5046,6 +5047,7 @@ const Sections = (function(){
   const cursoGratisEstado = { cargado: false, error: false, elegido: null, elegible: false };
   let _cursosLoaded = false;
   let _cursosLoading = false;
+  let _cursosRequest = null;
 
   // ─── Lógica de acceso gratuito + desbloqueo progresivo ───
   // La muestra gratuita vive en el primer curso publicado. Al activar la
@@ -5171,12 +5173,15 @@ const Sections = (function(){
     // pagar queda completo desde el día 0; los demás esperan su turno.
     if (String(curso?.id || '') === primerCursoGratisId()) return true;
     if (window.UserState?.modo !== 'vip') return false;
+    const access = window.IMFRACourseUnlocks?.get();
+    if (access?.managed) return access.active && access.selectedCourseIds.includes(curso?.bunnyCollectionId);
     return calcularDiasMembresia() >= cursoUnlockDay(curso);
   }
 
   function diasParaDesbloquear(indexCurso, curso){
     if (cursoDesbloqueado(indexCurso, curso)) return 0;
     if (window.UserState?.modo !== 'vip') return null;
+    if (window.IMFRACourseUnlocks?.get()?.managed) return null;
     const dia = cursoUnlockDay(curso);
     return Number.isFinite(dia) ? Math.max(0, dia - calcularDiasMembresia()) : null;
   }
@@ -5479,6 +5484,11 @@ const Sections = (function(){
 
   async function cargarCursoGratisEstado() {
     const user = window.__currentUser;
+    window.IMFRACourseUnlocks?.load().then(() => {
+      if (window.__currentUser?.uid !== user?.uid) return;
+      actualizarCursoGratisAsignado();
+      if (location.hash === '#cursos') renderCursosList();
+    });
     if (!user || esAdminReal()) {
       cursoGratisEstado.cargado = true;
       return cursoGratisEstado;
@@ -5500,13 +5510,35 @@ const Sections = (function(){
     }
     cursoGratisEstado.cargado = true;
     asignarDiasDesbloqueoCursos(cursos);
-    refrescarVistaCursos();
+    if (!/\/clase\/\d+$/.test(location.hash) || document.querySelector('.course-page-loading')) refrescarVistaCursos();
     const bannerText = document.getElementById('fomo-banner-text');
     if (bannerText && window.UserState?.modo === 'sin-membresia') bannerText.innerHTML = textoOfertaGratis();
     if (cursoGratisPendiente() && window.__IMFRA_INITIAL_FLOW_DONE === true) programarInvitacionCursoGratis();
     return cursoGratisEstado;
   }
   window.__cargarCursoGratis = cargarCursoGratisEstado;
+
+  function esperarDesbloqueosCurso(container) {
+    const unlocks = window.IMFRACourseUnlocks;
+    if (!container || !unlocks?.hasPendingLoad() || !toolEsVIP() || esAdminReal() || window.__isTrialActive?.()) return false;
+    const hash = location.hash;
+    container.innerHTML = HTML_ESPERA_CURSO_GRATIS;
+    unlocks.load().then(() => {
+      actualizarCursoGratisAsignado();
+      if (container.isConnected && location.hash === hash) refrescarVistaCursos();
+    });
+    return true;
+  }
+
+  function recargarCuposEnCatalogo() {
+    if (location.hash !== '#cursos' || document.visibilityState === 'hidden') return;
+    window.IMFRACourseUnlocks?.load(true).then(() => {
+      actualizarCursoGratisAsignado();
+      renderCursosList();
+    });
+  }
+  document.addEventListener('visibilitychange', recargarCuposEnCatalogo);
+  window.addEventListener('online', recargarCuposEnCatalogo);
 
   // ─── Invitación "Elige tu curso gratis" ───
   // Aparece una sola vez por cuenta a quien aún no elige, cuando ya terminaron la
@@ -6055,6 +6087,10 @@ const Sections = (function(){
       return;
     }
     if (motivoClase) {
+      if (motivoClase.tipo === 'drip' && window.IMFRACourseUnlocks?.get()?.managed) {
+        openCursoDetalle(cursoId);
+        return;
+      }
       const totalMateriales = Array.isArray(curso.materiales) ? curso.materiales.length : 0;
       const diasFaltan = diasParaDesbloquearClase(cursoId, sesionIdx, curso.sesiones);
       if (window.UserState?.modo === 'vip' && diasFaltan > 0) {
@@ -6347,8 +6383,14 @@ const Sections = (function(){
   }
 
   // ─── Cargar cursos desde Firestore y vincular sus clases con Bunny ───
-  async function cargarCursosFirestore(){
-    if (_cursosLoading) return;
+  function cargarCursosFirestore(){
+    if (!_cursosRequest) {
+      _cursosRequest = leerCursosFirestore().finally(() => { _cursosRequest = null; });
+    }
+    return _cursosRequest;
+  }
+
+  async function leerCursosFirestore(){
     _cursosLoading = true;
     try {
       const db = window.__db;
@@ -6386,6 +6428,7 @@ const Sections = (function(){
           disponibleSiempre: data.disponibleSiempre === true,
           marcarProximamente: data.marcarProximamente === true,
           orden: data.orden || (i + 1),
+          createdAt: fechaValida(data.createdAt || data.creadoEn)?.toISOString() || null,
           // Portada automática
           portada: bunny?.portada || (fuente.relacionado && data.portada) || getPortadaCurso({ titulo }),
           // Compatibilidad con UI vieja
@@ -6429,6 +6472,11 @@ const Sections = (function(){
       _cursosLoaded = true;
     } finally {
       _cursosLoading = false;
+      const badge = document.getElementById('courses-nav-count');
+      if (badge) {
+        badge.textContent = String(cursos.length);
+        badge.hidden = !cursos.length;
+      }
       if (window.UserState?.modo === 'sin-membresia') {
         const bannerText = document.getElementById('fomo-banner-text');
         if (bannerText) bannerText.innerHTML = textoOfertaGratis();
@@ -6587,165 +6635,69 @@ const Sections = (function(){
   }
 
   /* ============================ CURSOS ============================ */
-  let cursosState={tab:'catalogo',area:'todas',search:''};
-  let countdownTimer=null;
+  let currentCourseLibrary = null;
 
-  function counts(){
+  function describirCurso(curso) {
+    const index = cursos.indexOf(curso);
+    const open = cursoDesbloqueado(index, curso);
+    const progress = Math.min(100, progresoCursoPct(curso.id, curso.sesiones.length));
+    const soon = curso.marcarProximamente === true;
+    const free = cursoGratisPendiente() && cursoPuedeSerGratis(curso);
+    const preview = open && !toolEsVIP() && String(curso.id) === primerCursoGratisId();
+    const managed = window.IMFRACourseUnlocks?.get()?.managed;
+    const days = diasParaDesbloquear(index, curso);
+    let status = 'locked';
+    let label = 'Solo miembros';
+    if (soon) { status = 'soon'; label = 'Próximamente'; }
+    else if (progress >= 100) { status = 'completed'; label = 'Completado'; }
+    else if (progress > 0 && open) { status = 'progress'; label = 'En progreso'; }
+    else if (preview || free) { status = open ? 'open' : 'locked'; label = `${cantidadClasesGratis(curso.sesiones.length)} clases gratis`; }
+    else if (open) { status = 'open'; label = 'Disponible'; }
+    else if (managed && window.IMFRACourseUnlocks.get().active) label = 'Pendiente de elegir';
+    else if (Number.isFinite(days)) label = `Disponible en ${days} ${days === 1 ? 'día' : 'días'}`;
     return {
-      progreso:cursos.filter(c=>c.status==='progreso').length,
-      completado:cursos.filter(c=>c.status==='completado').length,
-      catalogo:cursos.filter(c=>c.status==='catalogo').length
+      status, label, free, soon, open: open && !soon, progress,
+      order: cursoUnlockDay(curso),
+      resources: _materialesDelCurso(curso.id).length
     };
   }
-  function cursosFiltrados(){
-    return cursos.filter(c=>{
-      if(cursosState.tab==='progreso'&&c.status!=='progreso')return false;
-      if(cursosState.tab==='completado'&&c.status!=='completado')return false;
-      if(cursosState.tab==='catalogo'&&c.status!=='catalogo')return false;
-      if(cursosState.area!=='todas'&&c.area!==cursosState.area)return false;
-      if(cursosState.search){
-        const q=cursosState.search.toLowerCase();
-        if(!c.titulo.toLowerCase().includes(q)&&!c.instructor.toLowerCase().includes(q))return false;
-      }
-      return true;
+
+  function actualizarCursoGratisAsignado() {
+    const elegido = window.IMFRACourseUnlocks?.get()?.freeCourseId;
+    if (!elegido || elegido === cursoGratisEstado.elegido) return;
+    cursoGratisEstado.elegido = elegido;
+    cursoGratisEstado.cargado = true;
+    cursoGratisEstado.elegible = false;
+    asignarDiasDesbloqueoCursos(cursos);
+  }
+
+  function renderCursos(container) {
+    if (!_cursosLoaded) {
+      container.innerHTML = '<div class="course-page-loading" role="status">Cargando cursos…</div>';
+      cargarCursosFirestore().then(() => {
+        if (location.hash === '#cursos') renderCursos(container);
+      });
+      return;
+    }
+    const library = window.IMFRACourseLibrary;
+    if (!library) return;
+    const options = {
+      courses: cursos, describe: describirCurso, fallbackCover: PORTADA_DEFAULT,
+      openCourse: openCursoDetalle, chooseFree: confirmarCursoGratis, onUnlockChange: actualizarCursoGratisAsignado
+    };
+    const root = library.mount(container, options);
+    currentCourseLibrary = { root, options };
+    window.IMFRACourseUnlocks?.load(true).then(() => {
+      actualizarCursoGratisAsignado();
+      if (root.isConnected) library.update(root, options);
     });
   }
 
-  function renderCursos(container){
-    const c=counts();
-    container.innerHTML=`
-      <div class="fade-up">
-        <div class="sec-hero" data-illus="cursos">
-          <span class="sec-hero__eyebrow">Tu camino</span>
-          <h1 class="sec-hero__title">Mis cursos</h1>
-          <p class="sec-hero__sub">Continúa donde lo dejaste, repasa lo que ya dominas o descubre nuevas áreas de especialización.</p>
-        </div>
-        <div class="tabs">
-          <button class="tab ${cursosState.tab==='progreso'?'is-active':''}" data-curtab="progreso">En progreso · ${c.progreso}</button>
-          <button class="tab ${cursosState.tab==='completado'?'is-active':''}" data-curtab="completado">Completados · ${c.completado}</button>
-          <button class="tab ${cursosState.tab==='catalogo'?'is-active':''}" data-curtab="catalogo">Catálogo · ${c.catalogo}</button>
-        </div>
-        <div class="toolbar">
-          <div class="searchbar">
-            <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
-            <input type="text" placeholder="Buscar curso o instructor…" id="cur-search" value="${cursosState.search.replace(/"/g,'&quot;')}">
-          </div>
-          <div class="dd-fancy" data-dd="cur-area">
-            <button type="button" class="dd-fancy__trigger" id="cur-area-trigger" aria-haspopup="listbox" aria-expanded="false">
-              <svg class="dd-fancy__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-              <span class="dd-fancy__label" id="cur-area-label">${cursosState.area === 'todas' ? 'Todas las áreas' : cursosState.area}</span>
-              <svg class="dd-fancy__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
-            <div class="dd-fancy__menu" id="cur-area-menu" role="listbox">
-              ${(function(){
-                const areas = ['todas', ...Array.from(new Set(cursos.map(c=>c.area).filter(Boolean))).sort()];
-                return areas.map(a => {
-                  const label = a === 'todas' ? 'Todas las áreas' : a;
-                  const sel = cursosState.area === a ? 'is-selected' : '';
-                  return `<button type="button" class="dd-fancy__item ${sel}" data-value="${a}" role="option">${label}</button>`;
-                }).join('');
-              })()}
-            </div>
-          </div>
-        </div>
-        <div id="cur-list"></div>
-      </div>
-    `;
-    container.querySelectorAll('[data-curtab]').forEach(b=>b.addEventListener('click',()=>{
-      if(cursosState.tab===b.dataset.curtab)return;
-      cursosState.tab=b.dataset.curtab;
-      container.querySelectorAll('[data-curtab]').forEach(tab=>tab.classList.toggle('is-active',tab===b));
-      renderCursosList();
-    }));
-    container.querySelector('#cur-search').addEventListener('input',e=>{cursosState.search=e.target.value;renderCursosList();});
-    // Dropdown custom de áreas
-    bindFancyDropdown('cur-area', (value) => {
-      cursosState.area = value;
-      renderCursosList();
-    });
-
-    // ─── Cargar cursos de Firestore si aún no se cargaron ───
-    if (!_cursosLoaded && !_cursosLoading) {
-      const list = document.getElementById('cur-list');
-      if (list) list.innerHTML = `<div class="empty-state"><div class="empty-state__icon"><div style="width:42px;height:42px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--primary);animation:spin .8s linear infinite;"></div></div><h3>Cargando cursos…</h3></div>`;
-      cargarCursosFirestore().then(() => renderCursos(container));
-    } else {
-      renderCursosList();
+  function renderCursosList() {
+    if (currentCourseLibrary) {
+      const { root, options } = currentCourseLibrary;
+      window.IMFRACourseLibrary?.update(root, options);
     }
-  }
-
-  function renderCursosList(){
-    const list=document.getElementById('cur-list');if(!list)return;
-    // Empty state: si no hay cursos publicados en Firestore todavía
-    if (cursos.length === 0) {
-      list.innerHTML = `<div class="empty-state">
-        <div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div>
-        <h3>Aún no hay cursos publicados</h3>
-        <p>Estamos preparando los primeros cursos de IMFRA. Apenas se publiquen, los verás aquí. Síguenos en WhatsApp para enterarte primero.</p>
-        <a class="btn btn--ghost" href="https://wa.me/5212382220811" target="_blank" rel="noopener" data-bypass-paywall="true" style="margin-top:14px;"><svg class="ic"><use href="#i-whatsapp"/></svg>Avísame por WhatsApp</a>
-      </div>`;
-      return;
-    }
-    const items=cursosFiltrados().slice().sort((a,b)=>{
-      // Desbloqueados primero (progresivos ya abiertos + los "siempre"),
-      // luego los próximos a desbloquearse en orden de turno. Así nunca se desordena.
-      const da=cursoDesbloqueado(0,a), db=cursoDesbloqueado(0,b);
-      if(da!==db) return da?-1:1;
-      return (a._unlockDay||0)-(b._unlockDay||0);
-    });
-    if(items.length===0){
-      list.innerHTML=`<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Sin resultados</h3><p>Cambia el filtro o búsqueda para ver más cursos.</p></div>`;
-      return;
-    }
-    const eligiendoGratis = cursoGratisPendiente();
-    const gratisMax = Math.max(0, ...cursos.filter(cursoPuedeSerGratis).map(c => cantidadClasesGratis(c.sesiones.length)));
-    const bannerGratis = eligiendoGratis ? `<section class="free-course-banner">
-        <span class="free-course-banner__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
-        <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca el curso que más te interese y verás gratis sus primeras ${gratisMax || 4} clases. Solo puedes elegir uno.</p></div>
-        <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
-      </section>` : '';
-    list.innerHTML=`${bannerGratis}<div class="cursos-grid">${items.map((c, idx)=>{
-      const cursoIdx = cursos.findIndex(x => x.id === c.id);
-      const desbloqueado = cursoDesbloqueado(cursoIdx, c);
-      const elegibleGratis = eligiendoGratis && cursoPuedeSerGratis(c);
-      const diasFalta = diasParaDesbloquear(cursoIdx, c);
-      const portada = c.portada || PORTADA_DEFAULT;
-      const etiquetaBloqueo = window.UserState?.modo === 'vip' && Number.isFinite(diasFalta)
-        ? `Se desbloquea en ${diasFalta} día${diasFalta!==1?'s':''}`
-        : 'Solo miembros';
-      return `
-      <article class="curso-card ${!desbloqueado&&!elegibleGratis?'curso-card--locked':''} ${elegibleGratis?'curso-card--choose-free':''}" data-cid="${c.id}" ${!desbloqueado&&!elegibleGratis?'data-locked="true"':''} tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#F59D1A'};">
-        <div class="curso-card__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)),url('${portada}');background-size:cover;background-position:center;">
-          <svg class="ic" style="opacity:.85;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"><use href="#${ICON_AREA[c.area]||'i-book'}"/></svg>
-          ${c.disponibleSiempre && desbloqueado && toolEsVIP() ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0D0D0D;">DISPONIBLE</span>' : ''}
-          ${!toolEsVIP() && String(c.id) === primerCursoGratisId() && c.sesiones?.length ? `<span class="curso-card__cover-badge curso-card__cover-badge--free" style="background:var(--success);left:12px;right:auto;">${cantidadClasesGratis(c.sesiones.length)} CLASE${cantidadClasesGratis(c.sesiones.length)!==1?'S':''} GRATIS</span>` : ''}
-          ${elegibleGratis ? `<span class="curso-card__cover-badge curso-card__cover-badge--free" style="background:var(--success);left:12px;right:auto;">ELÍGELO GRATIS · ${cantidadClasesGratis(c.sesiones.length)} CLASES</span>` : ''}
-          ${!desbloqueado && !elegibleGratis ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.9);color:var(--primary);border:1px solid var(--primary);">ACCESO VIP · ${etiquetaBloqueo}</span>` : ''}
-        </div>
-        <div class="curso-card__body">
-          <div class="curso-card__tags">
-            <span class="tag tag--soon" style="color:${COLOR_AREA[c.area]||'#F59D1A'};border-color:${(COLOR_AREA[c.area]||'#F59D1A')}40;background:${(COLOR_AREA[c.area]||'#F59D1A')}14;">${c.area}</span>
-            <span class="tag tag--soon">${c.nivel}</span>
-          </div>
-          <h3 class="curso-card__title">${c.titulo}</h3>
-          <p class="curso-card__desc">${c.desc||c.descripcion||''}</p>
-          <div class="curso-card__meta">
-            ${c.instructor ? `<span><svg class="ic"><use href="#i-user"/></svg>${c.instructor.split(' ').slice(-1)[0]}</span>` : ''}
-            ${c.horas ? `<span><svg class="ic"><use href="#i-clock"/></svg>${c.horas}h</span>` : ''}
-            ${c.sesiones?.length ? `<span><svg class="ic"><use href="#i-book"/></svg>${c.sesiones.length} clase${c.sesiones.length!==1?'s':''}</span>` : ''}
-            ${_materialesDelCurso(c.id).length ? `<span><svg class="ic"><use href="#i-news"/></svg>${_materialesDelCurso(c.id).length} material${_materialesDelCurso(c.id).length!==1?'es':''}</span>` : ''}
-          </div>
-        </div>
-        ${!desbloqueado && !elegibleGratis ? `<div class="lock-overlay" aria-hidden="true">
-          <div class="lock-overlay__ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-          <div class="lock-overlay__txt">${etiquetaBloqueo}</div>
-        </div>` : ''}
-      </article>
-    `;}).join('')}</div>`;
-    list.querySelectorAll('.curso-card').forEach(card=>{
-      card.addEventListener('click',()=>openCursoDetalle(card.dataset.cid));
-      card.addEventListener('keydown',e=>{if(e.key==='Enter')openCursoDetalle(card.dataset.cid);});
-    });
   }
 
   const CLASES_EDITORIALES = {
@@ -6878,7 +6830,13 @@ const Sections = (function(){
   function renderClaseDetalle(cursoId, numeroClase, container){
     const curso=cursos.find(x=>String(x.id)===String(cursoId));
     if(!curso){
-      if(!_cursosLoaded&&!_cursosLoading){container.innerHTML='<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando clase…</strong></div>';cargarCursosFirestore().then(()=>renderClaseDetalle(cursoId,numeroClase,container));}
+      if(!_cursosLoaded){
+        const hash = location.hash;
+        container.innerHTML='<div class="course-page-loading" role="status">Cargando clase…</div>';
+        cargarCursosFirestore().then(() => {
+          if (container.isConnected && location.hash === hash) renderClaseDetalle(cursoId, numeroClase, container);
+        });
+      }
       else container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Clase no encontrada</h3><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'cursos\')">Volver a cursos</button></div>';
       return;
     }
@@ -6887,10 +6845,11 @@ const Sections = (function(){
     const sesion=sesiones[sesionIdx];
     if(!sesion){navigateToSection('curso/'+encodeURIComponent(String(cursoId)));return;}
     if(esperandoCursoGratis()){container.innerHTML=HTML_ESPERA_CURSO_GRATIS;return;}
+    if(esperarDesbloqueosCurso(container))return;
     const motivo=motivoBloqueoClase(cursoId,sesionIdx,sesiones);
     if(motivo){
       if(motivo.tipo==='secuencia')Toast.info('Primero termina la clase anterior',`Marca como vista la clase ${motivo.numPrev} para abrir esta.`);
-      else window.__showPaywallModal?.({title:'Clase exclusiva para miembros',sub:'Activa tu membresía para continuar con el curso completo.',cta:'Ir a Suscripción'});
+      else if (motivo.tipo === 'membresia') window.__showPaywallModal?.({title:'Clase exclusiva para miembros',sub:'Activa tu membresía para continuar con el curso completo.',cta:'Ir a Suscripción'});
       navigateToSection('curso/'+encodeURIComponent(String(cursoId)));
       return;
     }
@@ -6999,35 +6958,22 @@ const Sections = (function(){
   function openCursoDetalle(id, container){
     const c=cursos.find(x=>String(x.id)===String(id));
     if(!c){
-      if(container && !_cursosLoaded && !_cursosLoading){
+      if(container && !_cursosLoaded){
+        const hash = location.hash;
         container.innerHTML='<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando curso…</strong></div>';
-        cargarCursosFirestore().then(()=>openCursoDetalle(id,container));
+        cargarCursosFirestore().then(() => {
+          if (container.isConnected && location.hash === hash) openCursoDetalle(id, container);
+        });
       } else if(container) {
         container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Curso no encontrado</h3><p>Regresa al catálogo para elegir otro curso.</p><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'cursos\')">Volver a cursos</button></div>';
       }
       return;
     }
     if (container && esperandoCursoGratis()) { container.innerHTML = HTML_ESPERA_CURSO_GRATIS; return; }
+    if (esperarDesbloqueosCurso(container)) return;
     const cursoIdx = cursos.findIndex(x => String(x.id) === String(id));
     const desbloqueado = cursoDesbloqueado(cursoIdx, c);
     const diasFalta = diasParaDesbloquear(cursoIdx, c);
-
-    if (!desbloqueado && cursoGratisPendiente() && cursoPuedeSerGratis(c)) {
-      // Aún no elige su curso gratis: le ofrecemos este y lo regresamos al catálogo.
-      if (container) setTimeout(() => navigateToSection('cursos', { reemplazar: true }), 0);
-      confirmarCursoGratis(c);
-      return;
-    }
-
-    if (!desbloqueado && window.UserState?.modo !== 'vip') {
-      window.__showPaywallModal?.({
-        title: 'Curso exclusivo para miembros',
-        sub: 'Activa tu membresía para abrir el primer curso completo. Después recibirás un curso nuevo cada 6 días.',
-        cta: 'Ir a Suscripción'
-      });
-      if(container) container.innerHTML='<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-shield-check"/></svg></div><h3>Curso exclusivo para miembros</h3><p>Activa tu membresía para acceder al curso completo.</p><button class="btn btn--ghost" type="button" onclick="navigateToSection(\'cursos\')">Volver al catálogo</button></div>';
-      return;
-    }
 
     if(!container){
       navigateToSection('curso/'+encodeURIComponent(String(id)));
@@ -7042,6 +6988,15 @@ const Sections = (function(){
     const progCurso = getProgresoCurso(cursoId);
     const pct = progresoCursoPct(cursoId, sesiones.length);
     const siguienteClase = Math.max(0, sesiones.findIndex((s, i) => claseDesbloqueada(cursoId, i, sesiones) && !progCurso.clasesVistas.includes(s.numero || i + 1)));
+    const unlocks = window.IMFRACourseUnlocks?.get();
+    const esCandidato = unlocks?.enabled && unlocks.eligibleCourseIds.includes(c.bunnyCollectionId);
+    const gratuitoDisponible = cursoGratisPendiente() && cursoPuedeSerGratis(c);
+    let bloqueo = '';
+    if (c.marcarProximamente === true) bloqueo = 'Las clases se están preparando.';
+    else if (gratuitoDisponible) bloqueo = `Elige este curso para ver sus primeras ${cantidadClasesGratis(sesiones.length)} clases gratis.`;
+    else if (unlocks?.managed && unlocks.active) bloqueo = 'Elige este curso en Mis desbloqueos cuando tengas un cupo.';
+    else if (Number.isFinite(diasFalta)) bloqueo = `Disponible en ${diasFalta} ${diasFalta === 1 ? 'día' : 'días'}.`;
+    else bloqueo = 'Activa tu membresía para acceder al curso completo.';
 
     const clasesHtml = sesiones.length ? sesiones.map((s, i) => {
       const numSes = s.numero || i + 1;
@@ -7078,16 +7033,27 @@ const Sections = (function(){
     }).join('') : `<div class="course-detail-empty">Este curso todavía no tiene archivos complementarios.</div>`;
 
     const bodyContent = `<div class="course-detail">
-      <section class="course-detail-hero" style="background-image:linear-gradient(90deg,rgba(9,9,8,.92),rgba(9,9,8,.34)),url('${portada}')">
-        <div class="course-detail-hero__copy">
-          <div class="course-detail-hero__tags"><span>${c.area || 'Construcción'}</span><span>${c.nivel || 'Profesional'}</span><span>${sesiones.length} clases</span></div>
-          <h2>${c.titulo}</h2>
-          <p><b>${c.instructor || 'Equipo IMFRA'}</b><span>Curso profesional · ${c.horas ? `${c.horas} h` : 'a tu ritmo'}</span></p>
+      <section class="course-overview" aria-labelledby="course-overview-title">
+        <div class="course-overview__copy">
+          <div class="course-overview__tags"><span>${escapeHtml(c.area || 'Construcción')}</span><span>${escapeHtml(c.nivel || 'Profesional')}</span></div>
+          <h1 id="course-overview-title">${escapeHtml(c.titulo)}</h1>
+          <p>${escapeHtml(c.descripcion || c.desc || '')}</p>
+          <p class="course-overview__instructor"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg>Impartido por <strong>${escapeHtml(c.instructor || 'Equipo IMFRA')}</strong></p>
+          ${desbloqueado && sesiones.length ? `<button type="button" class="course-route-button" data-course-start>${pct >= 100 ? 'Repasar curso' : pct ? 'Continuar curso' : 'Empezar curso'} <svg class="ic" aria-hidden="true"><use href="#i-play"/></svg></button>` : ''}
         </div>
-        ${desbloqueado && sesiones.length ? `<button type="button" class="course-detail-hero__start" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${siguienteClase})" data-bypass-paywall="true">${pct ? 'Continuar curso' : 'Empezar curso'}<svg class="ic"><use href="#i-play"/></svg></button>` : ''}
+        <img src="${escapeHtml(portada)}" alt="" width="1200" height="675">
+        <dl class="course-overview__facts" aria-label="Datos del curso">
+          <div><dt>Duración</dt><dd>${c.horas ? `${escapeHtml(c.horas)} h` : 'A tu ritmo'}</dd></div>
+          <div><dt>Contenido</dt><dd>${sesiones.length} ${sesiones.length === 1 ? 'clase' : 'clases'}</dd></div>
+          <div><dt>Material de apoyo</dt><dd>${materialesCurso.length} ${materialesCurso.length === 1 ? 'recurso' : 'recursos'}</dd></div>
+        </dl>
       </section>
-      <p class="course-detail__description">${c.descripcion || c.desc || ''}</p>
-      ${!desbloqueado ? `<section class="course-detail-lock"><svg class="ic"><use href="#i-shield-check"/></svg><div><strong>Tu siguiente curso está en camino</strong><p>Se habilitará en ${diasFalta} día${diasFalta!==1?'s':''}, de acuerdo con la secuencia de tu membresía.</p></div></section>` : `
+      ${!desbloqueado ? `<section class="course-detail-lock"><svg class="ic" aria-hidden="true"><use href="#i-shield-check"/></svg><div><strong>${c.marcarProximamente ? 'Próximamente' : 'Curso bloqueado'}</strong><p>${bloqueo}</p></div>
+        ${gratuitoDisponible ? '<button type="button" class="course-route-button" data-detail-free>Elegir gratis</button>' : ''}
+        ${esCandidato && unlocks.available ? '<button type="button" class="course-route-button" data-detail-select>Elegir curso</button>' : ''}
+        ${esCandidato ? '<button type="button" class="course-route-button is-quiet" data-detail-priority>Organizar prioridad</button>' : ''}
+        ${!toolEsVIP() && !gratuitoDisponible && !c.marcarProximamente ? '<button type="button" class="course-route-button" data-detail-vip>Conocer VIP</button>' : ''}
+      </section>` : ''}
       <div class="course-detail-layout">
         <main class="course-detail-main">
           <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Ruta de aprendizaje</span><h3>Temario</h3></div><b>${progCurso.clasesVistas.length}/${sesiones.length}</b></div><div class="course-lessons">${clasesHtml}</div></section>
@@ -7099,7 +7065,7 @@ const Sections = (function(){
           <ul><li><svg class="ic"><use href="#i-shield-check"/></svg>Certificado verificable al concluir</li><li><svg class="ic"><use href="#i-book"/></svg>${materialesCurso.length} materiales dentro del curso</li><li><svg class="ic"><use href="#i-clock"/></svg>Avanza a tu propio ritmo</li></ul>
         </aside>
       </div>
-      <div id="course-rating-host"></div>`}
+      ${desbloqueado ? '<div id="course-rating-host"></div>' : ''}
     </div>`;
 
     container.innerHTML=`<div class="fade-up course-page">
@@ -7108,6 +7074,12 @@ const Sections = (function(){
       </button>
       ${bodyContent}
     </div>`;
+    container.querySelector('[data-course-start]')?.addEventListener('click', () => window.abrirClaseIMFRA(cursoId, siguienteClase));
+    container.querySelector('[data-detail-free]')?.addEventListener('click', () => confirmarCursoGratis(c));
+    container.querySelector('[data-detail-vip]')?.addEventListener('click', () => navigateToSection('suscripcion'));
+    const actualizarDetalle = () => { actualizarCursoGratisAsignado(); refrescarVistaCursos(); };
+    container.querySelector('[data-detail-select]')?.addEventListener('click', () => window.IMFRACourseUnlocks.open(cursos, actualizarDetalle, 'select', c.bunnyCollectionId));
+    container.querySelector('[data-detail-priority]')?.addEventListener('click', () => window.IMFRACourseUnlocks.open(cursos, actualizarDetalle, 'priorities', c.bunnyCollectionId));
     if(desbloqueado){
       const ratingHost=container.querySelector('#course-rating-host');
       if(ratingHost){
@@ -13957,7 +13929,9 @@ body{letter-spacing:-.05px}
 <script type="module" src="./src/features/budgets/budgets.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>
 <script type="module" src="./src/features/class-games/class-games.ts"></script>
-<script src="assets/imfra-course-ratings.js?v=2"></script>
+<script src="assets/imfra-course-unlocks.js?v=1"></script>
+<script src="assets/imfra-course-library.js?v=1"></script>
+<script src="assets/imfra-course-ratings.js?v=3"></script>
 <script type="module" src="./src/features/analytics/tracker.ts"></script>
 <script src="assets/imfra-visitas.js?v=1" data-pagina="panel" defer></script>
 <script src="assets/imfra-push.js?v=2" defer></script>

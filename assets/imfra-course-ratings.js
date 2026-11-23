@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  var BASE=window.WEBHOOK_URL||'https://imfra-backend-production.up.railway.app';
+  var BASE='https://imfra-backend-production.up.railway.app';
   var BRAND='IMFRA';
   function esc(value){return String(value==null?'':value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
   function plural(value,one,many){return value===1?one:many;}
@@ -20,14 +20,80 @@
       @media(max-width:520px){.course-rating{margin-top:18px;padding:18px;border-radius:19px}.course-rating__head{grid-template-columns:1fr;gap:16px}.course-rating__score{min-width:0;width:max-content}.course-rating__form{gap:18px;margin-top:18px;padding-top:18px}.course-rating__picker{padding:14px}.course-rating__stars{gap:6px}.course-rating__star{width:calc((100vw - 104px)/5);max-width:48px;min-width:39px;height:43px;font-size:23px}.course-rating__actions{align-items:flex-end}.course-rating__save{min-width:136px}.course-rating__copy{font-size:11px}}
     `;document.head.appendChild(style);
   }
-  async function request(path,options){var user=window.__currentUser||(window.__auth&&window.__auth.currentUser);if(!user)throw new Error('Inicia sesión para calificar este curso.');var token=await user.getIdToken(),response;try{response=await fetch(BASE+path,Object.assign({},options||{},{headers:Object.assign({'Authorization':'Bearer '+token,'Content-Type':'application/json'},(options&&options.headers)||{}),cache:'no-store'}));}catch(error){throw new Error(friendlyError(error));}var data=await response.json().catch(function(){return{};});if(!response.ok)throw new Error(data.error||'No se pudo guardar la valoración. Inténtalo nuevamente.');return data;}
+  async function request(path,options){var user=window.__currentUser||(window.__auth&&window.__auth.currentUser);if(!user)throw new Error('Inicia sesión para calificar este curso.');var token=await user.getIdToken(),response;try{response=await fetch((window.WEBHOOK_URL||BASE)+path,Object.assign({},options||{},{headers:Object.assign({'Authorization':'Bearer '+token,'Content-Type':'application/json'},(options&&options.headers)||{}),cache:'no-store'}));}catch(error){throw new Error(friendlyError(error));}var data=await response.json().catch(function(){return{};});if(!response.ok)throw new Error(data.error||'No se pudo guardar la valoración. Inténtalo nuevamente.');return data;}
   function mount(options){
+    var owner = catalogAccount();
     injectStyles();var root=typeof options.container==='string'?document.querySelector(options.container):options.container;if(!root)return;var courseId=String(options.courseId||''),courseTitle=String(options.courseTitle||'Curso'),selected=0;root.innerHTML='<div class="course-rating__loading">Cargando valoraciones…</div>';request('/api/course-ratings/'+encodeURIComponent(courseId)).then(render).catch(function(error){render({summary:{},mine:null,loadError:friendlyError(error)});});
     function render(data){
+      if (!root.isConnected || catalogAccount() !== owner) return;
+      if (!data.loadError) rememberRating(courseId, data);
       var summary=data.summary||{},mine=data.mine||null,count=Number(summary.ratingCount)||0,average=Number(summary.average)||0;selected=Number(mine&&mine.rating)||0;var reviewId='imfra-course-rating-review-'+courseId.replace(/[^a-z0-9_-]/gi,'-');
       root.innerHTML='<section class="course-rating" aria-labelledby="imfra-course-rating-title"><div class="course-rating__head"><div><div class="course-rating__eyebrow">Tu experiencia importa</div><h3 id="imfra-course-rating-title">Califica este curso</h3><p class="course-rating__copy">Tu opinión ayuda a '+BRAND+' a conservar los mejores cursos y mejorar cada experiencia. La reseña es opcional.</p></div><div class="course-rating__score" aria-label="Promedio del curso"><span class="course-rating__score-star" aria-hidden="true">★</span><span class="course-rating__score-copy"><strong>'+(count?average.toFixed(1):'—')+' / 5</strong><small>'+count+' '+plural(count,'valoración','valoraciones')+'</small></span></div></div><form class="course-rating__form"><div class="course-rating__picker"><span class="course-rating__label">Tu calificación</span><div class="course-rating__stars" role="radiogroup" aria-label="Calificación del curso">'+[1,2,3,4,5].map(function(value){return'<button class="course-rating__star'+(value<=selected?' is-active':'')+'" type="button" data-rating="'+value+'" role="radio" aria-checked="'+(value===selected)+'" aria-label="'+value+' '+plural(value,'estrella','estrellas')+'">★</button>';}).join('')+'</div><p class="course-rating__hint"><span class="course-rating__hint-dot"></span><span class="course-rating__selection">'+ratingLabel(selected)+'</span></p></div><div class="course-rating__review"><label class="course-rating__label" for="'+reviewId+'">Cuéntanos un poco más <span style="font-weight:500">(opcional)</span></label><textarea id="'+reviewId+'" maxlength="1000" placeholder="¿Qué te gustó? ¿Qué podríamos mejorar?">'+esc(mine&&mine.review||'')+'</textarea><div class="course-rating__actions"><span class="course-rating__count">'+String(mine&&mine.review||'').length+' / 1000</span><button class="course-rating__save" type="submit" '+(selected?'':'disabled')+'>'+(mine?'Actualizar valoración':'Guardar valoración')+'</button></div><div class="course-rating__state'+(data.loadError?' is-error':'')+'" role="status" aria-live="polite">'+(data.loadError?'<span class="course-rating__state-mark">!</span><span>'+esc(data.loadError)+'</span>':'')+'</div></div></form></section>';
       var form=root.querySelector('form'),textarea=root.querySelector('textarea'),save=root.querySelector('.course-rating__save'),state=root.querySelector('.course-rating__state'),counter=root.querySelector('.course-rating__count'),selection=root.querySelector('.course-rating__selection');function paint(preview){var active=Number(preview)||selected;root.querySelectorAll('[data-rating]').forEach(function(button){var value=Number(button.dataset.rating);button.classList.toggle('is-active',value<=active);button.setAttribute('aria-checked',String(value===selected));});selection.textContent=ratingLabel(active);save.disabled=!selected;}root.querySelectorAll('[data-rating]').forEach(function(button){button.addEventListener('mouseenter',function(){paint(button.dataset.rating);});button.addEventListener('mouseleave',function(){paint();});button.addEventListener('focus',function(){paint(button.dataset.rating);});button.addEventListener('blur',function(){paint();});button.addEventListener('click',function(){selected=Number(button.dataset.rating);paint();state.className='course-rating__state';state.textContent='';});});textarea.addEventListener('input',function(){counter.textContent=textarea.value.length+' / 1000';});form.addEventListener('submit',async function(event){event.preventDefault();if(!selected)return;save.disabled=true;save.textContent='Guardando…';state.className='course-rating__state';state.textContent='';try{var next=await request('/api/course-ratings/'+encodeURIComponent(courseId),{method:'PUT',body:JSON.stringify({rating:selected,review:textarea.value,courseTitle:courseTitle})});render(next);var fresh=root.querySelector('.course-rating__state');if(fresh)fresh.innerHTML='<span class="course-rating__state-mark">✓</span><span>Gracias. Tu valoración quedó guardada.</span>';}catch(error){save.disabled=false;save.textContent=mine?'Actualizar valoración':'Guardar valoración';state.className='course-rating__state is-error';state.innerHTML='<span class="course-rating__state-mark">!</span><span>'+esc(friendlyError(error))+'</span>';}});
     }
   }
-  window.IMFRACourseRatings={mount:mount};
+  var catalogOwner = '';
+  var catalogRatings = new Map();
+  var catalogRequests = new Map();
+
+  function catalogAccount() {
+    var uid = (window.__currentUser || window.__auth?.currentUser)?.uid || '';
+    if (uid !== catalogOwner) {
+      catalogOwner = uid;
+      catalogRatings.clear();
+      catalogRequests.clear();
+    }
+    return uid;
+  }
+
+  function rememberRating(courseId, data) {
+    if (!catalogAccount() || !data?.summary) return;
+    catalogRatings.set(String(courseId), {
+      ...data.summary, myRating: data.mine?.rating || null
+    });
+  }
+
+  function paintCatalog(root, unavailable) {
+    root.querySelectorAll('[data-course-rating]').forEach(function (host) {
+      var item = catalogRatings.get(host.dataset.courseRating);
+      var count = Number(item?.ratingCount) || 0;
+      var average = Math.max(0, Math.min(5, Number(item?.average) || 0));
+      if (!count) {
+        var label = unavailable && !item ? 'Valoraciones no disponibles' : 'Sin valoraciones';
+        host.innerHTML = '<span class="curso-card__stars" aria-hidden="true">☆☆☆☆☆</span><span>' + label + '</span>';
+        return;
+      }
+      host.innerHTML = `<span class="curso-card__stars" aria-hidden="true">★★★★★<span style="width:${average * 20}%">★★★★★</span></span>
+        <span><strong>${average.toFixed(1)}</strong> / 5 · ${count} ${plural(count, 'valoración', 'valoraciones')}</span>
+        ${item.myRating ? '<span class="curso-card__mine">Tu valoración: ' + Number(item.myRating) + '/5</span>' : ''}`;
+    });
+  }
+
+  function mountCatalog(root, courseIds) {
+    var uid = catalogAccount();
+    if (!uid) { paintCatalog(root, false); return; }
+    var ids = [...new Set(courseIds)].sort();
+    if (!ids.length) return;
+    var missing = ids.filter(id => !catalogRatings.has(id));
+    if (!missing.length) { paintCatalog(root, false); return; }
+    var key = missing.join(',');
+    root.querySelectorAll('[data-course-rating]').forEach(host => {
+      if (!catalogRatings.has(host.dataset.courseRating)) host.textContent = 'Cargando valoraciones…';
+    });
+    var operation = catalogRequests.get(key);
+    if (!operation) {
+      operation = request('/api/course-ratings/catalog?courseIds=' + encodeURIComponent(key))
+        .then(data => {
+          if (catalogAccount() !== uid) return;
+          for (var id of missing) if (!catalogRatings.has(id)) catalogRatings.set(id, {});
+          for (var row of data.courses || []) catalogRatings.set(row.courseId, row);
+        })
+        .finally(() => { if (catalogRequests.get(key) === operation) catalogRequests.delete(key); });
+      catalogRequests.set(key, operation);
+    }
+    operation.then(() => { if (root.isConnected && catalogAccount() === uid) paintCatalog(root, false); })
+      .catch(() => { if (root.isConnected && catalogAccount() === uid) paintCatalog(root, true); });
+  }
+
+  window.IMFRACourseRatings={mount:mount,mountCatalog:mountCatalog};
 })();
