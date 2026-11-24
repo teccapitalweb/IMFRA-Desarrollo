@@ -1,4 +1,4 @@
-// Catálogo Bunny Stream de IMFRA · librería 755984 · 5 cursos · 49 videos.
+// Catálogo Bunny Stream de IMFRA · librería 755984 · 6 cursos · 57 videos.
 // Generado desde el log de subida. Títulos, área y descripción se pueden editar en vip-admin.
 window.IMFRA_BUNNY_CATALOG = [
   {
@@ -401,6 +401,74 @@ window.IMFRA_BUNNY_CATALOG = [
         "provider": "bunny",
         "videoId": "abce6b25-604c-4824-b845-36055ce6c833",
         "duracionSegundos": 3555
+      }
+    ]
+  },
+  {
+    "titulo": "Costos y presupuestos de obra",
+    "area": "Costos",
+    "descripcion": "Practica la preparación de presupuestos para proyectos de construcción. El curso aborda los costos de obra y ofrece ejercicios en Excel para aplicar lo aprendido.",
+    "horas": 10.4,
+    "instructor": "Equipo IMFRA",
+    "nivel": "Intermedio",
+    "portada": "assets/cursos/costos-y-presupuestos-de-obra.jpg",
+    "collectionId": "folder-costos-y-presupuestos-de-obra",
+    "sesiones": [
+      {
+        "numero": 1,
+        "titulo": "Clase 1",
+        "provider": "bunny",
+        "videoId": "271bda5d-a5a4-4058-97f1-d17533048b8b",
+        "duracionSegundos": 3953
+      },
+      {
+        "numero": 2,
+        "titulo": "Clase 2",
+        "provider": "bunny",
+        "videoId": "281abd94-25c8-4d4f-b728-e597eabddc2e",
+        "duracionSegundos": 5736
+      },
+      {
+        "numero": 3,
+        "titulo": "Clase 3",
+        "provider": "bunny",
+        "videoId": "21c9b5c2-b7d1-40d4-9609-290ad52ff06d",
+        "duracionSegundos": 5721
+      },
+      {
+        "numero": 4,
+        "titulo": "Clase 4",
+        "provider": "bunny",
+        "videoId": "688141bd-5cf3-4bd8-971f-300a47a23537",
+        "duracionSegundos": 3840
+      },
+      {
+        "numero": 5,
+        "titulo": "Clase 5",
+        "provider": "bunny",
+        "videoId": "645a5d78-27de-41cb-b530-c48908362474",
+        "duracionSegundos": 3702
+      },
+      {
+        "numero": 6,
+        "titulo": "Clase 6",
+        "provider": "bunny",
+        "videoId": "45754544-7aec-4d75-baf4-07a26562fabf",
+        "duracionSegundos": 5737
+      },
+      {
+        "numero": 7,
+        "titulo": "Clase 7",
+        "provider": "bunny",
+        "videoId": "c981d5c0-dd57-422c-8d60-41706b5582f0",
+        "duracionSegundos": 4926
+      },
+      {
+        "numero": 8,
+        "titulo": "Clase 8",
+        "provider": "bunny",
+        "videoId": "337d457e-d102-47d9-9635-a572a3614e8c",
+        "duracionSegundos": 3918
       }
     ]
   }
