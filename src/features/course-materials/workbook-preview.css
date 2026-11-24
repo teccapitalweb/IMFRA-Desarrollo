@@ -1,0 +1,15 @@
+.workbook-preview{height:100%;display:flex;flex-direction:column;background:#f4f3ef;color:#202124;font-family:Inter,system-ui,sans-serif}
+.workbook-preview__sheets{display:flex;align-items:center;gap:12px;padding:10px 14px;background:#fff;border-bottom:1px solid #d6d4ce;font-size:13px;font-weight:700}
+.workbook-preview__sheets select{min-width:0;max-width:65%;height:34px;padding:0 8px;border:1px solid #d6d4ce;border-radius:5px;background:#fff;color:inherit;font:inherit}
+.workbook-preview__sheets small{margin-inline-start:auto;color:#56534d;font-size:11px;font-weight:500;text-align:end}
+.workbook-preview__scroll{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;background:#fafaf8}
+.workbook-preview__grid{position:relative;min-height:100%;background:#fff}
+.workbook-preview__grid table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;line-height:1.3}
+.workbook-preview__grid th,.workbook-preview__grid td{border:1px solid #dfdfd9;padding:0 4px;vertical-align:middle}
+.workbook-preview__grid td div{overflow:hidden;text-overflow:ellipsis;white-space:pre;box-sizing:border-box}
+.workbook-preview__grid td div.is-wrapped{white-space:pre-wrap}
+.workbook-preview__grid th{background:#f1f1ed;color:#53534d;font-weight:600;text-align:center;font-size:11px}
+.workbook-preview__grid thead{position:sticky;top:0;z-index:2}
+.workbook-preview__grid img{position:absolute;z-index:1;pointer-events:none}
+.workbook-preview__empty{margin:20px;color:#56534d}
+@media(max-width:560px){.workbook-preview__sheets{gap:7px;padding:7px 9px}.workbook-preview__sheets small{font-size:10px}}

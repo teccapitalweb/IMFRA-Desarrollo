@@ -16,6 +16,7 @@ interface BookReaderOptions {
   title: string;
   url: string;
   pages?: number;
+  kind?: "material";
 }
 
 interface MountedReader {
@@ -133,6 +134,8 @@ async function createMobileRangeTask(url: string): Promise<PDFDocumentLoadingTas
 
 function mount(container: HTMLElement, options: BookReaderOptions): MountedReader {
   const safeTitle = escapeHtml(options.title || "Libro IMFRA");
+  const documentLabel = options.kind === "material" ? "archivo" : "libro";
+  const localPreview = options.url.startsWith("blob:");
   let documentProxy: PDFDocumentProxy | null = null;
   let renderTask: RenderTask | null = null;
   let currentPage = Math.max(1, readSavedPage(options.id));
@@ -149,10 +152,10 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
     <div class="imfra-pdf-reader__viewport" data-pdf-viewport>
       <button class="imfra-pdf-reader__edge imfra-pdf-reader__edge--prev" type="button" data-pdf-prev aria-label="Página anterior">${icon('<polyline points="15 18 9 12 15 6"/>')}</button>
       <div class="imfra-pdf-reader__paper" data-pdf-paper>
-        <canvas data-pdf-canvas aria-label="Página del libro"></canvas>
+        <canvas data-pdf-canvas aria-label="Página del ${documentLabel}"></canvas>
       </div>
       <button class="imfra-pdf-reader__edge imfra-pdf-reader__edge--next" type="button" data-pdf-next aria-label="Página siguiente">${icon('<polyline points="9 18 15 12 9 6"/>')}</button>
-      <div class="imfra-pdf-reader__status" data-pdf-status><span class="imfra-pdf-reader__spinner"></span><strong>Preparando el libro</strong><small>Esto puede tardar unos segundos la primera vez.</small></div>
+      <div class="imfra-pdf-reader__status" data-pdf-status><span class="imfra-pdf-reader__spinner"></span><strong>Preparando el ${documentLabel}</strong><small>Esto puede tardar unos segundos la primera vez.</small></div>
     </div>
     <div class="imfra-pdf-reader__toolbar" aria-label="Controles del lector">
       <button type="button" data-pdf-prev aria-label="Página anterior">${icon('<polyline points="15 18 9 12 15 6"/>')}</button>
@@ -165,9 +168,9 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
       <button class="imfra-pdf-reader__fit" type="button" data-pdf-fit>Ajustar</button>
       <span class="imfra-pdf-reader__hint">Usa ← → para avanzar</span>
     </div>
-    <button class="imfra-pdf-reader__progress" type="button" data-pdf-progress aria-label="Progreso del libro"><i></i></button>
+    <button class="imfra-pdf-reader__progress" type="button" data-pdf-progress aria-label="Progreso del ${documentLabel}"><i></i></button>
     <div class="imfra-pdf-reader__error" data-pdf-error hidden>
-      <strong>No pudimos cargar este libro.</strong>
+      <strong>No pudimos cargar este ${documentLabel}.</strong>
       <span>Comprueba tu conexión y vuelve a intentarlo en unos segundos.</span>
       <button type="button" data-pdf-retry>Reintentar</button>
     </div>
@@ -326,14 +329,15 @@ function mount(container: HTMLElement, options: BookReaderOptions): MountedReade
 
   async function openDocument() {
     try {
-      if (isIOSDevice()) {
+      if (!localPreview && isIOSDevice()) {
         await openNativeDocument();
         return;
       }
       nativeMode = false;
       await loadingTask?.destroy();
       loadingTask = null;
-      const mobile = isMobileDevice();
+      if (destroyed) return;
+      const mobile = !localPreview && isMobileDevice();
       loadingTask = mobile
         ? await createMobileRangeTask(options.url)
         : getDocument({ url: options.url, rangeChunkSize: MOBILE_RANGE_CHUNK });

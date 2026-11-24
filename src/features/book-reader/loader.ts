@@ -9,7 +9,10 @@ declare global {
 let loading: Promise<void> | null = null;
 
 window.loadIMFRABookReader = () => {
-  if (!loading) loading = import("./book-reader").then(() => undefined);
+  if (!loading) loading = import("./book-reader").then(() => undefined).catch(error => {
+    loading = null;
+    throw error;
+  });
   return loading;
 };
 

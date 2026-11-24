@@ -553,7 +553,7 @@ function gameMemorama(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "memo
     const pair = pairs.findIndex((_, i) => !matched.has(i));
     if (pair < 0) return;
     completePair(pair);
-    ctx.feedback("Pareja encontrada. Puedes pedir otra cuando quieras.", "ok");
+    if (matched.size < pairs.length) ctx.feedback("Pareja encontrada.", "ok");
   });
   stage.querySelector(".cg-memo")!.addEventListener("click", (event) => {
     const btn = (event.target as Element).closest<HTMLElement>("[data-i]");
@@ -788,7 +788,7 @@ function gameCompletar(stage: HTMLElement, cfg: Extract<GameConfig, { tipo: "com
     const word = bank.find((w) => w.id === chip.dataset.word)!;
     const blank = blanks[target];
     if (!blank || filled.has(target)) return;
-    if (normalizeWord(word.text) !== normalizeWord(answers[target])) {
+    if (word.text !== answers[target]) {
       blank.classList.remove("cg-shake"); void blank.offsetWidth; blank.classList.add("cg-shake");
       ctx.feedback(`“${word.text}” no completa bien esa parte. Prueba con otra palabra.`, "error");
       stage.querySelector(`[data-word="a${target}"]`)?.classList.add("is-hint");
@@ -1011,12 +1011,6 @@ function play(options: PlayOptions): Promise<boolean> {
         continueBtn.disabled = false;
         continueBtn.focus({ preventScroll: true });
         celebrate("big");
-        // Cofre con monedas y créditos ganados, al momento de superar el reto.
-        if (options.creditos && options.creditos > 0) {
-          const amount = options.creditos;
-          const balance = window.IMFRACredits?.getBalance?.();
-          window.setTimeout(() => window.IMFRACoinChest?.show({ amount, total: typeof balance === "number" ? balance + amount : undefined, title: "¡Mini juego superado!" }), 700);
-        }
         options.onWin?.();
       }
     };

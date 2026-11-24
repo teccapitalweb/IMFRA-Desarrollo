@@ -6016,27 +6016,67 @@ const Sections = (function(){
   };
 
   let materialObjectUrl = '';
+  let materialPreviewController = null;
+  let mountedMaterialReader = null;
+  let materialOpenVersion = 0;
+  let visorPreviousFocus = null;
 
-  window.abrirVisor = function(url, titulo, cursoId, numClase, nombreOriginal) {
+  function limpiarVistaMaterial() {
+    materialPreviewController?.abort();
+    materialPreviewController = null;
+    mountedMaterialReader?.destroy();
+    mountedMaterialReader = null;
+    const host = document.getElementById('visorMaterialPreview');
+    if (host) {
+      host.replaceChildren();
+      host.hidden = true;
+    }
+    if (materialObjectUrl) URL.revokeObjectURL(materialObjectUrl);
+    materialObjectUrl = '';
+  }
+
+  async function montarVistaMaterial(host, url, titulo, vista, signal) {
+    host.innerHTML = '<p class="visor-material-status" role="status">Preparando la vista previa…</p>';
+    try {
+      if (vista.tipo === 'excel') {
+        await window.IMFRAWorkbookPreview.mount(host, vista.blob, signal);
+        return;
+      }
+      await window.loadIMFRABookReader();
+      if (signal.aborted) return;
+      mountedMaterialReader = window.IMFRABookReader.mount(host, { id: vista.id, title: titulo, url, kind: 'material' });
+    } catch (error) {
+      if (!signal.aborted) host.innerHTML = '<p class="visor-material-status" role="alert">No pudimos mostrar la vista previa. Puedes descargar el archivo desde el botón de arriba.</p>';
+    }
+  }
+
+  window.abrirVisor = function(url, titulo, cursoId, numClase, nombreOriginal, vista) {
     if (!url) return;
     const overlay = document.getElementById('visorOverlay');
     const frame = document.getElementById('visorFrame');
     const titleEl = document.getElementById('visorTitle');
     const dlEl = document.getElementById('visorDownload');
     const markBtn = document.getElementById('visorMarkAsViewed');
+    const host = document.getElementById('visorMaterialPreview');
     if (!overlay || !frame) return;
 
-    if (materialObjectUrl) URL.revokeObjectURL(materialObjectUrl);
+    if (overlay.style.display !== 'flex') visorPreviousFocus = document.activeElement;
+    limpiarVistaMaterial();
     materialObjectUrl = url.startsWith('blob:') ? url : '';
-    frame.src = urlVistaPreviaMaterial(url);
+    frame.hidden = Boolean(vista);
+    frame.src = vista ? 'about:blank' : urlVistaPreviaMaterial(url);
     titleEl.textContent = titulo || 'Visor';
     if (dlEl) {
-      dlEl.href = urlDescargaMaterial(url);
+      dlEl.href = vista?.descargarOriginal ? '#' : urlDescargaMaterial(url);
       dlEl.download = nombreArchivoMaterial(nombreOriginal || titulo, url);
       dlEl.style.display = 'inline-flex';
       dlEl.title = 'Descargar archivo';
       dlEl.onclick = (event) => {
         event.preventDefault();
+        if (vista?.descargarOriginal) {
+          vista.descargarOriginal();
+          return;
+        }
         window.descargarMaterialIMFRA(url, nombreOriginal || titulo);
       };
     }
@@ -6069,6 +6109,12 @@ const Sections = (function(){
 
     overlay.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    if (vista && host) {
+      host.hidden = false;
+      materialPreviewController = new AbortController();
+      void montarVistaMaterial(host, url, titulo, vista, materialPreviewController.signal);
+    }
+    document.getElementById('visorClose')?.focus({ preventScroll: true });
   };
 
   // Vista previa gratuita del primer curso. Todas las clases Bunny solicitan
@@ -6144,25 +6190,35 @@ const Sections = (function(){
       return;
     }
     if (material.fileId) {
+      const version = descargar ? 0 : ++materialOpenVersion;
+      const hash = location.hash;
       try {
         const user = window.__currentUser || window.__auth?.currentUser;
         if (!user) throw new Error('Inicia sesión para abrir este archivo.');
         const token = await user.getIdToken();
-        const endpoint = `/api/bunny/course-material/${encodeURIComponent(material.collectionId)}/${encodeURIComponent(material.fileId)}`;
+        const esPlano = material.tipo === 'dwg';
+        const endpoint = `/api/bunny/course-material/${encodeURIComponent(material.collectionId)}/${encodeURIComponent(material.fileId)}${esPlano && !descargar ? '?preview=1' : ''}`;
         const response = await fetch(window.WEBHOOK_URL + endpoint, { headers: { Authorization: `Bearer ${token}` } });
         if (!response.ok) {
           const error = await response.json().catch(() => ({}));
           throw new Error(error.error || 'Intenta de nuevo.');
         }
-        const url = URL.createObjectURL(await response.blob());
-        if (descargar || material.tipo !== 'pdf') {
+        const blob = await response.blob();
+        if (!descargar && (version !== materialOpenVersion || hash !== location.hash)) return;
+        const url = URL.createObjectURL(blob);
+        if (descargar) {
           window.descargarMaterialIMFRA(url, material.archivo);
           setTimeout(() => URL.revokeObjectURL(url), 30000);
         } else {
-          window.abrirVisor(url, material.titulo, null, null, material.archivo);
+          window.abrirVisor(url, material.titulo, null, null, material.archivo, {
+            id: `material:${material.collectionId}:${material.fileId}`,
+            tipo: material.tipo,
+            blob,
+            descargarOriginal: esPlano ? () => window.abrirMaterialIMFRA(cursoId, materialIdx, true) : null
+          });
         }
       } catch (error) {
-        Toast.error('No pudimos abrir el archivo', error.message);
+        if (descargar || (hash === location.hash && version === materialOpenVersion)) Toast.error('No pudimos abrir el archivo', error.message);
       }
       return;
     }
@@ -6204,15 +6260,18 @@ const Sections = (function(){
     const overlay = document.getElementById('visorOverlay');
     const frame = document.getElementById('visorFrame');
     const container = overlay?.querySelector('.visor-container');
+    materialOpenVersion++;
     if (document.fullscreenElement === container) document.exitFullscreen().catch(() => {});
     if (overlay) overlay.style.display = 'none';
     if (frame) {
       frame.src = ''; // detener video
+      frame.hidden = false;
       delete frame.dataset.bunnyRequest;
     }
-    if (materialObjectUrl) URL.revokeObjectURL(materialObjectUrl);
-    materialObjectUrl = '';
+    limpiarVistaMaterial();
     document.body.style.overflow = '';
+    if (visorPreviousFocus?.isConnected) visorPreviousFocus.focus({ preventScroll: true });
+    visorPreviousFocus = null;
   };
 
   // Bind del botón de cerrar y tecla Esc (una sola vez al cargar)
@@ -6847,9 +6906,12 @@ const Sections = (function(){
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || 'No se pudieron acreditar los créditos');
       if (data.awarded) {
-        // El cofre con monedas ya se mostró dentro del mini juego al ganarlo;
-        // aquí solo se actualiza el saldo (o se avisa si el cofre no cargó).
-        if (!window.IMFRACoinChest) Toast.success(`+${data.credits} Créditos IMFRA`, 'Por ganar el mini juego de la clase');
+        const amount = Number(data.credits);
+        if (window.IMFRACoinChest && amount > 0) {
+          window.IMFRACoinChest.show({ amount, total: data.balance, title: '¡Mini juego superado!' });
+        } else if (amount > 0) {
+          Toast.success(`+${amount} Créditos IMFRA`, 'Por ganar el mini juego de la clase');
+        }
         window.IMFRACredits?.hydrate?.(true);
       }
     } catch (error) {
@@ -7090,7 +7152,7 @@ const Sections = (function(){
       <div class="course-detail-layout">
         <main class="course-detail-main">
           <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Ruta de aprendizaje</span><h3>Temario</h3></div><b>${progCurso.clasesVistas.length}/${sesiones.length}</b></div><div class="course-lessons">${clasesHtml}</div></section>
-          <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Recursos incluidos</span><h3>Material del curso</h3></div><b>${materialesCurso.length}</b></div><p class="course-detail-section__intro">Abre los PDF en el visor o usa el ícono de descarga para guardar los archivos.</p><div class="course-materials">${materialesHtml}</div></section>
+          <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Recursos incluidos</span><h3>Material del curso</h3></div><b>${materialesCurso.length}</b></div><p class="course-detail-section__intro">Abre un material para verlo en el visor. Usa el ícono de descarga para guardar el archivo original.</p><div class="course-materials">${materialesHtml}</div></section>
         </main>
         <aside class="course-detail-progress">
           <span>Tu avance</span><div class="course-detail-progress__top"><strong>${progCurso.clasesVistas.length} de ${sesiones.length} clases</strong><i style="--progress:${pct*3.6}deg"><b>${pct}%</b></i></div>
@@ -12686,7 +12748,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 
 <!-- ═══ Visor embebido (clases + materiales) · estilo Sinergia ═══ -->
-<div id="visorOverlay" class="visor-overlay" style="display:none;">
+<div id="visorOverlay" class="visor-overlay" role="dialog" aria-modal="true" aria-labelledby="visorTitle" style="display:none;">
   <div class="visor-container">
     <div class="visor-header">
       <div class="visor-title" id="visorTitle">Cargando...</div>
@@ -12708,6 +12770,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     </div>
     <div class="visor-frame-wrap">
       <iframe id="visorFrame" class="visor-frame" src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      <div id="visorMaterialPreview" class="visor-material-preview" hidden></div>
     </div>
   </div>
 </div>
@@ -12724,6 +12787,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .visor-btn--close:hover{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.5);color:#EF4444}
 .visor-frame-wrap{flex:1;background:#000;position:relative;overflow:hidden}
 .visor-frame{width:100%;height:100%;border:0;background:#000}
+.visor-material-preview{position:absolute;inset:0;background:#252525;color:#fff}
+.visor-material-status{margin:0;padding:24px;position:absolute;inset:0;display:grid;place-content:center;text-align:center;font-size:14px}
 @media (max-width:560px){.visor-overlay{padding:8px}.visor-container{height:94vh;border-radius:14px}.visor-header{padding:11px 14px}}
 </style>
 <style>
@@ -13966,6 +14031,7 @@ body{letter-spacing:-.05px}
 <script type="module" src="./src/features/templates/templates.ts"></script>
 <script type="module" src="./src/features/budgets/budgets.ts"></script>
 <script type="module" src="./src/features/book-reader/loader.ts"></script>
+<script type="module" src="./src/features/course-materials/workbook-preview.ts"></script>
 <script type="module" src="./src/features/class-games/class-games.ts"></script>
 <script src="assets/imfra-course-unlocks.js?v=1"></script>
 <script src="assets/imfra-course-library.js?v=2"></script>

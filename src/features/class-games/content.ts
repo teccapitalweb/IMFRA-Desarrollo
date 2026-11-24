@@ -2,6 +2,8 @@
 // Los cursos se reconocen por su título (igual que los títulos editoriales del
 // panel), así que una resincronización con Bunny no borra los juegos.
 
+import { COSTOS_Y_PRESUPUESTOS, DIRECCION_DE_PROYECTOS, PROCESOS_CONSTRUCTIVOS, TOPOGRAFIA_APLICADA } from "./construction-courses";
+
 export type PlanKind = "obra" | "planta";
 export type SiteSceneKind = "izaje" | "excavacion" | "colado" | "andamio";
 
@@ -364,6 +366,11 @@ const GENERALES: GameConfig[] = [
 
 function grupoCurso(tituloCurso: string): GameConfig[] {
   const t = String(tituloCurso || "").toLowerCase();
+  const normalizado = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  if (normalizado === "costos y presupuestos de obra") return COSTOS_Y_PRESUPUESTOS;
+  if (normalizado === "direccion de proyectos de construccion") return DIRECCION_DE_PROYECTOS;
+  if (normalizado === "procesos constructivos") return PROCESOS_CONSTRUCTIVOS;
+  if (normalizado === "topografia aplicada a proyectos") return TOPOGRAFIA_APLICADA;
   if (t.includes("calidad") || t.includes("9001")) return CALIDAD;
   if (t.includes("generador") || t.includes("estimacion") || t.includes("estimación")) return GENERADORES;
   if (t.includes("superintend")) return SUPERINTENDENCIA;
