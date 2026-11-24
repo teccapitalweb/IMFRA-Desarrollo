@@ -1,4 +1,4 @@
-// Catálogo Bunny Stream de IMFRA · librería 755984 · 3 cursos · 29 videos.
+// Catálogo Bunny Stream de IMFRA · librería 755984 · 5 cursos · 49 videos.
 // Generado desde el log de subida. Títulos, área y descripción se pueden editar en vip-admin.
 window.IMFRA_BUNNY_CATALOG = [
   {
@@ -237,6 +237,170 @@ window.IMFRA_BUNNY_CATALOG = [
         "provider": "bunny",
         "videoId": "4dff0ae7-dfee-4f18-9931-198665ce6d12",
         "duracionSegundos": 0
+      }
+    ]
+  },
+  {
+    "titulo": "Dirección de proyectos de construcción",
+    "area": "Proyectos",
+    "descripcion": "Estudia la dirección de proyectos de construcción, desde la planeación hasta el seguimiento de la ejecución. Incluye presentaciones para repasar las sesiones.",
+    "horas": 10.1,
+    "instructor": "Equipo IMFRA",
+    "nivel": "Intermedio",
+    "portada": "assets/cursos/direccion-de-proyectos-de-construccion.jpg",
+    "collectionId": "folder-direccion-de-proyectos-de-construccion",
+    "sesiones": [
+      {
+        "numero": 1,
+        "titulo": "Clase 1",
+        "provider": "bunny",
+        "videoId": "16c5022b-da77-4783-b29c-19b84462d4bd",
+        "duracionSegundos": 3570
+      },
+      {
+        "numero": 2,
+        "titulo": "Clase 2",
+        "provider": "bunny",
+        "videoId": "ce31576d-8b53-41f5-b84e-671072b2e418",
+        "duracionSegundos": 3476
+      },
+      {
+        "numero": 3,
+        "titulo": "Clase 3",
+        "provider": "bunny",
+        "videoId": "1fff079f-ae08-4ec8-84e6-b00e0bff9334",
+        "duracionSegundos": 3657
+      },
+      {
+        "numero": 4,
+        "titulo": "Clase 4",
+        "provider": "bunny",
+        "videoId": "666acdae-9d35-4d22-b34f-74659fbece91",
+        "duracionSegundos": 3783
+      },
+      {
+        "numero": 5,
+        "titulo": "Clase 5",
+        "provider": "bunny",
+        "videoId": "c71e372b-fee9-4e21-85fc-c046b45d54fb",
+        "duracionSegundos": 3662
+      },
+      {
+        "numero": 6,
+        "titulo": "Clase 6",
+        "provider": "bunny",
+        "videoId": "d015a3fa-69c4-4a95-b5ca-a7841f181ea6",
+        "duracionSegundos": 3617
+      },
+      {
+        "numero": 7,
+        "titulo": "Clase 7",
+        "provider": "bunny",
+        "videoId": "3613dc4b-ca7c-49de-ac05-cfac77f1b640",
+        "duracionSegundos": 3538
+      },
+      {
+        "numero": 8,
+        "titulo": "Clase 8",
+        "provider": "bunny",
+        "videoId": "83a738fc-533b-462a-887f-50f87bc1844a",
+        "duracionSegundos": 3684
+      },
+      {
+        "numero": 9,
+        "titulo": "Clase 9",
+        "provider": "bunny",
+        "videoId": "30129c7f-872a-4c1d-a276-6da3dca5e06d",
+        "duracionSegundos": 3540
+      },
+      {
+        "numero": 10,
+        "titulo": "Clase 10",
+        "provider": "bunny",
+        "videoId": "9e8abdde-30ee-4495-b8ec-be7e96317b00",
+        "duracionSegundos": 3783
+      }
+    ]
+  },
+  {
+    "titulo": "Procesos constructivos",
+    "area": "Obra",
+    "descripcion": "Recorre la ejecución de una obra de vivienda, desde la preparación del terreno y la cimentación hasta los muros, las estructuras de concreto y los sistemas de cubierta.",
+    "horas": 11.3,
+    "instructor": "Equipo IMFRA",
+    "nivel": "Intermedio",
+    "portada": "assets/cursos/procesos-constructivos.jpg",
+    "collectionId": "folder-procesos-constructivos",
+    "sesiones": [
+      {
+        "numero": 1,
+        "titulo": "Clase 1",
+        "provider": "bunny",
+        "videoId": "245e4188-0a03-4857-8383-7530c57c4383",
+        "duracionSegundos": 3780
+      },
+      {
+        "numero": 2,
+        "titulo": "Clase 2",
+        "provider": "bunny",
+        "videoId": "8f148665-79e8-4b63-8456-9a1f482ac51b",
+        "duracionSegundos": 4108
+      },
+      {
+        "numero": 3,
+        "titulo": "Clase 3",
+        "provider": "bunny",
+        "videoId": "86b47d70-1965-402b-b965-32b89ac6cc35",
+        "duracionSegundos": 3767
+      },
+      {
+        "numero": 4,
+        "titulo": "Clase 4",
+        "provider": "bunny",
+        "videoId": "f4f7a1d3-947f-4b66-9815-177cbb69d7db",
+        "duracionSegundos": 4404
+      },
+      {
+        "numero": 5,
+        "titulo": "Clase 5",
+        "provider": "bunny",
+        "videoId": "d7a4f337-384c-4232-bdf5-3abf42cfa8ff",
+        "duracionSegundos": 4019
+      },
+      {
+        "numero": 6,
+        "titulo": "Clase 6",
+        "provider": "bunny",
+        "videoId": "9354bb13-dccf-4923-82a2-e67fa9aa1525",
+        "duracionSegundos": 4718
+      },
+      {
+        "numero": 7,
+        "titulo": "Clase 7",
+        "provider": "bunny",
+        "videoId": "0bd20ee6-f2c7-45c1-adb4-b96f4b9ce476",
+        "duracionSegundos": 3685
+      },
+      {
+        "numero": 8,
+        "titulo": "Clase 8",
+        "provider": "bunny",
+        "videoId": "6a75be65-4736-42f0-81d2-bcd73e11c4af",
+        "duracionSegundos": 4661
+      },
+      {
+        "numero": 9,
+        "titulo": "Clase 9",
+        "provider": "bunny",
+        "videoId": "ee9a83f9-b3cd-46af-b935-92b95613a7b6",
+        "duracionSegundos": 4162
+      },
+      {
+        "numero": 10,
+        "titulo": "Clase 10",
+        "provider": "bunny",
+        "videoId": "abce6b25-604c-4824-b845-36055ce6c833",
+        "duracionSegundos": 3555
       }
     ]
   }

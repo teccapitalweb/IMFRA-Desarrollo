@@ -3519,7 +3519,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="assets/imfra-bunny-catalog.js?v=20260817-real"></script>
+<script src="assets/imfra-bunny-catalog.js?v=20261123"></script>
 <script src="assets/imfra-materials-catalog.js?v=20261020-1"></script>
 
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
@@ -6015,7 +6015,9 @@ const Sections = (function(){
     enlace.remove();
   };
 
-  window.abrirVisor = function(url, titulo, cursoId, numClase) {
+  let materialObjectUrl = '';
+
+  window.abrirVisor = function(url, titulo, cursoId, numClase, nombreOriginal) {
     if (!url) return;
     const overlay = document.getElementById('visorOverlay');
     const frame = document.getElementById('visorFrame');
@@ -6024,16 +6026,18 @@ const Sections = (function(){
     const markBtn = document.getElementById('visorMarkAsViewed');
     if (!overlay || !frame) return;
 
+    if (materialObjectUrl) URL.revokeObjectURL(materialObjectUrl);
+    materialObjectUrl = url.startsWith('blob:') ? url : '';
     frame.src = urlVistaPreviaMaterial(url);
     titleEl.textContent = titulo || 'Visor';
     if (dlEl) {
       dlEl.href = urlDescargaMaterial(url);
-      dlEl.download = nombreArchivoMaterial(titulo, url);
+      dlEl.download = nombreArchivoMaterial(nombreOriginal || titulo, url);
       dlEl.style.display = 'inline-flex';
       dlEl.title = 'Descargar archivo';
       dlEl.onclick = (event) => {
         event.preventDefault();
-        window.descargarMaterialIMFRA(url, titulo);
+        window.descargarMaterialIMFRA(url, nombreOriginal || titulo);
       };
     }
 
@@ -6117,8 +6121,7 @@ const Sections = (function(){
     navigateToSection(`curso/${encodeURIComponent(String(cursoId))}/clase/${numClase}`);
   };
 
-  window.abrirMaterialIMFRA = function(cursoId, materialIdx) {
-    const curso = cursos.find(x => String(x.id) === String(cursoId));
+  window.abrirMaterialIMFRA = async function(cursoId, materialIdx, descargar = false) {
     const material = _materialesDelCurso(cursoId)[materialIdx];
     if (!material) {
       Toast.error('Material no encontrado', 'Actualiza la página e intenta de nuevo');
@@ -6140,11 +6143,35 @@ const Sections = (function(){
       }
       return;
     }
+    if (material.fileId) {
+      try {
+        const user = window.__currentUser || window.__auth?.currentUser;
+        if (!user) throw new Error('Inicia sesión para abrir este archivo.');
+        const token = await user.getIdToken();
+        const endpoint = `/api/bunny/course-material/${encodeURIComponent(material.collectionId)}/${encodeURIComponent(material.fileId)}`;
+        const response = await fetch(window.WEBHOOK_URL + endpoint, { headers: { Authorization: `Bearer ${token}` } });
+        if (!response.ok) {
+          const error = await response.json().catch(() => ({}));
+          throw new Error(error.error || 'Intenta de nuevo.');
+        }
+        const url = URL.createObjectURL(await response.blob());
+        if (descargar || material.tipo !== 'pdf') {
+          window.descargarMaterialIMFRA(url, material.archivo);
+          setTimeout(() => URL.revokeObjectURL(url), 30000);
+        } else {
+          window.abrirVisor(url, material.titulo, null, null, material.archivo);
+        }
+      } catch (error) {
+        Toast.error('No pudimos abrir el archivo', error.message);
+      }
+      return;
+    }
     if (!material.url) {
       Toast.info('Material pendiente', 'Este archivo todavía no tiene un enlace asignado');
       return;
     }
-    window.abrirVisor(material.url, material.titulo || 'Material del curso');
+    if (descargar) window.descargarMaterialIMFRA(material.url, material.titulo || 'Material del curso');
+    else window.abrirVisor(material.url, material.titulo || 'Material del curso');
   };
 
   function actualizarBotonVisorPantallaCompleta() {
@@ -6183,6 +6210,8 @@ const Sections = (function(){
       frame.src = ''; // detener video
       delete frame.dataset.bunnyRequest;
     }
+    if (materialObjectUrl) URL.revokeObjectURL(materialObjectUrl);
+    materialObjectUrl = '';
     document.body.style.overflow = '';
   };
 
@@ -6442,7 +6471,7 @@ const Sections = (function(){
     } catch (e) {
       console.warn('No se pudieron cargar cursos de Firestore:', e.message);
       // Bunny es la fuente editorial del catálogo. Si Firestore no responde
-      // (modo demo, conexión lenta u offline), conservamos los 12 cursos.
+      // Conserva el catálogo disponible en modo demo o si la conexión falla.
       const catalogo = Array.isArray(window.IMFRA_BUNNY_CATALOG) ? window.IMFRA_BUNNY_CATALOG : [];
       cursos = catalogo.map((bunny, i) => {
         const sesiones = sesionesConBunny(bunny.titulo, [], bunny.collectionId);
@@ -6745,11 +6774,12 @@ const Sections = (function(){
     const grupo = tituloCurso.includes('calidad') || tituloCurso.includes('9001') ? CLASES_EDITORIALES.calidad
       : tituloCurso.includes('generador') || tituloCurso.includes('estimacion') ? CLASES_EDITORIALES.generadores
       : tituloCurso.includes('superintend') ? CLASES_EDITORIALES.superintendencia : null;
-    return grupo?.[index] || `Aplicación profesional · ${curso?.area || 'Construcción'}`;
+    return grupo?.[index] || tituloOriginal || `Clase ${index + 1}`;
   }
 
   function contenidoClaseEditorial(curso, sesion, index){
     const titulo = tituloClaseEditorial(curso, sesion, index);
+    if (sesion?.duracionSegundos > 0) return { titulo, resumen: curso.descripcion || '', conceptos: [] };
     const area = curso?.area || 'Construcción';
     const resumen = `Aprende a aplicar ${titulo.toLowerCase()} con criterios verificables, evidencia de campo y control profesional dentro de un proyecto de construcción.`;
     const conceptos = [
@@ -6848,7 +6878,7 @@ const Sections = (function(){
     if(esperarDesbloqueosCurso(container))return;
     const motivo=motivoBloqueoClase(cursoId,sesionIdx,sesiones);
     if(motivo){
-      if(motivo.tipo==='secuencia')Toast.info('Primero termina la clase anterior',`Marca como vista la clase ${motivo.numPrev} para abrir esta.`);
+      if(motivo.tipo==='secuencia')Toast.info('Primero termina la clase anterior','Marca la sesión anterior como vista para abrir esta.');
       else if (motivo.tipo === 'membresia') window.__showPaywallModal?.({title:'Clase exclusiva para miembros',sub:'Activa tu membresía para continuar con el curso completo.',cta:'Ir a Suscripción'});
       navigateToSection('curso/'+encodeURIComponent(String(cursoId)));
       return;
@@ -6861,7 +6891,9 @@ const Sections = (function(){
     const siguiente=sesiones[sesionIdx+1]||null;
     const siguienteNum=siguiente?(siguiente.numero||sesionIdx+2):null;
     const siguienteAbierta=siguiente?claseDesbloqueada(cursoId,sesionIdx+1,sesiones):false;
-    const minutos=Math.max(25,Math.round(((Number(curso.horas)||sesiones.length)*60)/Math.max(1,sesiones.length)));
+    const minutos=sesion.duracionSegundos > 0
+      ? Math.max(1, Math.round(sesion.duracionSegundos / 60))
+      : Math.max(25,Math.round(((Number(curso.horas)||sesiones.length)*60)/Math.max(1,sesiones.length)));
     const juegoInfo=window.IMFRAClassGames?.describe(curso.titulo,sesionIdx)||{nombre:'Mini juego de la clase',instruccion:'Pon a prueba lo que aprendiste con un reto rápido.',icono:'<svg class="ic"><use href="#i-trophy"/></svg>'};
     const juegoGanado=!!window.IMFRAClassGames?.hasWon(String(cursoId),num);
     const conCreditosJuego=!!window.UserState?.uid&&!!curso.bunnyCollectionId;
@@ -6892,16 +6924,15 @@ const Sections = (function(){
             <div class="lesson-player__status" data-lesson-player-status><div class="sub-loading__spin"></div><strong>Preparando la clase</strong><small>Estamos autorizando la reproducción segura.</small></div>
           </section>
           <section class="lesson-heading">
-            <div><span>Clase ${num} de ${sesiones.length} · ${minutos} min</span><h1>${escapeHtml(contenido.titulo)}</h1><div class="lesson-heading__progress"><i style="width:${((sesionIdx+(yaVista?1:0))/sesiones.length)*100}%"></i><small>${progreso.clasesVistas.length} de ${sesiones.length} vistas · ${progresoCursoPct(cursoId,sesiones.length)}%</small></div></div>
+            <div><span>Sesión ${sesionIdx + 1} de ${sesiones.length} · ${minutos} min</span><h1>${escapeHtml(contenido.titulo)}</h1><div class="lesson-heading__progress"><i style="width:${((sesionIdx+(yaVista?1:0))/sesiones.length)*100}%"></i><small>${progreso.clasesVistas.length} de ${sesiones.length} vistas · ${progresoCursoPct(cursoId,sesiones.length)}%</small></div></div>
             <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete>${yaVista?(siguiente?'Continuar a la siguiente':'Volver al curso'):'Completar evaluación'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </section>
           ${panelEstudioHtml('lesson-side--mobile')}
-          ${siguiente?`<button type="button" class="lesson-next ${siguienteAbierta?'is-ready':''}" data-lesson-next ${!siguienteAbierta?'disabled':''}><span class="lesson-next__thumb" style="background-image:linear-gradient(90deg,rgba(9,9,8,.24),rgba(9,9,8,.58)),url('${curso.portada||PORTADA_DEFAULT}')"></span><span><small>A continuación · clase ${siguienteNum}</small><strong>${escapeHtml(tituloClaseEditorial(curso,siguiente,sesionIdx+1))}</strong><em>${siguienteAbierta?'Lista para continuar':'Se desbloquea al marcar esta clase como vista'}</em></span><svg class="ic"><use href="#${siguienteAbierta?'i-arrow-right':'i-shield-check'}"/></svg></button>`:''}
+          ${siguiente?`<button type="button" class="lesson-next ${siguienteAbierta?'is-ready':''}" data-lesson-next ${!siguienteAbierta?'disabled':''}><span class="lesson-next__thumb" style="background-image:linear-gradient(90deg,rgba(9,9,8,.24),rgba(9,9,8,.58)),url('${curso.portada||PORTADA_DEFAULT}')"></span><span><small>A continuación</small><strong>${escapeHtml(tituloClaseEditorial(curso,siguiente,sesionIdx+1))}</strong><em>${siguienteAbierta?'Lista para continuar':'Se desbloquea al marcar esta clase como vista'}</em></span><svg class="ic"><use href="#${siguienteAbierta?'i-arrow-right':'i-shield-check'}"/></svg></button>`:''}
 
           <section class="lesson-summary-card">
-            <span class="lesson-section-kicker">Resumen de la clase</span><h2>Resumen</h2><p>${escapeHtml(contenido.resumen)}</p>
-            <h3>Conceptos clave</h3><div class="lesson-concepts">${contenido.conceptos.map(c=>`<div><time>${c.tiempo}</time><span>${escapeHtml(c.texto)}</span></div>`).join('')}</div>
-            <footer><svg class="ic"><use href="#i-shield-check"/></svg>Material revisado por el equipo técnico de IMFRA</footer>
+            <h2>${contenido.conceptos.length ? 'Resumen de la clase' : 'Acerca del curso'}</h2><p>${escapeHtml(contenido.resumen)}</p>
+            ${contenido.conceptos.length ? `<h3>Conceptos clave</h3><div class="lesson-concepts">${contenido.conceptos.map(c=>`<div><time>${c.tiempo}</time><span>${escapeHtml(c.texto)}</span></div>`).join('')}</div><footer><svg class="ic"><use href="#i-shield-check"/></svg>Material revisado por el equipo técnico de IMFRA</footer>` : ''}
           </section>
 
           <section class="lesson-game-card" data-lesson-game>
@@ -7009,7 +7040,7 @@ const Sections = (function(){
       const estadoClase = vista ? 'Clase completada' : abierta ? (gratis ? 'Acceso gratuito' : 'Disponible ahora') : 'Próxima clase';
       const detalle = vista ? 'Completada · vuelve a verla cuando quieras'
         : abierta ? (gratis ? 'Clase gratuita · lista para comenzar' : 'Disponible ahora')
-        : motivo?.tipo === 'secuencia' ? `Completa primero la clase ${motivo.numPrev}`
+        : motivo?.tipo === 'secuencia' ? 'Completa primero la sesión anterior'
         : motivo?.tipo === 'membresia' ? 'Activa tu membresía para ver esta clase' : 'Contenido bloqueado';
       return `<button type="button" class="course-lesson ${vista?'is-complete':''} ${!abierta?'is-locked':''}" onclick="window.abrirClaseIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
         <span class="course-lesson__cover" style="background-image:linear-gradient(135deg,rgba(10,10,9,.16),rgba(10,10,9,.68)),url('${portadaClase}');background-position:center ${enfoqueClase}%">
@@ -7021,14 +7052,16 @@ const Sections = (function(){
     }).join('') : `<div class="course-detail-empty">Las clases de este curso se están preparando.</div>`;
 
     const materialesHtml = materialesCurso.length ? materialesCurso.map((material, i) => {
-      const tipo = _inferirTipoMaterial(material.url);
-      const tipoLabel = {excel:'Excel',pdf:'PDF',ppt:'Presentación',doc:'Word'}[tipo] || 'Archivo';
+      const tipo = material.tipo || _inferirTipoMaterial(material.url);
+      const tipoLabel = {excel:'Excel',pdf:'PDF',ppt:'Presentación',doc:'Word',dwg:'AutoCAD (DWG)'}[tipo] || 'Archivo';
       const disponible = materialDesbloqueado(cursoId, i, material);
       const gratis = esMaterialGratisGlobal(cursoId, i);
-      return `<article class="course-material ${!disponible?'is-locked':''}" onclick="window.abrirMaterialIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
-        <span class="course-material__icon"><svg class="ic"><use href="#${disponible?'i-news':'i-shield-check'}"/></svg></span>
-        <span class="course-material__copy"><strong>${material.titulo || 'Material del curso'}</strong><small>${tipoLabel} · ${gratis?'Acceso gratuito':disponible?'Disponible con este curso':'Se habilita con tu acceso'}</small></span>
-        ${disponible ? `<button type="button" class="course-material__download" title="Descargar" aria-label="Descargar ${String(material.titulo||'material').replace(/"/g,'&quot;')}" onclick="event.stopPropagation();window.descargarMaterialIMFRA('${(material.url||'').replace(/'/g,'%27')}','${String(material.titulo||'Material').replace(/'/g,'&apos;')}')"><svg class="ic"><use href="#i-download"/></svg></button>` : ''}
+      return `<article class="course-material ${!disponible?'is-locked':''}" data-bypass-paywall="true">
+        <button type="button" class="course-material__open" onclick="window.abrirMaterialIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i})">
+          <span class="course-material__icon"><svg class="ic" aria-hidden="true"><use href="#${disponible?'i-news':'i-shield-check'}"/></svg></span>
+          <span class="course-material__copy"><strong>${escapeHtml(material.titulo || 'Material del curso')}</strong><small>${tipoLabel} · ${gratis?'Acceso gratuito':disponible?'Disponible con este curso':'Se habilita con tu acceso'}</small></span>
+        </button>
+        ${disponible ? `<button type="button" class="course-material__download" title="Descargar" aria-label="Descargar ${escapeHtml(material.titulo || 'material')}" onclick="window.abrirMaterialIMFRA('${String(cursoId).replace(/'/g,"\\'")}',${i},true)"><svg class="ic" aria-hidden="true"><use href="#i-download"/></svg></button>` : ''}
       </article>`;
     }).join('') : `<div class="course-detail-empty">Este curso todavía no tiene archivos complementarios.</div>`;
 
@@ -7057,7 +7090,7 @@ const Sections = (function(){
       <div class="course-detail-layout">
         <main class="course-detail-main">
           <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Ruta de aprendizaje</span><h3>Temario</h3></div><b>${progCurso.clasesVistas.length}/${sesiones.length}</b></div><div class="course-lessons">${clasesHtml}</div></section>
-          <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Recursos incluidos</span><h3>Material del curso</h3></div><b>${materialesCurso.length}</b></div><p class="course-detail-section__intro">Abre cada archivo para verlo en pantalla y usa el ícono de descarga cuando quieras guardarlo.</p><div class="course-materials">${materialesHtml}</div></section>
+          <section class="course-detail-section"><div class="course-detail-section__head"><div><span>Recursos incluidos</span><h3>Material del curso</h3></div><b>${materialesCurso.length}</b></div><p class="course-detail-section__intro">Abre los PDF en el visor o usa el ícono de descarga para guardar los archivos.</p><div class="course-materials">${materialesHtml}</div></section>
         </main>
         <aside class="course-detail-progress">
           <span>Tu avance</span><div class="course-detail-progress__top"><strong>${progCurso.clasesVistas.length} de ${sesiones.length} clases</strong><i style="--progress:${pct*3.6}deg"><b>${pct}%</b></i></div>
@@ -8106,6 +8139,10 @@ const Sections = (function(){
           cursoDisponibleSiempre: c.disponibleSiempre === true,
           titulo: m.titulo || 'Sin título',
           url: m.url || '',
+          fileId: m.fileId,
+          collectionId: c.bunnyCollectionId,
+          archivo: m.archivo,
+          tipo: m.tipo,
           esRecompensa: false,
           disponibleSiempre: m.disponibleSiempre === true,
           desbloquearEnDias: typeof m.desbloquearEnDias === 'number' ? m.desbloquearEnDias : null
@@ -8126,7 +8163,7 @@ const Sections = (function(){
     catalogo.forEach((m, catalogoIdx) => {
       const tituloKey = claveTitulo(m.titulo);
       const archivoKey = String(m.archivo || claveArchivo(m.url)).toLowerCase();
-      const existenteIdx = out.findIndex(item => claveTitulo(item.titulo) === tituloKey || claveArchivo(item.url) === archivoKey);
+      const existenteIdx = out.findIndex(item => !item.fileId && (claveTitulo(item.titulo) === tituloKey || claveArchivo(item.url) === archivoKey));
       if (existenteIdx >= 0 && m.esRecompensa !== true) {
         // Bunny es la fuente canónica de los binarios: conserva la metadata de
         // Firestore, pero sustituye enlaces antiguos de Drive por el CDN público.
@@ -13753,8 +13790,9 @@ body{letter-spacing:-.05px}
 .course-lesson.is-complete{border-color:color-mix(in srgb,var(--success) 38%,var(--border));background:color-mix(in srgb,var(--success) 4%,var(--surface))}.course-lesson.is-complete .course-lesson__cover>span{background:var(--success);border-color:var(--success);color:#fff}.course-lesson.is-complete .course-lesson__copy em{color:var(--success)}
 .course-lesson.is-locked{background:color-mix(in srgb,var(--surface-2) 58%,var(--surface))}.course-lesson.is-locked .course-lesson__cover{filter:saturate(.24);opacity:.62}.course-lesson.is-locked .course-lesson__cover>span{background:rgba(245,244,240,.9);color:#7e786f}.course-lesson.is-locked .course-lesson__copy strong{color:var(--text-2)}.course-lesson.is-locked .course-lesson__copy em{color:color-mix(in srgb,var(--primary) 72%,var(--text-3))}.course-lesson.is-locked:hover{transform:none;box-shadow:0 7px 20px rgba(0,0,0,.035);border-color:var(--border)}.course-lesson.is-locked:hover .course-lesson__action{transform:none;background:var(--surface-2);border-color:var(--border-2);color:var(--text-3)}
 .course-materials{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.course-material{display:flex;align-items:center;gap:11px;min-width:0;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);cursor:pointer;transition:border-color .15s,background .15s}
+.course-material{display:flex;align-items:center;gap:11px;min-width:0;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface);transition:border-color .15s,background .15s}
 .course-material:hover{border-color:var(--border-strong);background:var(--surface-2)}
+.course-material__open{display:flex;align-items:center;flex:1;gap:11px;min-width:0;padding:0;border:0;background:none;color:inherit;text-align:left;font:inherit;cursor:pointer}
 .course-material__icon{width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;border-radius:10px;background:color-mix(in srgb,var(--primary) 10%,var(--surface-2));color:var(--primary)}
 .course-material__icon .ic{width:18px;height:18px}
 .course-material__copy{display:grid;gap:4px;min-width:0;flex:1}.course-material__copy strong{font-size:12px;line-height:1.35}.course-material__copy small{color:var(--text-3);font-size:10px;line-height:1.35}
