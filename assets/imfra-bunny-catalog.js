@@ -1,4 +1,4 @@
-// Catálogo Bunny Stream de IMFRA · librería 755984 · 6 cursos · 57 videos.
+// Catálogo Bunny Stream de IMFRA · librería 755984 · 7 cursos · 66 videos.
 // Generado desde el log de subida. Títulos, área y descripción se pueden editar en vip-admin.
 window.IMFRA_BUNNY_CATALOG = [
   {
@@ -469,6 +469,81 @@ window.IMFRA_BUNNY_CATALOG = [
         "provider": "bunny",
         "videoId": "337d457e-d102-47d9-9635-a572a3614e8c",
         "duracionSegundos": 3918
+      }
+    ]
+  },
+  {
+    "titulo": "Topografía aplicada a proyectos",
+    "area": "Topografía",
+    "descripcion": "Explora el uso de la topografía en proyectos de construcción y cómo se relacionan las mediciones y el trabajo en campo con la ejecución de una obra.",
+    "horas": 13.8,
+    "instructor": "Equipo IMFRA",
+    "nivel": "Intermedio",
+    "portada": "assets/cursos/topografia-aplicada-a-proyectos.jpg",
+    "collectionId": "folder-topografia-aplicada-a-proyectos",
+    "sesiones": [
+      {
+        "numero": 1,
+        "titulo": "Clase 1",
+        "provider": "bunny",
+        "videoId": "8f5637bc-c008-410d-8506-355ca6d46a25",
+        "duracionSegundos": 4405
+      },
+      {
+        "numero": 2,
+        "titulo": "Clase 2",
+        "provider": "bunny",
+        "videoId": "1ad547a8-7625-4eb0-b498-6b95ae6fd574",
+        "duracionSegundos": 4882
+      },
+      {
+        "numero": 3,
+        "titulo": "Clase 3",
+        "provider": "bunny",
+        "videoId": "18d5efbd-508a-443a-8356-acb7f029370e",
+        "duracionSegundos": 4593
+      },
+      {
+        "numero": 4,
+        "titulo": "Clase 4",
+        "provider": "bunny",
+        "videoId": "e26e9938-2567-45fb-8e75-36cd94dfe442",
+        "duracionSegundos": 3790
+      },
+      {
+        "numero": 5,
+        "titulo": "Clase 5",
+        "provider": "bunny",
+        "videoId": "01ac187e-6d21-4fda-9bf6-e93d0e3ed449",
+        "duracionSegundos": 4266
+      },
+      {
+        "numero": 6,
+        "titulo": "Clase 6",
+        "provider": "bunny",
+        "videoId": "cea809db-9c4e-4a02-86de-ab16a51d4006",
+        "duracionSegundos": 6111
+      },
+      {
+        "numero": 7,
+        "titulo": "Clases 7 y 8",
+        "provider": "bunny",
+        "videoId": "ec357c6d-3891-4c71-bcf1-2dcd7885a4a3",
+        "duracionSegundos": 7258
+      },
+      {
+        "numero": 8,
+        "titulo": "Clase 9",
+        "provider": "bunny",
+        "videoId": "fa74ad2f-6d84-46d2-9d98-dc314b1f7e8c",
+        "duracionSegundos": 6851
+      },
+      {
+        "numero": 9,
+        "titulo": "Clase 10",
+        "provider": "bunny",
+        "videoId": "4cdee1bb-9b23-44c3-a7a4-5f2783c224d9",
+        "duracionSegundos": 7660
       }
     ]
   }
